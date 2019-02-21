@@ -1,0 +1,71 @@
+---
+title: "PK/PD, Exposure-Response - Time to Event"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Multiple_Ascending_Dose_PKPD_time_to_event.Rmd).
+
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+# remove reference to home directory in libPaths
+.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
+
+# add localLib to libPaths for locally installed packages
+.libPaths(c("localLib", .libPaths()))
+
+# will load from first filepath first, then look in .libPaths for more packages not in first path
+# version matches package in first filepath, in the case of multiple instances of a package
+
+# library(rmarkdown)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(dplyr)
+library(RxODE)
+library(caTools)
+library(survival)
+# library(stringr)
+
+
+theme_set(theme_bw(base_size=12))
+
+```
+
+## Explore Exposure-Response Relationship
+
+Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response
+
+
+```{r warning=FALSE}
+
+km_data <- lung %>%
+  mutate(fake_exposure = ph.ecog + age/50) %>%
+  filter(!is.na(fake_exposure)) %>%
+  mutate(expos_quantile= cut(fake_exposure,
+                             breaks=quantile(fake_exposure,c(0,.25,.5,.75,1)),
+                             include.lowest=TRUE,
+                             labels=paste0("Q",c(4,3,2,1))))
+  
+km_fit <- survfit(Surv(time) ~ expos_quantile, data = km_data)
+km_fit2 <- summary(km_fit, times = c(1,30,60,90*(1:10)))
+data = data.frame(time =km_fit2$time, 
+                  surv= km_fit2$surv, 
+                  exposure_quantile = km_fit2$strata) %>%
+  mutate(exposure_quantile = stringr::str_replace(exposure_quantile,"expos_quantile=",""))
+
+gg <- ggplot(data, aes(x=time, y=surv, color = exposure_quantile))
+gg <- gg + geom_line(size = 1)
+gg <- gg + scale_y_continuous(labels=scales::percent_format())
+gg <- gg + ylab("Survival") + xlab("Time")
+gg <- gg + guides(color=guide_legend("")) 
+gg
+```
+
+## R Session Info
+```{r}
+sessionInfo()
+```

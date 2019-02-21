@@ -1,0 +1,81 @@
+---
+title: "Exploratory Graphics (xGx)"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+# Overview
+
+Exploratory plots can be helpful in understanding general behavior of data. They should be used as a first step before approaching modeling, and could even uncover useful insights that can be quickly communicated to project teams without extensive effort. 
+
+Visit the [Guiding Principles](GuidingPrinciples.html) page to get an overview of the general principles to follow when exploring PK/PD data.
+
+This website is composed of Rmarkdown documents, which could be used as templates for generating exploratory plots. The Rmarkdown documents can be accessed on [Gitlab](https://gitlabce.statwb.eu.novartis.net/KHANSFA1/xGx/tree/master/Rmarkdown).
+
+This website displays suggested plots to pursue when exploring different PK/PD datasets, with a focus on exploring the Dose-Exposure-Response relationship. This site is a collection of exploratory plots and code, and could serve as a checklist of graphs someone might create for certain projects.
+
+Some suggestions may be repetitive, so use your judgment to choose the best plot for your purpose and dataset. These plots are for exploratory benefit, and are not all expected to be included in a final report.
+
+Use the navigation menus at the top of the page, or click on an icon below to find the topic for your specific needs.
+
+The graphs on this website were created with [Good Graphics Principles](https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf) in mind. For additional plotting resources in R and SAS, see the [Graph Gallery](https://graphics.statwb.eu.novartis.net/).
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../SiteResources/icon_nav.html")
+```
+
+
+#
+# Motivation
+
+PMX modelers are losing time going back and forth to visualize data
+
+* If we had a checklist of suggested exploratory plots, we could be more efficient in creating these output and not have to go back if we forgot something
+
+PMX modelers can tend to jump to applying mixed effects modeling before considering whether a simple exploratory graph could answer the question
+
+* Having an exploratory graphs checklist will help focus our initial efforts to ensure that we have tried the simple approach first
+
+We are losing programming resources
+
+* We need to become more efficient with data requests, data exploration & data checking
+
+# Use Cases
+
+* New recruits – especially entry level or from different backgrounds who are unfamiliar with exploring data
+* New projects – compounds that have never been explored before, what plots should be looked at?
+* Associates re-assigned to a new disease area – unfamiliar with disease specific end points/PD markers
+* Existing project but with a new end point/PD marker, etc. 
+* Last minute requests from project team – not enough time for full-blown mixed effects model
+
+# Credits
+
+### Core Team
+
+* Alison Margolskee
+* Andrew Stein
+* Fariba Khanshan
+
+### Extended Team
+* Matt Fidler
+* Joseph Kahn
+* Xu (Sue) Zhu
+
+### Contributors
+
+The following people contributed example graphs and code or provided useful feedback on the contents and development of this website.
+
+* Siyan Xu
+* Kostas Biliouris
+* Ivan-Toma Vranesic
+* Andrijana Radivojevic
+* Francois Combes
+* Oliver Sander
+* Xinting Wang
+
+### Leadership Sponsors
+
+* Mick Looby
+* Yu-Yun Ho

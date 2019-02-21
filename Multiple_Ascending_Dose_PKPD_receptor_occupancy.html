@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>PK/PD, Exposure-Response - Receptor Occupancy</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  .visible-sm-block {padding-top: 120px;}
+  .visible-md-block {padding-top: 60px;}
+  .visible-lg-block {padding-top: 0px;}
+  
+</style>
+
+
+<span class=visible-sm-block> </span>
+<span class=visible-md-block> </span>
+<span class=visible-lg-block> </span>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">xGx</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="glyphicon glyphicon-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="GuidingPrinciples.html">Guiding Principles</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Data Checking
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="PKPD_Datasets.html">Master PK/PD Datasets used in creating example plots</a>
+    </li>
+    <li>
+      <a href="Data_Checking.html">Data Checking</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Dose-PK/Exposure
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Single_Ascending_Dose_PK.html">Single Ascending Dose - PK</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PK.html">Multiple Ascending Dose - PK</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PK_KeyPlots.html">Example using real data</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Dose-PD/Efficacy/Safety
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_continuous.html">Continuous</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_binary.html">Binary Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_ordinal.html">Ordinal Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_count.html">Count Data</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
+    </li>
+    <li>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using real data</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    PK-PD/Efficacy/Safety
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_continuous.html">Continuous</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_binary.html">Binary Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_ordinal.html">Ordinal Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_count.html">Count Data</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_time_to_event.html">Time to Event</a>
+    </li>
+    <li>
+      <a href="Adverse_Events.html">Adverse Events</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<style type="text/css">
+  .visible-sm-block {padding-top: 120px;}
+  .visible-md-block {padding-top: 60px;}
+  .visible-lg-block {padding-top: 0px;}
+  .navbar-image {width: 150px;}
+  .warning { 
+      font-size: 200% ; 
+      color: red; 
+      padding-top: 200px;
+    }
+    }
+  
+  @media (min-width: 992px) and (max-width: 1200px){
+    .navbar-image {width: 19%;}
+    
+    .section h1 {
+  padding-top: 110px;
+  margin-top: -110px;
+  }
+
+  .section h2 {
+  padding-top: 110px;
+  margin-top: -110px;
+  }
+  
+    .section h3 {
+  padding-top: 110px;
+  margin-top: -110px;
+  }
+  }
+  
+  
+  @media (min-width: 768px) and (max-width: 991px){
+
+    .navbar-image {width: 19%;}
+    
+    .section h1 {
+  padding-top: 160px;
+  margin-top: -160px;
+  }
+
+  .section h2 {
+  padding-top: 160px;
+  margin-top: -160px;
+  }
+  
+    .section h3 {
+  padding-top: 160px;
+  margin-top: -160px;
+  }
+  }
+  
+@media (max-width: 768px){
+  .navbar-image {width: 19%;}
+
+}
+  
+
+</style>
+
+
+<!--[if IE]>
+<p/>
+<p/>
+<p class="warning"> Dear Internet Explorer user: Please ensure compatibility view settings are turned OFF in order to view this website propertly. For best results, use Chrome. <br/>
+<p/>
+ <![endif]-->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">PK/PD, Exposure-Response - Receptor Occupancy</h1>
+
+</div>
+
+
+<div id="provide-an-overview-of-the-data" class="section level2">
+<h2>Provide an overview of the data</h2>
+<p>Coming soon…</p>
+</div>
+<div id="explore-variability" class="section level2">
+<h2>Explore Variability</h2>
+<p>Coming soon…</p>
+</div>
+<div id="explore-irregularities-in-profiles" class="section level2">
+<h2>Explore irregularities in profiles</h2>
+<p>Coming soon…</p>
+</div>
+<div id="explore-exposure-response-relationship" class="section level2">
+<h2>Explore Exposure-Response Relationship</h2>
+<p>Coming soon…</p>
+</div>
+<div id="r-session-info" class="section level2">
+<h2>R Session Info</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 3.4.3 (2017-11-30)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+## 
+## Matrix products: default
+## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] grid      stats     graphics  grDevices utils     datasets  methods  
+## [8] base     
+## 
+## other attached packages:
+##  [1] reshape_0.8.7   lubridate_1.7.1 survival_2.41-3 DT_0.2         
+##  [5] RxODE_0.6-1     readr_1.1.1     readxl_1.0.0    zoo_1.8-0      
+##  [9] plyr_1.8.4      gdata_2.18.0    haven_1.1.0     pracma_2.1.1   
+## [13] bindrcpp_0.2    png_0.1-7       xtable_1.8-2    mlxR_3.3.0     
+## [17] ggplot2_2.2.1   dplyr_0.7.4     tidyr_0.7.2     GGally_1.3.2   
+## [21] stringr_1.2.0   reshape2_1.4.3  gridExtra_2.3   caTools_1.17.1 
+## [25] foreign_0.8-69  knitr_1.18      rmarkdown_1.8   MASS_7.3-47    
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_0.12.14       lattice_0.20-35    gtools_3.5.0      
+##  [4] assertthat_0.2.0   rprojroot_1.3-1    digest_0.6.13     
+##  [7] R6_2.2.2           cellranger_1.1.0   backports_1.1.2   
+## [10] evaluate_0.10.1    pillar_1.0.1       rlang_0.1.6       
+## [13] lazyeval_0.2.1     Matrix_1.2-12      labeling_0.3      
+## [16] splines_3.4.3      dparser_0.1.8      htmlwidgets_0.9   
+## [19] munsell_0.4.3      compiler_3.4.3     pkgconfig_2.0.1   
+## [22] htmltools_0.3.6    tcltk_3.4.3        tibble_1.4.1      
+## [25] binom_1.1-1        codetools_0.2-15   XML_3.98-1.9      
+## [28] bitops_1.0-6       jsonlite_1.5       gtable_0.2.0      
+## [31] magrittr_1.5       scales_0.5.0       stringi_1.1.3     
+## [34] rex_1.1.2          RColorBrewer_1.1-2 tools_3.4.3       
+## [37] forcats_0.2.0      glue_1.2.0         markdown_0.8      
+## [40] purrr_0.2.4        hms_0.4.0          rsconnect_0.8.5   
+## [43] yaml_2.1.16        colorspace_1.3-2   memoise_1.1.0     
+## [46] bindr_0.1</code></pre>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

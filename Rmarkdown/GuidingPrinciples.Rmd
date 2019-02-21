@@ -1,0 +1,86 @@
+---
+title: "Guiding Principles"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+# Introduction
+Below we provide a list of assessments to perform during exploratory analysis of exposure-response data.  
+Links to example plots are provided as well as brief justification for why each plot is needed.
+
+# PK specific
+  * Get an overview of the PK data by plotting mean +/- SE, [mean (90% CI)](Multiple_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci), etc over time, grouped by dose or assigned treatment.
+    * How many compartments does the PK appear to have? 
+    * Do you detect any nonlinear clearance (e.g. dramatic drop in elimination phase plotted on log scale)?
+  * Both linear and log scale should be used for exploring PK.  
+    * Log scale helps to identify number of compartments, the linearity of elimination, and it allows for visualizing all PK on a single plot.
+    * Linear scale focuses the attention on Cmax, which may be important if there is a narrow therapeutic window and if safety is Cmax driven.
+  * [Assess PK linearity](Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_vs_dose) by looking for trends in the plot of dose vs dose normalized PK metric (e.g. AUC or Ctrough).
+    * Assessing linearity of PK is important for understanding how dose adjustments will impact the response.
+  * Also **see section below on [Assessing Variability](#assessing_variability_(pk_and_pd))** for details on explained vs. unexplained variability, and within and between subject variability, and how to explore each.
+
+# PD specific
+  * Determine data type of the endpoint of interest and choose appropriate exploratory plots for this data type, e.g. [continuous](Multiple_Ascending_Dose_PD_continuous.html), [binary](Multiple_Ascending_Dose_PD_binary.html), [ordinal](Multiple_Ascending_Dose_PD_ordinal.html).
+  * Decide whether any correction is needed (e.g. baseline, placebo, normal levels)
+    * Baseline correction may be needed when there is high intersubject variability and when there is high correlation between the reference value and the endpoint.  
+    * PD correction by a normal reference value (e.g. upper limit of normal for lab markers) may be needed if the goal is to compare the PD to normal ranges.
+    * Placebo corrected PD plots may more clearly reveal the drug effect, especially for primary endpoints which are often compared against placebo.
+    * Absolute difference (y - y\*), ratio to reference (y/y\*) and percent change from reference ([y-y\*]/y\*) should all be considered.
+    * Special care should be given to axis scales and confidence intervals for ratios and percent change from baseline. (e.g. confidence intervals for percent change should not go below -100%) 
+    * Special care should be given when there is high within subject variability, e.g. using multiple baseline values for one individual
+  * Decide on whether to plot linear vs log scale.
+    * Log scale works well for PD markers that can change over several orders of magnitude.
+    * Linear scale is preferred when the PD measure can be both positive or negative, or when there is less than 2 orders of magnitude change between the minimum and maximum value.
+  * Assess trends with dose by plotting PD/efficacy/safety against dose, (e.g. [Mean (95% CI) of continuous PD vs dose](Multiple_Ascending_Dose_PD_continuous.html#explore_covariate_effects_on_pd), [Response rate (95% CI) of binary endpoint vs dose](Multiple_Ascending_Dose_PD_binary.html#responder_rate_(95%_ci)_by_dose,_for_endpoint_of_interest))
+    * Do you see a relationship between dose and response?
+    * Is a plateau observed at higher doses?
+    * What would you guess the ED50 to be? ED90? (you can check your expectations against your future model)
+  * Assess trends over time by plotting [summary plots of the endpoint against time](Multiple_Ascending_Dose_PD_continuous.html#pd_marker_over_time,_colored_by_dose,_mean_(95%_ci)_percentiles_by_nominal_time)
+    * Does the response change over time?
+    * Is tolerance observed (e.g. rebounding, returning to baseline, overshooting)?
+    * How long does it take the PD to reach steady state (if there is a steady state)?
+  * Also **see section below on [Assessing Variability](#assessing_variability_(pk_and_pd))** for details on explained vs. unexplained variability, and within and between subject variability, and how to explore each.
+  
+# PKPD
+  * [Plot PK and PD on the same time scale](Multiple_Ascending_Dose_PKPD_continuous.html#pk_and_pd_marker_over_time,_colored_by_dose,_mean_(95%_ci)_percentiles_by_nominal_time) to get an idea of the trends of both over time 
+    * How long is the delay between changes in PK and changes in PD?
+    * How long after steady state PK does PD reach steady state (if at all)?
+    * Look at both summary plots and individual plots.
+  * Get an overall idea of the relationship between PK and PD by plotting [PD on the vertical axis against different PK metrics on the horizontal axis](Multiple_Ascending_Dose_PKPD_binary.html#explore_exposure-response_relationship)
+    * Is it a positive relationship? 
+    * How strong is the relationship? 
+    * Is there a lot of between subject variability?
+  * Get an idea of the time delay of the PK PD relationship by plotting [individual hysteresis plots of PD vs PK](Multiple_Ascending_Dose_PKPD_continuous.html#individual_response_vs_exposure_hysteresis_plots)
+    * Is the observed relationship between PK and PD direct (straight line in hysteresis path) or indirect (looping behavior in the hysteresis path)?
+  
+# Assessing Variability (PK and PD)
+  * Assess size of PK and/or PD variability by using [spaghetti plots](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_dots_and_lines_grouped_by_individual) or [confidence intervals](Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci).  How big a separation in doses is needed to observe a separation of exposure?    
+  * [Assess sources of between subject PK variability](Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk) by stratifying by covariates
+  * [Assess sources of within subject variability](Multiple_Ascending_Dose_PK.html#concentration_over_time,_faceted_by_individual,_individual_line_plots_overlaid_on_gray_spaghetti_plots_for_that_dose_group) using individual plots
+
+## Types and sources of variability
+
+Variability is not the same as noise. Variability is a characteristic of living systems and may in itself be a signal if appropriately represented (e.g covariate effects, diurnal effects, disease progression).  Variability has two key characteristics:
+
+### Characteristics of variability:
+
+  * Inter-subject (between subject) vs Intra-subject (within subject)
+  * Explained vs Unexplained 
+  
+### Examples of difference types of variability include:
+
+  * Explained between subject variability: traditional covariates
+  * Explained within subject variability: circadian rhythms, seasonal effects, food effects, disease progression
+  * Unexplained between subject variability: unaccounted for covariates
+  * Unexplained within subject variability: residual error, poor absorption, other unaccounted for effects
+  
+## Consequences of high variability
+The consequences of high variability depend upon the type of variability that is present.    
+
+* If there is high explained between subject variability (as compared to within subject variability) and its accounted for by the covariates, then individualized therapy may be an option to reduce between subject variability.
+* If there is high un-explained between subject variability, then something like therapeutic drug monitoring could be attempted to adjust dose based on observed PK or PD during therapy.
+* If the within subject variability is high and can be explained (say by a food effect) then you might suggest dosing accordingly.
+* If the within subject variability is high and unexplained: For PK this could be difficult to address, unless there is a large therapeutic window in which case it may not be an issue. There may even be a need for reformulation of the product. For PD this may require multiple measures of the endpoint and/or baseline in order to get a good idea of the "true" drug effect, and protocol assessment schedules for future studies should be designed accordingly.
+      

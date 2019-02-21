@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  
+<style>
+.dropbtn {
+    color: white;
+    padding: 0px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 19%;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown a:hover {background-color: #f1f1f1}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #e1e1e1;
+}
+
+</style>
+</head>
+<body>
+
+<div class="dropdown">
+<button class="dropbtn"><img src="PK_icon.png" alt="PK, Dose-Exposure"/></button>
+<div class="dropdown-content">
+<a href="Single_Ascending_Dose_PK.html">Single Ascending Dose - PK</a>
+<a href="Multiple Ascending Dose - PK">Multiple Ascending Dose - PK</a>
+<a href="Multiple_Ascending_Dose_PK_KeyPlots.html">Example using real data</a>
+</div>
+</div>
+
+<div class="dropdown">
+<button class="dropbtn"><img src="PD_icon.png" alt="PD, Dose-Response"/></button>
+<div class="dropdown-content">
+<a href="Multiple_Ascending_Dose_PD_continuous.html">Continuous</a>
+<a href="Multiple_Ascending_Dose_PD_binary.html">Binary Response</a>
+<a href="Multiple_Ascending_Dose_PD_ordinal.html">Ordinal Response</a>
+<a href="Multiple_Ascending_Dose_PD_count.html">Count Data</a>
+<a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event (coming soon)</a>
+<a href="Multiple_Ascending_Dose_PD_receptor_occupancy.html"> Receptor occupancy (coming soon) </a>
+<a href="Multiple_Ascending_Dose_PD_real_example.html"> Example using real data </a>
+</div>
+</div>
+
+<div class="dropdown">
+<button class="dropbtn"><img src="PKPD_icon.png" alt="PK/PD, Exposure-Response"/></button>
+<div class="dropdown-content">
+<a href="Multiple_Ascending_Dose_PKPD_continuous.html">Continuous</a>
+<a href="Multiple_Ascending_Dose_PKPD_binary.html">Binary Response</a>
+<a href="Multiple_Ascending_Dose_PKPD_ordinal.html">Ordinal Response</a>
+<a href="Multiple_Ascending_Dose_PKPD_count.html">Count Data</a>
+<a href="Multiple_Ascending_Dose_PKPD_time_to_event.html">Time to Event (coming soon)</a>
+<a href="Multiple_Ascending_Dose_PKPD_receptor_occupancy.html"> Receptor occupancy (coming soon) </a>
+</div>
+</div>
+
+<div class="dropdown">
+<button class="dropbtn"><img src="Safety_icon.png" alt="Safety, Adverse Events"/></button>
+<div class="dropdown-content">
+<a href="Safety_continuous.html">Continuous Safety Markers (coming soon)</a>
+<a href="Adverse_Events.html">Adverse Events Incidence Rates (coming soon)</a>
+</div>
+</div>
+
+<div class="dropdown">
+<button class="dropbtn"><img src="QC_icon.png" alt="QC, Data Checking"/></button>
+<div class="dropdown-content">
+<a href="Data_Checking.html">Data Checking (coming soon)</a>
+<a href="PKPD_Datasets.html">Master PK/PD Datasets used in creating example plots</a>
+</div>
+</div>
+
+
+
+</body>
+</html>

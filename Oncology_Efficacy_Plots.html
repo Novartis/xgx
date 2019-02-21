@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>PD, Oncology, RECIST - continuous, binary and categorical endpoints</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  .visible-sm-block {padding-top: 120px;}
+  .visible-md-block {padding-top: 60px;}
+  .visible-lg-block {padding-top: 0px;}
+  
+</style>
+
+
+<span class=visible-sm-block> </span>
+<span class=visible-md-block> </span>
+<span class=visible-lg-block> </span>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">xGx</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="glyphicon glyphicon-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="GuidingPrinciples.html">Guiding Principles</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Data Checking
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="PKPD_Datasets.html">Master PK/PD Datasets used in creating example plots</a>
+    </li>
+    <li>
+      <a href="Data_Checking.html">Data Checking</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Dose-PK/Exposure
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Single_Ascending_Dose_PK.html">Single Ascending Dose - PK</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PK.html">Multiple Ascending Dose - PK</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PK_KeyPlots.html">Example using real data</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Dose-PD/Efficacy/Safety
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_continuous.html">Continuous</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_binary.html">Binary Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_ordinal.html">Ordinal Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_count.html">Count Data</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
+    </li>
+    <li>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using real data</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    PK-PD/Efficacy/Safety
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_continuous.html">Continuous</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_binary.html">Binary Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_ordinal.html">Ordinal Response</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_count.html">Count Data</a>
+    </li>
+    <li>
+      <a href="Multiple_Ascending_Dose_PKPD_time_to_event.html">Time to Event</a>
+    </li>
+    <li>
+      <a href="Adverse_Events.html">Adverse Events</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<style type="text/css">
+  .visible-sm-block {padding-top: 120px;}
+  .visible-md-block {padding-top: 60px;}
+  .visible-lg-block {padding-top: 0px;}
+  .navbar-image {width: 150px;}
+  .warning { 
+      font-size: 200% ; 
+      color: red; 
+      padding-top: 200px;
+    }
+    }
+  
+  @media (min-width: 992px) and (max-width: 1200px){
+    .navbar-image {width: 19%;}
+    
+    .section h1 {
+  padding-top: 110px;
+  margin-top: -110px;
+  }
+
+  .section h2 {
+  padding-top: 110px;
+  margin-top: -110px;
+  }
+  
+    .section h3 {
+  padding-top: 110px;
+  margin-top: -110px;
+  }
+  }
+  
+  
+  @media (min-width: 768px) and (max-width: 991px){
+
+    .navbar-image {width: 19%;}
+    
+    .section h1 {
+  padding-top: 160px;
+  margin-top: -160px;
+  }
+
+  .section h2 {
+  padding-top: 160px;
+  margin-top: -160px;
+  }
+  
+    .section h3 {
+  padding-top: 160px;
+  margin-top: -160px;
+  }
+  }
+  
+@media (max-width: 768px){
+  .navbar-image {width: 19%;}
+
+}
+  
+
+</style>
+
+
+<!--[if IE]>
+<p/>
+<p/>
+<p class="warning"> Dear Internet Explorer user: Please ensure compatibility view settings are turned OFF in order to view this website propertly. For best results, use Chrome. <br/>
+<p/>
+ <![endif]-->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">PD, Oncology, RECIST - continuous, binary and categorical endpoints</h1>
+
+</div>
+
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>The purpose of this document is to provide exploratory plots and R code for assessing dose-response and exposure-response using the RECIST (Response Evaluation Criteria In Solid Tumors) endpoint data. These plots provide insight into whether a dose-response relationship is observable. In Phase 1, often no dose-response relationship is observed due to high inter-subject variability. In that situation, we recommened that no longitudinal, NLME modeling be performed as it is unlikely to add much value. Furthermore, even if an exposure-response relationship is detected, it must be interpreted with extreme caution when it cannot be confirmed with simple explortaory graphics.</p>
+<p>The plots presented here are based on blinded merged RECIST data (<a href="Data/Oncology_Efficacy_Data.csv">download dataset</a>) with nmpk and and dose history datasets (<a href="Data/Oncology_Efficacy_Dose.csv">download dataset</a>). Data specifications can be accessed on <a href="http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html">Datasets</a> and Rmarkdown template to generate this page can be found on <a href="http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Oncology_Efficacy_Plots.Rmd">Rmarkdown-Template</a>.</p>
+<p>Standard statistical plots for summarizing recist (e.g. Waterfall) are presented elsewhere.</p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<pre class="r"><code># remove reference to home directory in libPaths
+.libPaths(grep(&quot;home&quot;, .libPaths(), value=TRUE, invert=TRUE))
+.libPaths(grep(&quot;usr&quot;, .libPaths(), value=TRUE, invert=TRUE))
+
+# add localLib to libPaths for locally installed packages
+.libPaths(c(&quot;localLib&quot;, .libPaths()))
+
+# will load from first filepath first, then look in .libPaths for more packages not in first path
+# version matches package in first filepath, in the case of multiple instances of a package
+
+# library(rmarkdown)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(dplyr)
+library(RxODE)
+library(caTools)
+source(&quot;../R/xgx_packages_functions.R&quot;)
+
+theme_set(theme_bw(base_size=18))</code></pre>
+</div>
+<div id="load-dataset" class="section level2">
+<h2>Load Dataset</h2>
+<pre class="r"><code>my.data &lt;- read.csv(&quot;../Data/Oncology_Efficacy_Data.csv&quot;)
+dose_record &lt;- read.csv(&quot;../Data/Oncology_Efficacy_Dose.csv&quot;)
+
+my.data$DOSE_label &lt;- paste(my.data$DOSE_ABC,&quot;mg&quot;)
+my.data$DOSE_label &lt;- factor(my.data$DOSE_label,levels = c(paste(unique(my.data$DOSE_ABC),&quot;mg&quot;)))
+
+my.data.monotherapy = my.data %&gt;% filter(COMB==&quot;Single&quot;)
+my.data.combo = my.data %&gt;% filter(COMB==&quot;Combo&quot;)
+
+
+# Dose record data preparation for making step function plot
+# in order to show any dose reduction during the study
+# the idea is that at each time point, you have both the current dose and the previous dose
+# the dplyr::lag command implements this
+data_areaStep &lt;- bind_rows(old = dose_record,
+                           new = dose_record %&gt;% 
+                 group_by(IDSHORT) %&gt;% 
+                 mutate(DOSE = lag(DOSE)),
+                        .id  = &quot;source&quot;) %&gt;%
+                 arrange(IDSHORT, TIME, source) %&gt;%
+  ungroup() %&gt;%
+  mutate(DOSE = ifelse(lag(IDSHORT)!=IDSHORT, NA, DOSE), 
+          TIME = TIME/24) #convert to days
+
+data_areaStep.monotherapy = filter(data_areaStep,COMB==&quot;Single&quot;)
+
+# calculate average dose intensity up to the first assessment:
+# &quot;TIME==57&quot;&quot; is the first assessment time in this dataset
+first.assess.time = 57
+dose_record &lt;- dose_record %&gt;%
+  group_by(IDSHORT) %&gt;%
+  mutate(ave_dose_intensity = mean(DOSE[TIME/24 &lt; first.assess.time]))
+
+dose_intensity &lt;- dose_record[c(&quot;IDSHORT&quot;,&quot;COMB&quot;,&quot;ave_dose_intensity&quot;)]
+dose_intensity &lt;- subset(dose_intensity, !duplicated(IDSHORT))</code></pre>
+</div>
+<div id="introduction-to-recist" class="section level2">
+<h2>Introduction to RECIST</h2>
+<p>RECIST (Response Evaluation Criteria in Solid Tumor) uses an image-based assessment from X-ray Computed Tomography (CT) scans. and has three components:</p>
+<ol style="list-style-type: decimal">
+<li>Sum of the longest diameter of the target lesions (continuous measure),</li>
+<li>Assessment of the non target lesions (categorical measure), and</li>
+<li>Appearance of a new lesion (binary yes/no measure).</li>
+</ol>
+<p>An example patient and the criteria for assigning a response category, is shown below.</p>
+<div class="figure">
+<img src="SiteResources/RECIST.png" style="width:80.0%" />
+
+</div>
+<div class="figure">
+<img src="SiteResources/response_category.png" alt="Figure 1: Example RECIST assessment for individualpatient and response category identified" style="width:80.0%" />
+<p class="caption">Figure 1: Example RECIST assessment for individualpatient and response category identified</p>
+</div>
+</div>
+<div id="overview-of-all-data" class="section level2">
+<h2>Overview of all data</h2>
+<div id="spaghetti-plots-of-change-from-baseline" class="section level3">
+<h3>Spaghetti plots of change from baseline</h3>
+<p>We recommend stratifying the spaghetti plots of target lesion kinetics by dose so that one can observe if there is more tumor shrinkage at the higher dose groups. In this case, no obvious relationship is observed and it is likely a longitudinal model will not be helpful.</p>
+<pre class="r"><code>my.data.monotherapy$DOSE_label &lt;- factor(my.data.monotherapy$DOSE_label, levels=c(&quot;20 mg&quot;, &quot;40 mg&quot;, &quot;60 mg&quot;, &quot;90 mg&quot;))
+gg &lt;- ggplot(data= my.data.monotherapy,aes(x=TIME, y=psld)) +theme_bw()
+gg &lt;- gg + geom_line(aes(group=IDSHORT, color =factor(DOSE_label)))
+gg &lt;- gg + geom_point(alpha=.3,colour=&quot;black&quot;)
+gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + ylab(&quot;Percent Change in\nSum of Longest Diameters&quot;)
+gg &lt;- gg + xlab(&quot;Time (Months)&quot;)
+gg &lt;- gg + geom_hline(yintercept = 0.0, linetype=&quot;dashed&quot;)
+gg &lt;- gg + scale_x_units(units.input = &quot;day&quot;,units.output=&quot;month&quot;,t.start = 0,t.end = 15, increment = 3)
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+</div>
+<div id="change-from-baseline-plot-faceted-by-dose" class="section level3">
+<h3>Change from baseline plot, faceted by Dose</h3>
+<pre class="r"><code>my.data.monotherapy$DOSE_label &lt;- factor(my.data.monotherapy$DOSE_label, levels=c(&quot;20 mg&quot;, &quot;40 mg&quot;, &quot;60 mg&quot;, &quot;90 mg&quot;))
+gg &lt;- ggplot(data=my.data.monotherapy,aes(x=TIME, y=psld)) +theme_bw()
+gg &lt;- gg + geom_line(aes(group=IDSHORT))
+gg &lt;- gg + geom_point(alpha=.3,colour=&quot;black&quot;)
+gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + facet_grid(~DOSE_label)
+gg &lt;- gg + ylab(&quot;Percent Change in\nSum of Longest Diameters&quot;)
+gg &lt;- gg + xlab(&quot;Time (Months)&quot;)
+gg &lt;- gg + geom_hline(yintercept = 0.0, linetype=&quot;dashed&quot;)
+gg &lt;- gg + theme(text = element_text(size=15))
+gg &lt;- gg + scale_x_units(units.input = &quot;day&quot;,units.output=&quot;month&quot;,t.start = 0,t.end = 15, increment = 3)
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
+</div>
+<div id="individual-plots-of-percent-change-from-baseline-including-dosing-history-labeled-by-overall-response" class="section level3">
+<h3>Individual plots of percent change from baseline, including dosing history, labeled by “Overall Response”</h3>
+<p>These plots allow one to look for subtle trends in the individual trajectories. If changes in the tumor trajectory occur often after a dose reduction, a longitudinal model may be useful for assessing dose-response. However, caution is needed because both dose reductions and resistance acquisition can occur at later times and it may not be easy to deterimne which is the cause of the change in tumor trajectory.</p>
+<p>In the first plot below, it is difficult to see a trend of dose changes impacting response and a longitudinal tumor-size model will likely not be informative. But in the second plot below, a trend of tumor shrinkage followed by tumor growth after a dose reduction was observed and a longitudinal model was useful for characterizing this data. <a href="https://bmccancer.biomedcentral.com/articles/10.1186/1471-2407-12-311">see reference</a></p>
+<p>Example 1, longitudinal model won’t be informative:</p>
+<pre class="r"><code># This part is optional to label &quot;OR&quot; in the plot
+# &quot;OR&quot; can be substituted with other information, such as non-target, new target lesions
+#  make the OR label for the plot
+
+my.data.label &lt;- my.data %&gt;%
+  group_by(IDSHORT) %&gt;%
+  mutate(label_psld = as.numeric(ifelse(TIME==TIME_OR , psld,&quot;&quot;))) %&gt;%
+  filter(!(is.na(label_psld) | label_psld==&quot;&quot;))
+
+
+dose.shift = 50
+dose.scale = 1.2
+data_areaStep.monotherapy = data_areaStep.monotherapy %&gt;%
+  mutate(DOSE.shift = DOSE/dose.scale+dose.shift)
+
+dose.unique = c(0,unique(my.data.monotherapy$DOSE_ABC))
+gg &lt;- ggplot(data = my.data.monotherapy)
+gg &lt;- gg + geom_point(mapping = aes(y= psld, x= TIME))
+gg &lt;- gg + geom_text(data= my.data.label,aes(y= label_psld, x= TIME_OR, label=OR), vjust=-.5)
+gg &lt;- gg + geom_hline(aes(yintercept = 0),size=0.25,linetype=&quot;dashed&quot;, colour=&quot;red&quot;)
+gg &lt;- gg + geom_line(mapping = aes(y= psld, x= TIME))
+gg &lt;- gg + geom_ribbon(data= data_areaStep.monotherapy,
+                       aes( ymin = 50, ymax = DOSE.shift , x= TIME),
+                       fill=&quot;palegreen2&quot;, color = &quot;black&quot;, alpha=0.5 )
+gg &lt;- gg + facet_wrap(~IDSHORT, ncol = 6)
+gg &lt;- gg + scale_y_continuous(
+  sec.axis = sec_axis(~(.-dose.shift)*dose.scale, name = &quot;Dose(mg)&quot;, breaks = dose.unique))
+gg &lt;- gg + labs(y = &quot;Percent Change in\nSum of Longest Diameters&quot;,
+                x = &quot;Time (months)&quot;,
+                colour = &quot;Parameter&quot;)
+gg &lt;- gg + scale_x_units(units.input = &quot;day&quot;,units.output=&quot;month&quot;,t.start = 0,t.end = 15, increment = 3)
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<p>Example 2, dose reduction was followed by growth of tumor and longitudinal model would help.</p>
+<div class="figure">
+<img src="SiteResources/Stein12_RAD001.png" alt="Example data where dose reduction was followed by growth of tumor" style="width:100.0%" />
+<p class="caption">Example data where dose reduction was followed by growth of tumor</p>
+</div>
+</div>
+</div>
+<div id="dose-response-monotherapy" class="section level2">
+<h2>Dose-Response: Monotherapy</h2>
+<p>To visualize dose-response (exposure-response), we recommend plotting the assigned dose group (or exposure) vs best overall change in tumor size.</p>
+<p><strong>Warning:</strong> If you see what appears to be a linear dose-response relationship (e.g. more tumor shrinkage with increasing dose), be very cautious when trying to extrapolate outside this range, as Emax may not have been observed yet.</p>
+<pre class="r"><code>gg &lt;- ggplot()
+gg &lt;- gg + geom_point(data=my.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG),color=&quot;tomato&quot;)
+gg &lt;- gg + scale_x_continuous(breaks=unique(my.data.monotherapy$DOSE_ABC))
+gg &lt;- gg + geom_hline(yintercept=0,color=&quot;grey50&quot;, linetype = &quot;dashed&quot;)
+gg &lt;- gg + scale_y_continuous(labels=scales::percent)
+gg &lt;- gg + labs(x=&quot;ABC123 Dose (mg)&quot;, y=&quot;Best Percent Change \n in Tumor Size (%)&quot;)
+gg &lt;- gg + theme(legend.title=element_blank())
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
+<pre class="r"><code>gg &lt;- ggplot()
+gg &lt;- gg + geom_point(data=my.data.monotherapy,aes(x=auc0_24,y=BPCHG), color=&quot;tomato&quot;)
+gg &lt;- gg + geom_hline(yintercept=0,color=&quot;grey50&quot;, linetype = &quot;dashed&quot;)
+gg &lt;- gg + scale_y_continuous(labels=scales::percent)
+gg &lt;- gg + labs(x=&quot;ABC123 AUC0-24 (ng.h/ml)&quot;, y=&quot;Best Percent Change \n in Tumor Size (%)&quot;)
+gg &lt;- gg + theme(legend.title=element_blank())
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
+<p>Best overall change is commonly reported in Waterfall plots. And the reason we recommend using the randomized dose group as opposed to something like average dose-intensity is that the latter can be confounded. For instance, consider the following scenario. There are two patients that both start at 10 mg. One has 30% tumor growth at the first assessment and progresses. The other responds, but at month 6, they are dose reduced to 5 mg due to an adverse event, and then followed for another 6 months. In this case, the responder would have a dose intensity of 7.5 mg while the non-responder had a dose-intensity of 10 mg, and thus one might conclude from a simple plot of these two patients that lower doses are better.</p>
+<p>One way to avoid this issue is to plot average dose intensity up to the first assessment vs percent change at the first assessment and this could be considered if there are a large number of dose reductions before the first assessment.</p>
+<pre class="r"><code># Do it only for monoteraphy, it can be repeated for combo
+dose_intensity &lt;- dose_intensity[dose_intensity$COMB==&quot;Single&quot;,]
+my.data.assessment &lt;-  my.data.monotherapy %&gt;%
+  merge(dose_intensity  ,by=&quot;IDSHORT&quot;)
+
+gg &lt;- ggplot()
+gg &lt;- gg + geom_point(data=my.data.assessment[my.data.assessment$TIME==first.assess.time,],
+                      aes(x=my.data.assessment$ave_dose_intensity[my.data.assessment$TIME == first.assess.time],
+                          y=my.data.assessment$psld[my.data.assessment$TIME == first.assess.time]),color=&quot;tomato&quot;)
+gg &lt;- gg + scale_x_continuous(breaks=c(20,40, 60, 74,78,90))
+gg &lt;- gg + geom_hline(yintercept=0,color=&quot;grey50&quot;, linetype = &quot;dashed&quot;)
+gg &lt;- gg + labs(x=&quot;Average ABC123 dose (mg) \n up to the first assessment&quot;, y=&quot; Percent Change in Tumor Size \n up to the first assessment&quot;)
+gg &lt;- gg + theme(legend.title=element_blank())
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-8-1.png" width="768" /></p>
+</div>
+<div id="dose-response-combo" class="section level2">
+<h2>Dose-Response: Combo</h2>
+<p>When two drugs are combined (ABC123 + DEF456), it can be a useful first step to look at the dose-response relationship of each drug. However, it should be noted that provide only a limited understanding of the data.</p>
+<pre class="r"><code>gg &lt;- ggplot()
+gg &lt;- gg + geom_point(data=my.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG, color=&quot;ABC123&quot;))
+gg &lt;- gg + geom_point(data=my.data.combo,aes(x=DOSE_ABC,y=BPCHG, 
+                                          color = factor(DOSE_DEF, labels = c(&quot;ABC123 + 300 mg DEF456&quot;, &quot;ABC123 + 400 mg DEF456&quot;))))
+gg &lt;- gg + labs(color = &quot;DEF456 (mg) dose&quot;)
+gg &lt;- gg + geom_hline(yintercept=0,color=&quot;grey50&quot;, linetype = &quot;dashed&quot;)
+gg &lt;- gg + scale_x_continuous(breaks=unique(my.data[my.data$COMB==&quot;Single&quot;,]$DOSE_ABC))
+gg &lt;- gg + labs(x=&quot;ABC123 Dose (mg)&quot;,y=&quot;Best Percent Change \n in Tumor Size (%)&quot;)
+gg &lt;- gg + scale_y_continuous(labels=scales::percent)
+gg &lt;- gg + theme(legend.title=element_blank())
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
+<pre class="r"><code>gg &lt;- ggplot(data=my.data.combo,aes(x=DOSE_DEF,y=BPCHG))
+gg &lt;- gg + geom_point(aes( color= factor(DOSE_ABC,labels=c(&quot;+ 20 mg ABC123&quot;,
+                                                           &quot;+ 40 mg ABC123&quot;,
+                                                           &quot;+ 60 mg ABC123&quot;))))
+gg &lt;- gg + geom_hline(yintercept=0,color=&quot;grey50&quot;, linetype = &quot;dashed&quot;)
+gg &lt;- gg + scale_x_continuous(breaks=unique(my.data.combo$DOSE_DEF))
+gg &lt;- gg + labs(x=&quot;DEF456 Dose (mg)&quot;,y=&quot;Best Percent Change \n in Tumor Size (%)&quot;)
+gg &lt;- gg + scale_y_continuous(labels=scales::percent)
+gg &lt;- gg + theme(legend.title=element_blank())
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-10-1.png" width="960" /></p>
+<div id="responder-rate-95-ci-vs-dose" class="section level3">
+<h3>Responder rate (95% CI) vs dose</h3>
+<p>For most of the oncology clinical trials, the standard primary and secondary endpoints are Overall Survival (OS), Progression Free Survival (PFS), duration without progression (PD) or death, and Overall Response Rate (ORR). Dose vs ORR at each dose can be informative.</p>
+<pre class="r"><code>gg &lt;- ggplot(data = my.data.combo, aes(x=DOSE_ABC,y=PR_rate))+theme_bw()
+gg &lt;- gg + stat_summary(aes(x=DOSE_ABC,y=binary_BOR, group=DOSE_ABC), geom=&quot;errorbar&quot;, 
+                        fun.data = function(y){
+                          data.frame(ymin = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$lower,
+                                     ymax = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$upper)
+                        }, alpha=0.5, size = 1, width = 0.1)
+gg &lt;- gg + stat_summary(geom=&quot;point&quot;, fun.y=mean, size=3, color=&quot;tomato&quot;)
+gg &lt;- gg + scale_x_continuous(breaks=unique(my.data[my.data$COMB==&quot;Combo&quot;,]$DOSE_ABC))
+gg &lt;- gg + scale_y_continuous(labels=scales::percent)
+gg &lt;- gg + ylab(&quot;Response Rate (%)&quot;) 
+gg &lt;- gg + xlab(&quot;ABC123 Dose (mg)&quot;)  
+gg &lt;- gg + theme(text = element_text(size=15))
+gg</code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+</div>
+<div id="best-overall-response-bor-plot-for-combo-therapy" class="section level3">
+<h3>Best Overall Response (BOR) plot for combo therapy</h3>
+<pre class="r"><code>gg &lt;-  ggplot(data=my.data.combo,aes(x=DOSE_ABC ,y=DOSE_DEF,fill=PR_rate))
+gg &lt;- gg + scale_fill_gradient(low=&quot;orange&quot;, high=&quot;green&quot;)
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=20,y=30,yend=30), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=20,xend=20,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=40,y=30,yend=30), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=40,xend=40,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
+# gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=450,y=300,yend=300), color=rgb(0.5,0.5,0.5))
+# gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=450,xend=450,y=-Inf,yend=300), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=60,y=30,yend=30), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=60,xend=60,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=40,y=40,yend=40), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_segment(data=my.data.combo, aes(x=40,xend=40,y=-Inf,yend=40), color=rgb(0.5,0.5,0.5))
+gg &lt;- gg + geom_label(data=unique(my.data.combo[,c(&quot;DOSE_DEF&quot;,&quot;DOSE_ABC&quot;,&quot;PR_rate&quot;,&quot;n&quot;,&quot;count_cr_pr&quot;)]),
+                      aes(x=DOSE_ABC ,y=DOSE_DEF*1.00,fontface=2, label=paste0(round(PR_rate,2)*100,
+                                                                               &quot;% ORR \nn=&quot;,n,&quot;\nn(CR|PR)=&quot;,count_cr_pr)))
+gg &lt;- gg + scale_x_continuous(breaks=c(20, 40, 60)) 
+gg &lt;- gg + scale_y_continuous(breaks=c(30, 40)) 
+gg &lt;- gg + ylab(&quot;DEF456 Dose (mg)&quot;)
+gg &lt;- gg + xlab(&quot;ABC123 Dose (mg)&quot;)
+gg &lt;- gg + theme(legend.title = element_blank(), 
+                 plot.title=element_text(hjust=0.5),
+                 text = element_text(size=20),
+                 title = element_text(size=20))
+gg &lt;- gg + guides(fill=FALSE)
+gg </code></pre>
+<p><img src="Oncology_Efficacy_Plots_files/figure-html/unnamed-chunk-12-1.png" width="1344" /></p>
+</div>
+</div>
+<div id="r-session-info" class="section level2">
+<h2>R Session Info</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 3.4.3 (2017-11-30)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+## 
+## Matrix products: default
+## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] grid      stats     graphics  grDevices utils     datasets  methods  
+## [8] base     
+## 
+## other attached packages:
+##  [1] reshape_0.8.7   lubridate_1.7.1 survival_2.41-3 DT_0.2         
+##  [5] RxODE_0.6-1     readr_1.1.1     readxl_1.0.0    zoo_1.8-0      
+##  [9] plyr_1.8.4      gdata_2.18.0    haven_1.1.0     pracma_2.1.1   
+## [13] bindrcpp_0.2    png_0.1-7       xtable_1.8-2    mlxR_3.3.0     
+## [17] ggplot2_2.2.1   dplyr_0.7.4     tidyr_0.7.2     GGally_1.3.2   
+## [21] stringr_1.2.0   reshape2_1.4.3  gridExtra_2.3   caTools_1.17.1 
+## [25] foreign_0.8-69  knitr_1.18      rmarkdown_1.8   MASS_7.3-47    
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_0.12.14       lattice_0.20-35    gtools_3.5.0      
+##  [4] assertthat_0.2.0   rprojroot_1.3-1    digest_0.6.13     
+##  [7] R6_2.2.2           cellranger_1.1.0   backports_1.1.2   
+## [10] evaluate_0.10.1    pillar_1.0.1       rlang_0.1.6       
+## [13] lazyeval_0.2.1     Matrix_1.2-12      labeling_0.3      
+## [16] splines_3.4.3      dparser_0.1.8      htmlwidgets_0.9   
+## [19] munsell_0.4.3      compiler_3.4.3     pkgconfig_2.0.1   
+## [22] htmltools_0.3.6    tcltk_3.4.3        tibble_1.4.1      
+## [25] binom_1.1-1        codetools_0.2-15   XML_3.98-1.9      
+## [28] bitops_1.0-6       jsonlite_1.5       gtable_0.2.0      
+## [31] magrittr_1.5       scales_0.5.0       stringi_1.1.3     
+## [34] rex_1.1.2          RColorBrewer_1.1-2 tools_3.4.3       
+## [37] forcats_0.2.0      glue_1.2.0         markdown_0.8      
+## [40] purrr_0.2.4        hms_0.4.0          rsconnect_0.8.5   
+## [43] yaml_2.1.16        colorspace_1.3-2   memoise_1.1.0     
+## [46] bindr_0.1</code></pre>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

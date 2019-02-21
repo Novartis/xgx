@@ -1,0 +1,82 @@
+---
+title: "Datasets"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+This page displays the data specifications for the various datasets used throughout the website.
+
+## Setup
+
+```{r, echo = TRUE, warning=FALSE, message=FALSE}
+# remove reference to home directory in libPaths
+.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
+.libPaths(grep("usr", .libPaths(), value=TRUE, invert=TRUE))
+
+# add localLib to libPaths for locally installed packages
+.libPaths(c("localLib", .libPaths()))
+# will load from first filepath first, then look in .libPaths for more packages not in first path
+# version matches package in first filepath, in the case of multiple instances of a package
+
+# library(rmarkdown)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(dplyr)
+library(RxODE)
+library(caTools)
+
+theme_set(theme_bw(base_size=12))
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/AE_xgx.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/AUC_Safety.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/dzz_PKConc.md")
+
+```
+
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/mt12345.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/Multiple_Ascending_Dose_Dataset2.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/PPtmp_NCA.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/Single_Ascending_Dose_Dataset2.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/Oncology_Efficacy_Data.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/Oncology_Efficacy_Dose.md")
+
+```
+
+

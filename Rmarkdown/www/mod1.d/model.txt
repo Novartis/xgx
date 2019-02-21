@@ -1,0 +1,10 @@
+
+Concentration = centr/V2;
+C3 = peri/V3;
+C4 = peri2/V4;
+d/dt(depot) = -KA*depot;
+d/dt(centr) = KA*depot - (CL+Q+Q2)*Concentration + Q*C3 + Q2*C4;
+d/dt(peri) =                    Q*Concentration - Q*C3;
+d/dt(peri2) =                   Q2*Concentration - Q2*C4;
+d/dt(eff) = Kin*(1+Emax*Concentration/(EC50 + Concentration)) - Kout*(1)*eff;
+ 

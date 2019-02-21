@@ -1,0 +1,52 @@
+---
+title: "PD, Dose-Response - Receptor Occupancy"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+# remove reference to home directory in libPaths
+.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
+
+# add localLib to libPaths for locally installed packages
+.libPaths(c("localLib", .libPaths()))
+
+# will load from first filepath first, then look in .libPaths for more packages not in first path
+# version matches package in first filepath, in the case of multiple instances of a package
+
+# library(rmarkdown)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(dplyr)
+library(RxODE)
+library(caTools)
+
+theme_set(theme_bw(base_size=12))
+
+```
+
+## Provide an overview of the data
+
+Coming soon...
+
+## Explore Variability
+
+Coming soon...
+
+## Explore irregularities in profiles
+
+Coming soon...
+
+## Explore Dose-Response Relationship
+
+Coming soon...
+
+
+## R Session Info
+```{r}
+sessionInfo()
+```

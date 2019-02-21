@@ -1,0 +1,64 @@
+name: Exploratory Plots
+output_dir: www
+include: '*.html'
+navbar:
+  title: xGx
+  type: inverse
+  left:
+  - icon: glyphicon-home
+    href: index.html
+  - text: Guiding Principles
+    href: GuidingPrinciples.html
+  - text: Data Checking
+    menu:
+    - text: Master PK/PD Datasets used in creating example plots
+      href: PKPD_Datasets.html
+    - text: Data Checking
+      href: Data_Checking.html
+  - text: Dose-PK/Exposure
+    src: PD_icon.png
+    menu:
+    - text: Single Ascending Dose - PK
+      href: Single_Ascending_Dose_PK.html
+    - text: Multiple Ascending Dose - PK
+      href: Multiple_Ascending_Dose_PK.html
+    - text: Example using real data
+      href: Multiple_Ascending_Dose_PK_KeyPlots.html
+  - text: Dose-PD/Efficacy/Safety
+    menu:
+    - text: Continuous
+      href: Multiple_Ascending_Dose_PD_continuous.html
+    - text: Binary Response
+      href: Multiple_Ascending_Dose_PD_binary.html
+    - text: Ordinal Response
+      href: Multiple_Ascending_Dose_PD_ordinal.html
+    - text: Count Data
+      href: Multiple_Ascending_Dose_PD_count.html
+    - text: Time to Event
+      href: Multiple_Ascending_Dose_PD_time_to_event.html
+    - text: Oncology Efficacy Endpoints
+      href: Oncology_Efficacy_Plots.html
+    - text: PD/Efficacy Example using real data
+      href: Multiple_Ascending_Dose_PD_real_example.html
+  - text: PK-PD/Efficacy/Safety
+    menu:
+    - text: Continuous
+      href: Multiple_Ascending_Dose_PKPD_continuous.html
+    - text: Binary Response
+      href: Multiple_Ascending_Dose_PKPD_binary.html
+    - text: Ordinal Response
+      href: Multiple_Ascending_Dose_PKPD_ordinal.html
+    - text: Count Data
+      href: Multiple_Ascending_Dose_PKPD_count.html
+    - text: Time to Event
+      href: Multiple_Ascending_Dose_PKPD_time_to_event.html
+    - text: Adverse Events
+      href: Adverse_Events.html
+output:
+  html_document:
+    include:
+      in_header: ./SiteResources/header.html
+      before_body: ./SiteResources/body.html
+    lib_dir: site_libs
+    self_contained: no
+
