@@ -9,7 +9,7 @@ output:
 
 ## Overview
 
-This document contains exploratory plots for binary response data as well as the R code that generates these graphs.The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Multiple_Ascending_Dose_PKPD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
+This document contains exploratory plots for binary response data as well as the R code that generates these graphs.The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
 Binary data is data that can take on one of two values. This often happens when there is a characteristic/event/response, etc. of interest that subjects either have/achieve or they don't. Binary response data can also come out of dichotomizing continuous data. For example in the psoriasis indication the binary response variable PASI90 (yes/no) is defined as subjects achieving a PASI score of at least 90.
 

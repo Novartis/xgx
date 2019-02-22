@@ -12,7 +12,7 @@ output:
 This document contains exploratory plots for checking integrity of
 PKPD datasets as well as the R code that generates these graphs. The
 plots presented here are based on simulated data ([see: PKPD
-Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Data_Checking.Rmd). You may also download the Multiple
+Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Data_Checking.Rmd). You may also download the Multiple
 Ascending Dose PK/PD dataset for your reference 
 ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 

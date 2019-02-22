@@ -1,5 +1,5 @@
 ---
-title: "PD - Multiple Ascending Dose - Real Data"
+title: "PD - Multiple Ascending Dose - Realistic Data"
 output:
   html_document:
     toc: true
@@ -8,13 +8,13 @@ output:
 ---
 
 ## Overview
-This document contains PD exploratory graphs and also the R code that generates these graphs. The plots presented here are based on a real Novartis project which involved multiple types of PD data, from continuous endpoints to ordinal response and count data.  It was developed by Kostas Biliouris and Alison Margolskee.
+This document contains PD exploratory graphs and also the R code that generates these graphs. The plots presented here are inspired by a real study which involved multiple types of PD data, from continuous endpoints to ordinal response and count data. 
 
 This code makes use of the following files which can be downloaded from the available links
 
 * [blinded dataset of PK and PD endpoints](Data/mt12345.csv)
 
-Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Multiple_Ascending_Dose_PD_real_example.Rmd).
+Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_real_example.Rmd).
 
 
 ## Setup

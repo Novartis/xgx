@@ -9,7 +9,7 @@ output:
 
 ## Overview
 
-This document contains exploratory plots for ordinal response data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Multiple_Ascending_Dose_PD_ordinal.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
+This document contains exploratory plots for ordinal response data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_ordinal.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
 Ordinal data can be thought of as categorical data that has a natural order. For example, mild, moderate or severe. Another example could be Grade 1, Grade 2, Grade 3. Ordinal data can also come out of stratifying continuous data, for example binning a continuous variable into quartiles, or defining (arbitrary or meaningful) cutoffs for a continuous variable. Since ordinal data has a natural order, it is important to preserve that order when creating plots. 
 

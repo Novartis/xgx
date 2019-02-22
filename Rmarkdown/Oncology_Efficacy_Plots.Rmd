@@ -12,7 +12,7 @@ output:
   
 The purpose of this document is to provide exploratory plots and R code for assessing dose-response and exposure-response using the RECIST (Response Evaluation Criteria In Solid Tumors) endpoint data.  These plots provide insight into whether a dose-response relationship is observable.  In Phase 1, often no dose-response relationship is observed due to high inter-subject variability.  In that situation, we recommened that no longitudinal, NLME modeling be performed as it is unlikely to add much value.  Furthermore, even if an exposure-response relationship is detected, it must be interpreted with extreme caution when it cannot be confirmed with simple explortaory graphics. 
 
-The plots presented here are based on blinded merged RECIST data ([download dataset](Data/Oncology_Efficacy_Data.csv)) with nmpk and and dose history datasets ([download dataset](Data/Oncology_Efficacy_Dose.csv)). Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Oncology_Efficacy_Plots.Rmd).
+The plots presented here are based on blinded merged RECIST data ([download dataset](Data/Oncology_Efficacy_Data.csv)) with nmpk and and dose history datasets ([download dataset](Data/Oncology_Efficacy_Dose.csv)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Oncology_Efficacy_Plots.Rmd).
 
 Standard statistical plots for summarizing recist (e.g. Waterfall) are presented elsewhere.
 

@@ -13,7 +13,7 @@ This document contains PK exploratory graphs and also the R code that generates 
 * [dzz blinded dataset of drug concentrations](Data/dzz_PKConc.csv)
 * [PPtmp blinded dataset of NCA parameters](Data/PPtmp_NCA.csv)
 
-Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Multiple_Ascending_Dose_PK_KeyPlots.Rmd).
+Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PK_KeyPlots.Rmd).
 
 
 ### Setup

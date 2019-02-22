@@ -37,7 +37,7 @@ theme_set(theme_bw(base_size=12))
 ```
 
 ## Load Dataset
-The plots presented here are based on merged safety data with a popPK model generated parameters data ([download dataset](Data/AE_xgx.csv)), as well as a dataset containing model-generated AUCs ([download dataset](Data/AUC_Safety.csv)). Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Adverse_Events.Rmd).
+The plots presented here are based on merged safety data with a popPK model generated parameters data ([download dataset](Data/AE_xgx.csv)), as well as a dataset containing model-generated AUCs ([download dataset](Data/AUC_Safety.csv)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Adverse_Events.Rmd).
 
 
 ```{r, warning=FALSE, message=FALSE}

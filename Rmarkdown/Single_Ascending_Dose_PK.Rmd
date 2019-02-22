@@ -9,7 +9,7 @@ output:
 
 ## Overview
 
-This document contains exploratory plots for single ascending dose PK data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Single Ascending Dose PK dataset for your reference ([download dataset](Data/Single_Ascending_Dose_Dataset2.csv)). Data specifications can be accessed on [Datasets](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Rmarkdown/Single_Ascending_Dose_PK.Rmd).
+This document contains exploratory plots for single ascending dose PK data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Single Ascending Dose PK dataset for your reference ([download dataset](Data/Single_Ascending_Dose_Dataset2.csv)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Single_Ascending_Dose_PK.Rmd).
 
 ## Setup
 

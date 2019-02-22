@@ -22,7 +22,7 @@ navbar:
       href: Single_Ascending_Dose_PK.html
     - text: Multiple Ascending Dose - PK
       href: Multiple_Ascending_Dose_PK.html
-    - text: Example using real data
+    - text: Example using realistic data
       href: Multiple_Ascending_Dose_PK_KeyPlots.html
   - text: Dose-PD/Efficacy/Safety
     menu:
@@ -38,7 +38,7 @@ navbar:
       href: Multiple_Ascending_Dose_PD_time_to_event.html
     - text: Oncology Efficacy Endpoints
       href: Oncology_Efficacy_Plots.html
-    - text: PD/Efficacy Example using real data
+    - text: PD/Efficacy Example using realistic data
       href: Multiple_Ascending_Dose_PD_real_example.html
   - text: PK-PD/Efficacy/Safety
     menu:
