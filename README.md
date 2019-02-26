@@ -11,9 +11,3 @@ This repository displays suggested plots to pursue when exploring different PK/P
 * If you update any of the files in the Rmarkdown folder, then to recompile the site, execute "Rmarkdown/000_render_site.R" in R
 
 Most of the Rmarkdown scripts use caching so that recompiling is quick.  However, when developing the site, if you change any dependencies (e.g. functions in the R folder or data in the Data folder) you should delete the cache.  This means deleting all the folders in Rmarkdown that end in "_cache"  DO NOT DELETE SiteResources.
-
-# Data
-
-# R
-
-# Rmarkdown
