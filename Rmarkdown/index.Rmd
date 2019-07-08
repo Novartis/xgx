@@ -20,7 +20,7 @@ Some suggestions may be repetitive, so use your judgment to choose the best plot
 
 Use the navigation menus at the top of the page, or click on an icon below to find the topic for your specific needs.
 
-The graphs on this website were created with [Good Graphics Principles](https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf) in mind. 
+The graphs on this website were created with [Good Graphics Principles](https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf) in mind. Also check out the [Presentation Checklist](/Resources/Presentation_Checklist_v2.03.pdf) for useful tips on creating presentations of your results.
 
 ```{r, echo=FALSE}
 htmltools::includeHTML("../SiteResources/icon_nav.html")
