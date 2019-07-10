@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Make a spaghetti plot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for xgx_spaghetti {xgxr}"><tr><td>xgx_spaghetti {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Make a spaghetti plot</h2>
+
+<h3>Description</h3>
+
+<p><code>xgx_spaghetti</code> returns a spaghetti plot ggplot object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+xgx_spaghetti(data = NULL, mapping = aes(), ...,
+  environment = parent.frame())
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>data</code></td>
+<td>
+<p>Default dataset to use for plot. If not already a data.frame, will be converted to one by fortify.</p>
+</td></tr>
+<tr valign="top"><td><code>mapping</code></td>
+<td>
+<p>As in ggplot2; Default list of aesthetic mappings to use for plot. Must define x, y, and group for xgx_spaghetti.</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>Other arguments passed on to methods. Not currently used.</p>
+</td></tr>
+<tr valign="top"><td><code>environment</code></td>
+<td>
+<p>If an variable defined in the aesthetic mapping is not found in the data, 
+ggplot will look for it in this environment. It defaults to using the environment in which <code><a href="../../ggplot2/html/ggplot.html">ggplot</a></code> is called.</p>
+</td></tr>
+</table>
+
+
+<h3>Examples</h3>
+
+<pre>
+library(ggplot2)  
+time = rep(seq(1,10),5)
+id = sort(rep(seq(1,5), 10))
+conc = exp(-time)*sort(rep(rlnorm(5),10))
+
+data = data.frame(time = time, concentration  = conc, id = id)
+xgx_spaghetti(data = data, mapping = aes(x = time, y = concentration, group = id))
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 0.0.1.005 <a href="00Index.html">Index</a>]</div>
+</body></html>

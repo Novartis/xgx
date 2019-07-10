@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Append filenames to bottom of the plot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for xgx_dirs2char {xgxr}"><tr><td>xgx_dirs2char {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Append filenames to bottom of the plot</h2>
+
+<h3>Description</h3>
+
+<p><code>xgx_dirs2char</code> returns a character variable based on the dirs list.
+The caption gives the filename
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+xgx_dirs2char(dirs, include_time = TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>dirs</code></td>
+<td>
+<p>list containing directories and filenames.  It must contain five fields
+</p>
+
+<ol>
+<li><p> parent_dir  = Parent directory containing the Rscript and the Results folder
+</p>
+</li>
+<li><p> rscript_dir = Subdirectory ofparent_dir that contains the Rscript used to generate the figure
+</p>
+</li>
+<li><p> rscript_name= Name of the Rscript used to generate the figure
+</p>
+</li>
+<li><p> results_dir = Subdirectory ofparent_dir where the figure is stored
+</p>
+</li>
+<li><p> filename    = Filename
+</p>
+</li></ol>
+<p>#'</p>
+</td></tr>
+<tr valign="top"><td><code>include_time</code></td>
+<td>
+<p>is logical with default TRUE.  If TRUE, it includes date/time in the output character</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>character
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+#' 
+library(ggplot2)  
+dirs = list(Parent_dir   = "/your/parent/path/",
+            rscript_dir  = "./Rscripts/",
+            rscript_name = "Example.R",
+            results_dir  = "./Results/",
+            filename     = "your_file_name.png")
+caption = xgx_dirs2caption(dirs)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 0.0.1.005 <a href="00Index.html">Index</a>]</div>
+</body></html>

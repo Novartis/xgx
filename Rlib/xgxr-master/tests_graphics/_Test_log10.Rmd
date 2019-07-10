@@ -1,0 +1,66 @@
+---
+title: "Tests of Log10 Transform"
+author: "Andrew Stein"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+## Loading the libraries used
+```{r, message=FALSE}
+  devtools::load_all()
+  library(xgx)
+  library(scales)
+  library(ggplot2)
+  library(dplyr)
+  library(stringr)
+  library(gridExtra)
+```
+
+## Set the default theme
+This sets the default background to white with light grey lines for the at the major and minor breaks.  This minimizes chart ink as recommended by Edward Tufte.
+```{r}
+  xgx_theme_set()
+```
+
+## Axes
+
+### Nice log scale
+This version of the log scale function shows the tick marks between the major breaks (i.e. at 1, 2, 3, ... 10, instead of just 1 and 10).  It also uses $$10^x$$ notation when the labels are base 10 and are very small or very large (<.001 or >9999)
+
+```{r}
+data=data.frame(x=c(rep(0,100),rlnorm(1000,0,1)),
+                y=c(rlnorm(1000,0,5),rep(0,100)))
+g = ggplot(data,aes(x=x,y=y)) + 
+  geom_point() + 
+  xgx_scale_x_log10() + 
+  xgx_scale_y_log10()
+print(g)
+
+data=data.frame(x=c(rep(0,100),rlnorm(1000,0,1)),
+                y=c(rlnorm(1000,0,.1),rep(0,100)))
+g = g %+% data
+print(g)
+
+data=data.frame(x=c(rep(0,100),rlnorm(1000,0,1)),
+                y=c(rlnorm(1000,0,.01),rep(0,100)))
+g = g %+% data
+print(g)
+
+data=data.frame(x=c(rep(-1,100),rlnorm(1000,0,1)),
+               y=c(rlnorm(1000,0,.001)+2,rep(0,100)))
+g = g %+% data
+print(g)
+```
+
+Question, should the breaks function contain any kind of error checking for 0 or negative numbers?  I'm not sure how ggplot2 checks for this.  The code below would cause an error.
+```
+breaks.y = xgx_breaks_log10(c(0,10));
+```

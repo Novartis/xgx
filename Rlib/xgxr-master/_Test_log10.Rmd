@@ -1,0 +1,147 @@
+---
+title: "Tests of Log10 Transform"
+author: "Andrew Stein"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+## Loading the libraries used
+```{r, message=FALSE}
+  devtools::load_all()
+  library(xgx)
+  library(tidyr)
+  library(scales)
+  library(ggplot2)
+  library(dplyr)
+  library(stringr)
+  library(gridExtra)
+```
+
+## Set the default theme
+This sets the default background to white with light grey lines for the at the major and minor breaks.  This minimizes chart ink as recommended by Edward Tufte.
+```{r}
+  xgx_theme_set()
+```
+
+## Axes
+
+### Nice log scale
+This version of the log scale function shows the tick marks between the major breaks (i.e. at 1, 2, 3, ... 10, instead of just 1 and 10).  It also uses $$10^x$$ notation when the labels are base 10 and are very small or very large (<.001 or >9999)
+
+```{r}
+data=data.frame(x=c(rep(0,100),rlnorm(1000,0,1)),
+                y=c(rlnorm(1000,0,3),rep(0,100)))
+g = ggplot(data,aes(x=x,y=y)) + 
+  geom_point() + 
+  xgx_scale_x_log10() + 
+  xgx_scale_y_log10()
+print(g)
+
+data=data.frame(x=c(rep(0,100),rlnorm(1000,0,1)),
+                y=c(rlnorm(1000,0,.1),rep(0,100)))
+g = g %+% data
+print(g)
+
+data=data.frame(x=c(rep(0,100),rlnorm(1000,0,1)),
+                y=c(rlnorm(1000,0,.01),rep(0,100)))
+g = g %+% data
+print(g)
+
+data=data.frame(x=c(rep(-1,100),rlnorm(1000,0,1)),
+               y=c(rlnorm(1000,0,.001)+2,rep(0,100)))
+g = g %+% data
+print(g)
+```
+
+Question, should the breaks function contain any kind of error checking for 0 or negative numbers?  I'm not sure how ggplot2 checks for this.  The code below would cause an error.
+```
+breaks.y = xgx_breaks_log10(c(0,10));
+```
+
+## Odd errors number 1
+```{r}
+data = read.csv("data_create/TMDD_SCIM/TMDD_Model_with_NAs.csv") %>%
+  mutate(Dnorm = D/dose,
+           dose.round = signif(dose,1),
+           dose.label = factor(dose.round, levels = unique(dose.round)))
+
+g = ggplot(data,aes(x=time,y=Dnorm,color=dose.label))
+  g = g + geom_line()
+  g = g + xgx_scale_y_log10()
+  g = g + xgx_scale_x_time_units(units_dataset = "day",units_plot = "week",limits = c(0,7*16))
+  g = g + facet_wrap(~model_sort,nrow = 1)
+  g = g + labs(color = "Dose\nmg/kg")
+  g = g + ylab("Normalized Conc\n(mg/L)/mg")
+  print(g)
+  g1 = g
+  
+# continue ploting ----
+  g = g1 + aes(y=D)
+  g = g %+% filter(SIMplot,!is.na(D))
+  g = g + ylab("Concentration (mg/L)")
+  g = xgx_save(width,height,dirs,"Profile",status = "")
+  print(g)
+  g2 = g
+  
+  g = g %+% filter(SIMplot,dose.label==1)
+  g = xgx_save(width,height,dirs,"Profile_1dose",status = "")
+  print(g)
+  g3 = g
+  
+  SIMplot2 = SIMplot %>%
+    filter(dose.label %in% c(1, .01),
+           model %in% "Full (5)") %>%
+    mutate(dose.label = paste0(dose.label," mg/kg"),
+           dose.label = factor(dose.label, levels = (unique(dose.label))))
+    
+  
+  g = g2 %+% SIMplot2
+  g = g + aes(color=NULL)
+  g = g + facet_wrap(~dose.label)
+  g = g + xgx_scale_x_time_units(units_dataset = "day",units_plot = "week",limits = c(0,8*7))
+  g = xgx_save(6,3,dirs,"Profile_high_low",status = "")
+  print(g)
+  
+
+```
+
+## Odd errors number 2
+```{r}
+data = read.csv("data_create/TMDD_SCIM/task02a_sensitivity_all drugs and params_100_updated 04_24.csv")
+
+
+
+# data = read.csv("data_create/TMDD_SCIM/task02a_sensitivity_all drugs and params_100_updated 04_24.csv")
+# 
+# data.plot = data %>%
+#   dplyr::select(fold.change.param, SCIM_sim, SCIM_thy_keTL_negroot, SCIM_thy_keTL0, AFIR_thy, drug,param) %>%
+#   gather(key,value,-c(fold.change.param,drug,param))
+# 
+# g <- ggplot(data.plot, aes(x=fold.change.param,y=value,color=key,linetype=key)) + 
+#   geom_line(size = 1, alpha = .5) +
+#   facet_grid(drug ~ param,scales = "free_y", switch = "y") + 
+#   xgx_scale_x_log10() + 
+#   xgx_scale_y_log10() + 
+#   scale_color_manual(values = c(SCIM_sim       = "black",
+#                                 SCIM_thy_keTL0 = "blue",
+#                                 SCIM_thy_keTL_negroot = "green",
+#                                 AFIR_thy = "red")) + 
+#   scale_linetype_manual(values = c(SCIM_sim = "solid",
+#                                    SCIM_thy_keTL0 = "dotted",
+#                                    SCIM_thy_keTL_negroot = "dashed",
+#                                    AFIR_thy = "solid")) + 
+#   theme(legend.position="top") + 
+#   xlab("Fold Change in Parameter")
+# dirs = list()
+# g = xgx_save(8,8,dirs,paste0("ManySensitivityAnalysis"),"")
+# print(g)
+
+```

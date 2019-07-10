@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Saving plot, automatically annotating the status and denoting...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for xgx_save {xgxr}"><tr><td>xgx_save {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Saving plot, automatically annotating the status and denoting the filenames</h2>
+
+<h3>Description</h3>
+
+<p>Saving plot, automatically annotating the status and denoting the filenames
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+xgx_save(width, height, dirs = NULL, filename_main, status,
+  g = last_plot(), filetype = "png", status_x = Inf,
+  status_y = Inf, status_fontsize = 7)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>width</code></td>
+<td>
+<p>width of plot</p>
+</td></tr>
+<tr valign="top"><td><code>height</code></td>
+<td>
+<p>height of plot</p>
+</td></tr>
+<tr valign="top"><td><code>dirs</code></td>
+<td>
+<p>list of directories.  If NULL or if directories missing, there is default behavior below
+</p>
+
+<ol>
+<li><p> parent_dir  = Parent directory containing the Rscript and the Results folder, default getwd()
+</p>
+</li>
+<li><p> rscript_dir = Subdirectory of parent_dir that contains the Rscript used to generate the figure, default &quot;./&quot;
+</p>
+</li>
+<li><p> rscript_name= Name of the Rscript used to generate the figure, default &quot;Name_Of_Script_Here.R&quot;
+</p>
+</li>
+<li><p> results_dir = Subdirectory ofparent_dir where the figure is stored, default &quot;./&quot;
+</p>
+</li>
+<li><p> filename_prefix = prefix of filename to be appended to filename_main
+</p>
+</li></ol>
+</td></tr>
+<tr valign="top"><td><code>filename_main</code></td>
+<td>
+<p>main part of the filename, excluding prefix and suffix.  no default</p>
+</td></tr>
+<tr valign="top"><td><code>status</code></td>
+<td>
+<p>status to be annotated</p>
+</td></tr>
+<tr valign="top"><td><code>g</code></td>
+<td>
+<p>ggplot plot object, default is ggplot::last_plot()</p>
+</td></tr>
+<tr valign="top"><td><code>filetype</code></td>
+<td>
+<p>file extension (e.g. &quot;pdf&quot;,&quot;csv&quot; etc.)</p>
+</td></tr>
+<tr valign="top"><td><code>status_x</code></td>
+<td>
+<p>x location of the status in plot</p>
+</td></tr>
+<tr valign="top"><td><code>status_y</code></td>
+<td>
+<p>y location of the status in plot</p>
+</td></tr>
+<tr valign="top"><td><code>status_fontsize</code></td>
+<td>
+<p>font size for status in plot</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>ggplot2 plot object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+
+library(ggplot2)  
+dirs = list(
+  parent_dir= "./",
+  rscript_dir  = "./",
+  rscript_name = "Example.R",
+  results_dir  = "./",
+  filename_prefix   = "Task01_")
+data = data.frame(x=1:1000,y=rnorm(1000))
+ggplot(data=data,aes(x=x,y=y)) +
+geom_point()
+xgx_save(4,4,dirs,"Example","DRAFT")
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 0.0.1.005 <a href="00Index.html">Index</a>]</div>
+</body></html>
