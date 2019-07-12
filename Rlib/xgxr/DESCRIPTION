@@ -18,11 +18,11 @@ Imports: dplyr, stringr, tibble, tidyr, ggplot2, scales, grid,
         gridExtra, png, assertthat, pander, caTools, labeling, binom,
         stats, graphics, utils
 NeedsCompilation: no
-Packaged: 2019-07-10 18:03:43 UTC; steinanf
+Packaged: 2019-07-12 19:38:19 UTC; margoal1
 Author: xGx Team [aut, cre],
   Alison Margolskee [aut],
   Fariba Khanshan [aut],
   Andrew Stein [aut],
   Matthew Fidler [ctb] (0000-0001-8538-6691)
 Maintainer: xGx Team <xgx_contact@gmail.com>
-Built: R 3.4.3; ; 2019-07-10 18:04:40 UTC; unix
+Built: R 3.4.3; ; 2019-07-12 19:44:43 UTC; unix

@@ -57,7 +57,7 @@ xgx_scale_x_time_units =
                              w="Week",
                              m="Month",
                              y="Year")
-    xlabel = xlabel.list[[units_plot]]
+    xlabel = paste0("Time (", xlabel.list[[units_plot]], "s)")
     
     return( list(
       scale_x_continuous(breaks=breaks_function, labels=labels_function, ...), 

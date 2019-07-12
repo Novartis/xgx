@@ -59,8 +59,13 @@ pkpd_data <- read.csv("../Data/Single_Ascending_Dose_Dataset2.csv")
            CENS    = CENS,   #CENSORING column name
            CMT     = CMT,    #COMPARTMENT column
            DOSE    = DOSE,   #DOSE column here (numeric value)
-           TRTACT  = TRTACT) #DOSE REGIMEN column here (character, with units)
+           TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+           LIDV_NORM = LIDV/DOSE,
+           LIDV_UNIT    = ifelse(CMT==2, "ng/ml", NA )
+    )
 
+cov_names = list("SEX", "WEIGHTB")
+  
 #create a factor for the treatment variable for plotting
 pkpd_data = pkpd_data %>%
   arrange(DOSE) %>%
@@ -76,11 +81,11 @@ pk_data_revdose <- pk_data %>%
 
 #perform NCA, for additional plots
 NCA = pk_data %>%
-  group_by(ID,DOSE) %>%
+  group_by(ID, DOSE, SEX, WEIGHTB) %>%
   filter(!is.na(LIDV)) %>%
   summarize(AUC_last = trapz(TIME,LIDV),
             Cmax     = max(LIDV)) %>%
-  gather(PARAM,VALUE,-c(ID,DOSE)) %>%
+  gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
   mutate(VALUE_NORM = VALUE/DOSE)
 
@@ -91,6 +96,9 @@ NCA = pk_data %>%
   dose_label         = "Dose (mg)"
   conc_label         = "Concentration (ng/ml)"  
   concnorm_label     = "Normalized Concentration (ng/ml)/mg"
+  conc_units         = "ng/ml"
+  AUC_units          = "h.ng/ml"
+  
 ```
 
 ## Provide an overview of the data
@@ -105,7 +113,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 gg <- ggplot(data = pk_data_revdose, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT)) 
 
-gg <- gg + xgx_geom_ci(percentile = .95, position = position_dodge(width = 1))
+gg <- gg + xgx_geom_ci(percentile = .95)
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
 gg <- gg + labs(y=conc_label,color = trtact_label)
@@ -137,12 +145,12 @@ print(gg)
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = pk_data_revdose, 
-             aes(x = NOMTIME, y = LIDV/as.numeric(as.character(DOSE)), 
+             aes(x = NOMTIME, y = LIDV_NORM, 
                  group= DOSE, color = TRTACT))
 gg <- gg + xgx_geom_ci(percentile = 0.95, alpha = 0.5, position = position_dodge(1))
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
-gg <- gg + labs(y=concnorm_label,color = trtact_label)
+gg <- gg + labs(y=concnorm_label, color = trtact_label)
 gg <- gg + xgx_annotate_status(status)
 print(gg)
  
@@ -171,19 +179,13 @@ Now that the overall trends in the mean data have been observed, look into the b
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
-THIS IS WHERE ANDY AND ALISON AND FARIBA LEFT OFF
-
-data_to_plot <- pkpd_data[pkpd_data$CMT==2,] 
-data_to_plot$TRTACT <- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg <- ggplot(data = data_to_plot, aes(x = TIME, y = LIDV)) + theme_bw(base_size = 12)
+gg <- ggplot(data = pk_data_revdose, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT)), size = 1, alpha = 0.5) 
-gg <- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==0,], aes(color = TRTACT), size = 2, alpha = 0.5)
-gg <- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], color="red",  shape=8,size = 2, alpha = 0.5)
+gg <- gg + geom_point(data = pk_data_revdose %>% filter(CENS==0), aes(color = TRTACT), size = 2, alpha = 0.5)
+gg <- gg + geom_point(data = pk_data_revdose %>% filter(CENS==1), color="red",  shape=8, size = 2, alpha = 0.5)
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
-gg <- gg + xlab("Time (hours)") + ylab("Concentration (ng/mL)")
-gg <- gg + guides(color= guide_legend(title="Dose"))
+gg <- gg + labs(y = conc_label, color = trtact_label)
 gg <- gg + xgx_annotate_status(status) 
 print(gg)
 ```
@@ -191,16 +193,20 @@ print(gg)
 ### Concentration over time, faceted by Dose, dots and lines grouped by individual
 
 ```{r single_ascending_PK3, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
-data_to_plot <- pkpd_data[pkpd_data$CMT==2,] 
-
-gg <- ggplot(data = data_to_plot, aes(x = TIME, y = LIDV)) + theme_bw(base_size = 12)
+gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID), size = 1, alpha = 0.2)  
-gg <- gg + geom_point(data=data_to_plot[data_to_plot$BLQ==0,], size = 2, alpha = 0.2)
-gg <- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], color="red",  shape=8,size = 2, alpha = 0.2)
+
+gg <- gg + geom_point(aes(color = factor(CENS), shape = factor(CENS), alpha = 0.3), size = 2, alpha = 0.2)
+gg <- gg + scale_shape_manual(values=c(1,8))
+gg <- gg + scale_color_manual(values=c("grey50","red"))
+
 gg <- gg + xgx_scale_y_log10()
-gg <- gg + scale_x_continuous(breaks = seq(0,96,12)) + xlab("Time (hours)") + ylab("Concentration (ng/mL)")
-gg <- gg + theme(legend.position="none")   + facet_grid(.~TRTACT)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg <- gg + labs(y = conc_label, shape = "BLQ", color = "BLQ")
+
+gg <- gg + facet_grid(.~TRTACT)
 gg <- gg + xgx_annotate_status(status)
+
 print(gg)
 ```
 
@@ -214,38 +220,36 @@ Plotting individual profiles on top of gray spaghetti plots puts individual prof
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 8}
 
-data_to_plot <- pkpd_data[pkpd_data$CMT==2,] 
-
-data_to_plot2 <- NULL
-for(id in unique(pkpd_data$ID)){
-  if(is.null(data_to_plot2)){
-    data_to_plot2 <- data.frame(data_to_plot[data_to_plot$DOSE==data_to_plot[data_to_plot$ID==id,]$DOSE,], ID2 = id)
-  }else{
-    data_to_plot2 <- rbind(data_to_plot2, 
-                          data.frame(data_to_plot[data_to_plot$DOSE==data_to_plot[data_to_plot$ID==id,]$DOSE,], ID2 = id))
-  }
+pk_data_rep_by_trt <- list()
+for(id in unique(pk_data$ID)){
+  indiv_data <- pk_data %>% subset(ID == id)
+  itrtact = unique(indiv_data$TRTACT)
+  
+  pk_data_rep_by_trt[[as.character(id)]] <- pk_data %>% 
+        subset(TRTACT == itrtact) %>% 
+        mutate(ID_rep_by_trt = ID, ID = id)
 }
+pk_data_rep_by_trt <- bind_rows(pk_data_rep_by_trt)
 
-temp <- data_to_plot2$ID
-data_to_plot2$ID = data_to_plot2$ID2
-data_to_plot2$ID2 <- temp
-
-gg <- ggplot() + theme_bw(base_size = 12)
-gg <- gg + geom_line(data = data_to_plot2, 
-                     aes(x = TIME, y = LIDV, group = ID2), 
+gg <- ggplot(mapping = aes(x = TIME, y = LIDV)) 
+gg <- gg + geom_line(data = pk_data_rep_by_trt, 
+                     aes(group = ID_rep_by_trt), 
                      size = 1, color = rgb(0.5,0.5,0.5), alpha = 0.3)
-gg <- gg + geom_line(data = data_to_plot, 
-                     aes(x = TIME, y = LIDV,group = ID), size = 1)
-# gg <- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==0,], 
-#                       aes(x = TIME, y = LIDV),size = 1)
-gg <- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], 
-                      aes(x = TIME, y = LIDV),color="red",  shape=8,size = 1)
+gg <- gg + geom_line(data = pk_data, 
+                     aes(group = ID), size = 1)
+gg <- gg + geom_point(data = pk_data_revdose %>% filter(CENS==1), 
+                      color="red",  shape=8, size = 2)
+
 gg <- gg + xgx_scale_y_log10()
-gg <- gg + scale_x_continuous(breaks = seq(0,96,24)) 
-gg <- gg + ylab("Concentration (ng/mL)") + xlab("Time (hours)")
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg <- gg + labs(y = conc_label)
+
 gg <- gg + theme(legend.position="none")
 gg <- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
-gg + facet_wrap(~ID+TRTACT,ncol = length(unique(data_to_plot$ID))/length(unique(data_to_plot$DOSE)) )
+gg + facet_wrap(~ID + TRTACT, 
+                ncol = 10 )
+
+
 ```
 
 ## Explore covariate effects on PK
@@ -253,140 +257,63 @@ gg + facet_wrap(~ID+TRTACT,ncol = length(unique(data_to_plot$ID))/length(unique(
 ### Concentration over time, colored by categorical covariate, mean +/- 95% CI
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
-data_to_plot <- pkpd_data[pkpd_data$CMT==2,] 
+gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
+gg <- gg + xgx_geom_ci(percentile = 0.95)
 
-gg <- ggplot(data = data_to_plot, aes(x = NOMTIME, y = LIDV, color = SEX)) 
-
-gg <- gg + stat_summary(geom = "errorbar", width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y <- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) +
-  stat_summary(geom = "point", size = 2, fun.y = mean) + 
-  stat_summary(geom = "line", size = 1, fun.y = mean) 
 gg <- gg + xgx_scale_y_log10()
-gg <- gg + scale_x_continuous(breaks = seq(0,96,12)) 
-gg <- gg + xlab("Time (hours)") + ylab("Concentration (ng/mL)")
-gg + facet_grid(.~DOSE) + xgx_annotate_status(status)
-```
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg <- gg + labs(y = conc_label)
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
-data_to_plot <- pkpd_data[pkpd_data$CMT==2,] 
+gg <- gg + facet_grid(.~TRTACT) + xgx_annotate_status(status)
 
-gg <- ggplot(data = data_to_plot, aes(x = NOMTIME, y = LIDV, group= WEIGHTB>70, color = WEIGHTB>70)) 
-
-gg <- gg + stat_summary(geom = "errorbar", width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y <- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) +
-  stat_summary(geom = "point", size = 2, fun.y = mean) + 
-  stat_summary(geom = "line", size = 1, fun.y = mean) 
-gg <- gg + xgx_scale_y_log10()
-gg <- gg + scale_x_continuous(breaks = seq(0,96,12)) 
-gg <- gg + xlab("Time (hours)") + ylab("Concentration (ng/mL)")
-gg + facet_grid(.~DOSE) + xgx_annotate_status(status)
+print(gg)
+print(gg + aes(group= WEIGHTB>70, color = WEIGHTB>70) )
 ```
 
 ### Dose Normalized Concentration over time, colored by categorical covariate, mean +/- 95% CI
 
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 6}
-data_to_plot <- pkpd_data[pkpd_data$CMT==2,] 
-
-ggs <- list()
-for(iplot in 1:2){
-  
-  if(iplot==1){
-gg <- ggplot(data = data_to_plot, 
-             aes(x = NOMTIME, y = LIDV/as.numeric(as.character(DOSE)), 
+```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 3}
+gg <- ggplot(data = pk_data, 
+             aes(x = NOMTIME, 
+                 y = LIDV_NORM, 
                  color = SEX))
-  }else{
-  gg <- ggplot(data = data_to_plot, 
-             aes(x = NOMTIME, y = LIDV/as.numeric(as.character(DOSE)), 
-                 color = WEIGHTB>70))
-    
-}
-
-
-
-gg <- gg + stat_summary(geom = "errorbar", width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y <- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) + 
-  stat_summary(geom = "point", size = 2, fun.y = mean) + 
-  stat_summary(geom = "line", size = 1, fun.y = mean) 
+gg <- gg + xgx_geom_ci(percentile = 0.95)
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
-gg <- gg + xlab("") + ylab("") + xgx_annotate_status(status)
-ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1, left = "Dose Normalized Concentration (ng/mL)/mg", bottom = "Time (hours)")
+gg <- gg + ylab(concnorm_label) 
+gg <- gg + xgx_annotate_status(status)
+print(gg)
+print(gg+ aes(color = WEIGHTB>70))
 
 ```
 
 
 ```{r, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
-AUClast <- pkpd_data[pkpd_data$CMT==2&!is.na(pkpd_data$LIDV),]
-AUClast <- data.frame(stack(sapply(split(AUClast,AUClast$ID),function(df) trapz(df$TIME,df$LIDV))))
-names(AUClast) <- c("AUC","ID")
 
-AUClast$ID <- as.numeric(as.character(AUClast$ID))
-AUClast <- AUClast[order(AUClast$ID),]
-AUClast <- merge(AUClast, unique(pkpd_data[c("ID","DOSE","TRTACT","WEIGHTB","SEX")]), by = "ID")
-
-gg <- ggplot(data = AUClast, aes(x = SEX, y = AUC/DOSE))
+gg <- ggplot(data = NCA, aes(x = SEX, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = SEX))
-gg1 <- gg + ylab("") + xlab("Sex") + xgx_annotate_status(status)
-
-AUClast$WT0bins <- cut(AUClast$WEIGHTB, c(50,70,90,110))
-gg <- ggplot(data = AUClast, aes(x = WT0bins, y = AUC/DOSE))
-gg <- gg + geom_boxplot(aes(group = WT0bins))
-gg2 <- gg + ylab("") + xlab("Bodyweight (kg)") + xgx_annotate_status(status)
-
-grid.arrange(gg1, gg2, ncol = 2, left = "Dose normalized AUClast (h.(ng/mL)/mg)")
-
-
-AUClast$WT0bins <- cut(AUClast$WEIGHTB, c(50,70,90,110))
-gg <- ggplot(data = AUClast, aes(x = WT0bins, y = AUC/DOSE))
-gg <- gg + geom_boxplot(aes( fill=SEX))# + geom_smooth(method = "lm",color = "black")
-gg + ylab("Dose normalized AUClast (h.(ng/mL)/mg)") + xlab("Bodyweight (kg)") + xgx_annotate_status(status)
-
-
+gg <- gg + ylab("") + xlab("Sex") 
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + facet_wrap(~PARAM, scales = "free_y")
+gg
 
 ```
 
+```{r, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
-```{r}
-AUClast <- pkpd_data[pkpd_data$CMT==2&!is.na(pkpd_data$LIDV),]
-AUClast <- data.frame(stack(sapply(split(AUClast,AUClast$ID),function(df) trapz(df$TIME,df$LIDV))))
-names(AUClast) <- c("AUC","ID")
+gg <- ggplot(data = NCA, aes(x = WEIGHTB, y = VALUE_NORM))
+gg <- gg + geom_point()
+gg <- gg + ylab("") + xlab("Body Weight (kg)") 
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + facet_wrap(~PARAM, scales = "free_y")
+gg <- gg + geom_smooth(method="lm")
+gg
 
-AUClast$ID <- as.numeric(as.character(AUClast$ID))
-AUClast <- AUClast[order(AUClast$ID),]
-AUClast <- merge(AUClast, unique(pkpd_data[c("ID","DOSE","TRTACT","WEIGHTB","SEX")]), by = "ID")
-
-gg <- ggplot(data = AUClast, aes(x = WEIGHTB, y = AUC/DOSE))
-gg <- gg + geom_point() + geom_smooth(method="lm")
-gg + ylab("Dose normalized AUClast (h.(ng/mL)/mg)") + xlab("Bodyweight (kg)") + xgx_annotate_status(status)
-
-
-gg <- ggplot(data = AUClast, aes(x = WEIGHTB, y = AUC/DOSE, color = SEX))
-gg <- gg + geom_point() + geom_smooth(method="lm")
-gg + ylab("Dose normalized AUClast (h.(ng/mL)/mg)") + xlab("Bodyweight (kg)") + xgx_annotate_status(status)
+gg + aes(color = SEX)
 
 ```
+
 
 ## R Session Info
 ```{r}

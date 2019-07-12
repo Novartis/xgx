@@ -496,10 +496,10 @@ div.tocify {
 <h2>Setup</h2>
 <pre class="r"><code># remove reference to home directory in libPaths
 .libPaths(grep(&quot;home&quot;, .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep(&quot;usr&quot;, .libPaths(), value=TRUE, invert=TRUE))
+.libPaths(grep(&quot;usr&quot;,  .libPaths(), value=TRUE, invert=TRUE))
 
 # add localLib to libPaths for locally installed packages
-.libPaths(c(&quot;localLib&quot;, .libPaths()))
+.libPaths(c(&quot;../Rlib&quot;, .libPaths()))
 
 # will load from first filepath first, then look in .libPaths for more packages not in first path
 # version matches package in first filepath, in the case of multiple instances of a package
@@ -511,46 +511,69 @@ library(ggplot2)
 library(dplyr)
 library(RxODE)
 library(caTools)
+library(xgxr)
+library(tidyr)
 
 #flag for labeling figures as draft
-  draft.flag      = TRUE
+status = &quot;DRAFT&quot;
 
 ## ggplot settings
-theme_set(theme_bw(base_size=12))</code></pre>
-</div>
-<div id="define-useful-graphics-functions" class="section level2">
-<h2>Define Useful Graphics Functions</h2>
-<pre class="r"><code># annotation of plots with status of code
-AnnotateStatus &lt;- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color=&quot;grey&quot;) {
-  
-  x.pos &lt;- -Inf
-  if (log.x)
-    x.pos &lt;- 0
-  
-  y.pos &lt;- -Inf
-  if (log.y)
-    y.pos &lt;- 0
-  
-  if(draft.flag) {
-    annotateStatus &lt;- annotate(&quot;text&quot;,
-                               label=&quot;DRAFT&quot;,
-                               x=x.pos, y=y.pos,
-                               hjust=-0.1, vjust=-1.0,
-                               cex=fontsize,
-                               col=color, alpha=0.7, fontface=&quot;bold&quot;)
-  } else {
-    annotateStatus &lt;- NULL
-  }
-  
-  return(annotateStatus)
-}</code></pre>
+xgx_theme_set()</code></pre>
 </div>
 <div id="load-dataset" class="section level2">
 <h2>Load Dataset</h2>
-<pre class="r"><code>my.data &lt;- read.csv(&quot;../Data/Single_Ascending_Dose_Dataset2.csv&quot;)
+<pre class="r"><code>#load dataset
+pkpd_data &lt;- read.csv(&quot;../Data/Single_Ascending_Dose_Dataset2.csv&quot;)
 
-# Define order for factors
-my.data$TRTACT &lt;- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order(my.data$DOSE)]))</code></pre>
+#ensure dataset has all the necessary columns
+  pkpd_data = pkpd_data %&gt;%
+    mutate(ID      = ID,     #ID   column
+           TIME    = TIME,   #TIME column name 
+           NOMTIME = NOMTIME,#NOMINAL TIME column name
+           EVID    = EVID   ,#EVENT ID, &gt;=1 is dose, otherwise measurement
+           LIDV    = LIDV,   #DEPENDENT VARIABLE column name
+           CENS    = CENS,   #CENSORING column name
+           CMT     = CMT,    #COMPARTMENT column
+           DOSE    = DOSE,   #DOSE column here (numeric value)
+           TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+           LIDV_NORM = LIDV/DOSE,
+           LIDV_UNIT    = ifelse(CMT==2, &quot;ng/ml&quot;, NA )
+    )
+
+cov_names = list(&quot;SEX&quot;, &quot;WEIGHTB&quot;)
+  
+#create a factor for the treatment variable for plotting
+pkpd_data = pkpd_data %&gt;%
+  arrange(DOSE) %&gt;%
+  mutate(TRTACT = factor(TRTACT, levels = unique(TRTACT)))
+
+#create pk dataset
+pk_data &lt;- pkpd_data %&gt;%
+  filter(CMT==2)
+
+#create a reverse-order factor for some PK plots
+pk_data_revdose &lt;- pk_data %&gt;% 
+  mutate(TRTACT = factor(TRTACT, levels = rev(levels(TRTACT))))
+
+#perform NCA, for additional plots
+NCA = pk_data %&gt;%
+  group_by(ID, DOSE, SEX, WEIGHTB) %&gt;%
+  filter(!is.na(LIDV)) %&gt;%
+  summarize(AUC_last = trapz(TIME,LIDV),
+            Cmax     = max(LIDV)) %&gt;%
+  gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %&gt;%
+  ungroup() %&gt;%
+  mutate(VALUE_NORM = VALUE/DOSE)
+
+#units and labels
+  time_units_dataset = &quot;hours&quot;
+  time_units_plot    = &quot;days&quot;
+  trtact_label       = &quot;Dose&quot;
+  dose_label         = &quot;Dose (mg)&quot;
+  conc_label         = &quot;Concentration (ng/ml)&quot;  
+  concnorm_label     = &quot;Normalized Concentration (ng/ml)/mg&quot;
+  conc_units         = &quot;ng/ml&quot;
+  AUC_units          = &quot;h.ng/ml&quot;</code></pre>
 </div>
 <div id="provide-an-overview-of-the-data" class="section level2">
 <h2>Provide an overview of the data</h2>
@@ -558,114 +581,59 @@ my.data$TRTACT &lt;- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order
 <p>When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?</p>
 <div id="concentration-over-time-colored-by-dose-mean---95-ci" class="section level3">
 <h3>Concentration over time, colored by Dose, mean +/- 95% CI</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-data_to_plot$TRTACT &lt;- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data_revdose, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT)) 
 
-gg &lt;- ggplot(data = data_to_plot, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT)) 
-gg &lt;- gg + theme_bw(base_size = 12)
-gg &lt;- gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y &lt;- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) +
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean) 
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,6)) 
-gg &lt;- gg + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Concentration (ng/mL)&quot;)
-gg &lt;- gg + guides(color= guide_legend(title=&quot;Dose&quot;))
-gg + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+gg &lt;- gg + xgx_geom_ci(percentile = .95)
+gg &lt;- gg + xgx_scale_y_log10() 
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y=conc_label,color = trtact_label)
+gg &lt;- gg + xgx_annotate_status(status)
+print(gg)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
 </div>
 <div id="concentration-over-time-faceted-by-dose-mean---95-ci-overlaid-on-gray-spaghetti-plots" class="section level3">
 <h3>Concentration over time, faceted by Dose, mean +/- 95% CI, overlaid on gray spaghetti plots</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-
-gg &lt;- ggplot(data = data_to_plot, aes(x = TIME, y = LIDV)) + theme_bw(base_size = 12)
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = TIME, y = LIDV))
 gg &lt;- gg + geom_line(aes(group = ID), color = rgb(0.5,0.5,0.5), size = 1, alpha = 0.3)  
-gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==0,], 
-                      color = rgb(0.5,0.5,0.5), size = 2, alpha = 0.3)
-gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], 
-                      color = &quot;red&quot;, shape=8, size = 2, alpha = 0.3)
-gg &lt;- gg + stat_summary(aes(x = NOMTIME),geom = &quot;errorbar&quot;, width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y &lt;- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) +
-  stat_summary(aes(x = NOMTIME),geom = &quot;point&quot;, size = 2, fun.y = mean) + 
-  stat_summary(aes(x = NOMTIME),geom = &quot;line&quot;, size = 1, fun.y = mean)
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,12)) 
-gg &lt;- gg + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Concentration (ng/mL)&quot;)
+gg &lt;- gg + geom_point(aes(color = factor(CENS), shape = factor(CENS), alpha = 0.3), size = 2, alpha = 0.3)
+gg &lt;- gg + scale_shape_manual(values=c(1,8))
+gg &lt;- gg + scale_color_manual(values=c(&quot;grey50&quot;,&quot;red&quot;))
+gg &lt;- gg + xgx_geom_ci(aes(x = NOMTIME, color=NULL, group=NULL), percentile = 0.95)
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y=conc_label,color = trtact_label)
 gg &lt;- gg + theme(legend.position=&quot;none&quot;) + facet_grid(.~TRTACT)
-gg + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+gg &lt;- gg + xgx_annotate_status(status)
+print(gg)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 </div>
 </div>
 <div id="assess-the-dose-linearity-of-exposure" class="section level2">
 <h2>Assess the dose linearity of exposure</h2>
 <div id="dose-normalized-concentration-over-time-colored-by-dose-mean---95-ci" class="section level3">
 <h3>Dose Normalized Concentration over time, colored by Dose, mean +/- 95% CI</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-data_to_plot$TRTACT &lt;- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg &lt;- ggplot(data = data_to_plot, 
-             aes(x = NOMTIME, y = LIDV/as.numeric(as.character(DOSE)), 
-                 group= DOSE, color = TRTACT, fill = TRTACT))
-gg &lt;- gg + theme_bw(base_size = 12)
-gg &lt;- gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y &lt;- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }, alpha = 0.5) + 
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean, alpha = 0.5) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean, alpha = 0.5) 
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,6)) 
-gg &lt;- gg + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Dose Normalized Concentration (ng/mL)/mg&quot;)
-gg &lt;- gg + guides(color= guide_legend(title=&quot;Dose&quot;), fill= guide_legend(title=&quot;Dose&quot;)) 
-gg + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data_revdose, 
+             aes(x = NOMTIME, y = LIDV_NORM, 
+                 group= DOSE, color = TRTACT))
+gg &lt;- gg + xgx_geom_ci(percentile = 0.95, alpha = 0.5, position = position_dodge(1))
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y=concnorm_label, color = trtact_label)
+gg &lt;- gg + xgx_annotate_status(status)
+print(gg)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
+</div>
+<div id="nca-of-dose-normalized-auc-and-cmax-vs-dose" class="section level3">
+<h3>NCA of dose normalized AUC and Cmax vs Dose</h3>
+<p>Observe the dose normalized AUC and Cmax over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to BLQ observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?</p>
+<pre class="r"><code>gg &lt;- ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM))
+gg &lt;- gg + geom_boxplot(aes(group = DOSE)) 
+gg &lt;- gg + geom_smooth(method = &quot;lm&quot;, color = &quot;black&quot;)
+gg &lt;- gg + facet_wrap(~PARAM, scales = &quot;free_y&quot;) 
+gg &lt;- gg + labs(x = dose_label, y = concnorm_label)
+gg &lt;- gg + xgx_annotate_status(status)
+print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
-</div>
-<div id="nca-of-dose-normalized-auc-vs-dose" class="section level3">
-<h3>NCA of dose normalized AUC vs Dose</h3>
-<p>Observe the dose normalized AUC over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to BLQ observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?</p>
-<pre class="r"><code>AUClast &lt;- my.data[my.data$CMT==2&amp;!is.na(my.data$LIDV),]
-AUClast &lt;- data.frame(stack(sapply(split(AUClast,AUClast$ID),function(df) trapz(df$TIME,df$LIDV))))
-names(AUClast) &lt;- c(&quot;AUC&quot;,&quot;ID&quot;)
-
-AUClast$ID &lt;- as.numeric(as.character(AUClast$ID))
-AUClast &lt;- AUClast[order(AUClast$ID),]
-AUClast &lt;- merge(AUClast, unique(my.data[c(&quot;ID&quot;,&quot;DOSE&quot;,&quot;TRTACT&quot;)]), by = &quot;ID&quot;)
-
-gg &lt;- ggplot(data = AUClast, aes(x = DOSE, y = AUC/DOSE))
-gg &lt;- gg + geom_boxplot(aes(group = DOSE)) + geom_smooth(method = &quot;lm&quot;,color = &quot;black&quot;)
-gg + ylab(&quot;Dose normalized AUClast (h.(ng/mL)/mg)&quot;) + xlab(&quot;Dose (mg)&quot;) + AnnotateStatus(draft.flag)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
-</div>
-<div id="nca-of-dose-normalized-cmax-vs-dose" class="section level3">
-<h3>NCA of dose normalized Cmax vs Dose</h3>
-<pre class="r"><code>Cmax &lt;- my.data[my.data$CMT==2&amp;!is.na(my.data$LIDV),]
-Cmax &lt;- data.frame(stack(sapply(split(Cmax,Cmax$ID),function(df) max(df$LIDV))))
-names(Cmax) &lt;- c(&quot;Cmax&quot;,&quot;ID&quot;)
-
-Cmax$ID &lt;- as.numeric(as.character(Cmax$ID))
-Cmax &lt;- Cmax[order(Cmax$ID),]
-Cmax &lt;- merge(Cmax, unique(my.data[c(&quot;ID&quot;,&quot;DOSE&quot;,&quot;TRTACT&quot;)]), by = &quot;ID&quot;)
-
-gg &lt;- ggplot(data = Cmax, aes(x = DOSE, y = Cmax/DOSE))
-gg &lt;- gg + geom_boxplot(aes(group = DOSE)) + geom_smooth(method = &quot;lm&quot;, color = &quot;black&quot;)
-gg + ylab(&quot;Dose normalized Cmax ((ng/mL)/mg)&quot;) + xlab(&quot;Dose (mg)&quot;) + AnnotateStatus(draft.flag)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-8-1.png" width="768" /></p>
 </div>
 </div>
 <div id="explore-variability" class="section level2">
@@ -673,32 +641,35 @@ gg + ylab(&quot;Dose normalized Cmax ((ng/mL)/mg)&quot;) + xlab(&quot;Dose (mg)&
 <p>Now that the overall trends in the mean data have been observed, look into the between subject variability by plotting spaghetti plots. Consider again whether to color by dose or facet by dose. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations?</p>
 <div id="concentration-over-time-colored-by-dose-dots-and-lines-grouped-by-individual" class="section level3">
 <h3>Concentration over time, colored by Dose, dots and lines grouped by individual</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-data_to_plot$TRTACT &lt;- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg &lt;- ggplot(data = data_to_plot, aes(x = TIME, y = LIDV)) + theme_bw(base_size = 12)
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data_revdose, aes(x = TIME, y = LIDV)) 
 gg &lt;- gg + geom_line(aes(group = ID, color = factor(TRTACT)), size = 1, alpha = 0.5) 
-gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==0,], aes(color = TRTACT), size = 2, alpha = 0.5)
-gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], color=&quot;red&quot;,  shape=8,size = 2, alpha = 0.5)
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,6)) 
-gg &lt;- gg + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Concentration (ng/mL)&quot;)
-gg &lt;- gg + guides(color= guide_legend(title=&quot;Dose&quot;))
-gg + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
+gg &lt;- gg + geom_point(data = pk_data_revdose %&gt;% filter(CENS==0), aes(color = TRTACT), size = 2, alpha = 0.5)
+gg &lt;- gg + geom_point(data = pk_data_revdose %&gt;% filter(CENS==1), color=&quot;red&quot;,  shape=8, size = 2, alpha = 0.5)
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y = conc_label, color = trtact_label)
+gg &lt;- gg + xgx_annotate_status(status) 
+print(gg)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 </div>
 <div id="concentration-over-time-faceted-by-dose-dots-and-lines-grouped-by-individual" class="section level3">
 <h3>Concentration over time, faceted by Dose, dots and lines grouped by individual</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-
-gg &lt;- ggplot(data = data_to_plot, aes(x = TIME, y = LIDV)) + theme_bw(base_size = 12)
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg &lt;- gg + geom_line(aes(group = ID), size = 1, alpha = 0.2)  
-gg &lt;- gg + geom_point(data=data_to_plot[data_to_plot$BLQ==0,], size = 2, alpha = 0.2)
-gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], color=&quot;red&quot;,  shape=8,size = 2, alpha = 0.2)
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,12)) + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Concentration (ng/mL)&quot;)
-gg &lt;- gg + theme(legend.position=&quot;none&quot;)   + facet_grid(.~TRTACT)
-gg + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
+
+gg &lt;- gg + geom_point(aes(color = factor(CENS), shape = factor(CENS), alpha = 0.3), size = 2, alpha = 0.2)
+gg &lt;- gg + scale_shape_manual(values=c(1,8))
+gg &lt;- gg + scale_color_manual(values=c(&quot;grey50&quot;,&quot;red&quot;))
+
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y = conc_label, shape = &quot;BLQ&quot;, color = &quot;BLQ&quot;)
+
+# gg &lt;- gg + theme(legend.position=&quot;none&quot;) 
+gg &lt;- gg + facet_grid(.~TRTACT)
+gg &lt;- gg + xgx_annotate_status(status)
+
+print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/single_ascending_PK3-1.png" width="960" /></p>
 </div>
 </div>
@@ -708,161 +679,87 @@ gg + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
 <p>Plotting individual profiles on top of gray spaghetti plots puts individual profiles into context, and may help identify outlying individuals for further inspection. Are there any individuals that appear to have very high or low Cmax compared to others within the same dose group? What about the timing of Cmax? What about the slope of the elimination phase? Does it appear that any subjects could have received an incorrect dose?</p>
 <div id="concentration-over-time-faceted-by-individual-individual-line-plots-overlaid-on-gray-spaghetti-plots-for-that-dose-group" class="section level3">
 <h3>Concentration over time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-
-data_to_plot2 &lt;- NULL
-for(id in unique(my.data$ID)){
-  if(is.null(data_to_plot2)){
-    data_to_plot2 &lt;- data.frame(data_to_plot[data_to_plot$DOSE==data_to_plot[data_to_plot$ID==id,]$DOSE,], ID2 = id)
-  }else{
-    data_to_plot2 &lt;- rbind(data_to_plot2, 
-                          data.frame(data_to_plot[data_to_plot$DOSE==data_to_plot[data_to_plot$ID==id,]$DOSE,], ID2 = id))
-  }
+<pre class="r"><code>pk_data_rep_by_trt &lt;- list()
+for(id in unique(pk_data$ID)){
+  indiv_data &lt;- pk_data %&gt;% subset(ID == id)
+  itrtact = unique(indiv_data$TRTACT)
+  
+  pk_data_rep_by_trt[[as.character(id)]] &lt;- pk_data %&gt;% 
+        subset(TRTACT == itrtact) %&gt;% 
+        mutate(ID_rep_by_trt = ID, ID = id)
 }
+pk_data_rep_by_trt &lt;- bind_rows(pk_data_rep_by_trt)
 
-temp &lt;- data_to_plot2$ID
-data_to_plot2$ID = data_to_plot2$ID2
-data_to_plot2$ID2 &lt;- temp
-
-gg &lt;- ggplot() + theme_bw(base_size = 12)
-gg &lt;- gg + geom_line(data = data_to_plot2, 
-                     aes(x = TIME, y = LIDV, group = ID2), 
+gg &lt;- ggplot(mapping = aes(x = TIME, y = LIDV)) 
+gg &lt;- gg + geom_line(data = pk_data_rep_by_trt, 
+                     aes(group = ID_rep_by_trt), 
                      size = 1, color = rgb(0.5,0.5,0.5), alpha = 0.3)
-gg &lt;- gg + geom_line(data = data_to_plot, 
-                     aes(x = TIME, y = LIDV,group = ID), size = 1)
-# gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==0,], 
-#                       aes(x = TIME, y = LIDV),size = 1)
-gg &lt;- gg + geom_point(data = data_to_plot[data_to_plot$BLQ==1,], 
-                      aes(x = TIME, y = LIDV),color=&quot;red&quot;,  shape=8,size = 1)
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,24)) 
-gg &lt;- gg + ylab(&quot;Concentration (ng/mL)&quot;) + xlab(&quot;Time (hours)&quot;)
-gg &lt;- gg + theme(legend.position=&quot;none&quot;) + AnnotateStatus(draft.flag, log.y=TRUE, fontsize = 4, color=rgb(0.5,0.5,1))
-gg + facet_wrap(~ID+TRTACT,ncol = length(unique(data_to_plot$ID))/length(unique(data_to_plot$DOSE)) )</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-1.png" width="960" /></p>
+gg &lt;- gg + geom_line(data = pk_data, 
+                     aes(group = ID), size = 1)
+gg &lt;- gg + geom_point(data = pk_data_revdose %&gt;% filter(CENS==1), 
+                      color=&quot;red&quot;,  shape=8, size = 2)
+
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y = conc_label)
+
+gg &lt;- gg + theme(legend.position=&quot;none&quot;)
+gg &lt;- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
+gg + facet_wrap(~ID + TRTACT, 
+                ncol = 10 )</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
 </div>
 </div>
 <div id="explore-covariate-effects-on-pk" class="section level2">
 <h2>Explore covariate effects on PK</h2>
 <div id="concentration-over-time-colored-by-categorical-covariate-mean---95-ci" class="section level3">
 <h3>Concentration over time, colored by categorical covariate, mean +/- 95% CI</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
+gg &lt;- gg + xgx_geom_ci(percentile = 0.95)
 
-gg &lt;- ggplot(data = data_to_plot, aes(x = NOMTIME, y = LIDV, color = SEX)) 
-gg &lt;- gg + theme_bw(base_size = 12)
-gg &lt;- gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y &lt;- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) +
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean) 
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,12)) 
-gg &lt;- gg + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Concentration (ng/mL)&quot;)
-gg + facet_grid(.~DOSE) + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-11-1.png" width="960" /></p>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + labs(y = conc_label)
 
-gg &lt;- ggplot(data = data_to_plot, aes(x = NOMTIME, y = LIDV, group= WEIGHTB&gt;70, color = WEIGHTB&gt;70)) 
-gg &lt;- gg + theme_bw(base_size = 12)
-gg &lt;- gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y &lt;- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) +
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean) 
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,12)) 
-gg &lt;- gg + xlab(&quot;Time (hours)&quot;) + ylab(&quot;Concentration (ng/mL)&quot;)
-gg + facet_grid(.~DOSE) + AnnotateStatus(draft.flag, log.y=TRUE)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-12-1.png" width="960" /></p>
+gg &lt;- gg + facet_grid(.~TRTACT) + xgx_annotate_status(status)
+
+print(gg)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
+<pre class="r"><code>print(gg + aes(group= WEIGHTB&gt;70, color = WEIGHTB&gt;70) )</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-9-2.png" width="960" /></p>
 </div>
 <div id="dose-normalized-concentration-over-time-colored-by-categorical-covariate-mean---95-ci" class="section level3">
 <h3>Dose Normalized Concentration over time, colored by categorical covariate, mean +/- 95% CI</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==2,] 
-
-ggs &lt;- list()
-for(iplot in 1:2){
-  
-  if(iplot==1){
-gg &lt;- ggplot(data = data_to_plot, 
-             aes(x = NOMTIME, y = LIDV/as.numeric(as.character(DOSE)), 
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, 
+             aes(x = NOMTIME, 
+                 y = LIDV_NORM, 
                  color = SEX))
-  }else{
-  gg &lt;- ggplot(data = data_to_plot, 
-             aes(x = NOMTIME, y = LIDV/as.numeric(as.character(DOSE)), 
-                 color = WEIGHTB&gt;70))
-    
-}
-
-
-gg &lt;- gg + theme_bw(base_size = 12)
-gg &lt;- gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.5, size = 1, 
-                        fun.data = function(y){
-                          y &lt;- stats::na.omit(y)
-                          data.frame(
-                          y = mean(y),
-                          ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)), 
-                          ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y)))
-                          }) + 
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean) 
-gg &lt;- gg + scale_y_log10() + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg &lt;- gg + scale_x_continuous(breaks = seq(0,96,6)) 
-gg &lt;- gg + xlab(&quot;&quot;) + ylab(&quot;&quot;) + AnnotateStatus(draft.flag, log.y=TRUE)
-ggs[[iplot]] &lt;- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1, left = &quot;Dose Normalized Concentration (ng/mL)/mg&quot;, bottom = &quot;Time (hours)&quot;)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-13-1.png" width="768" /></p>
-<pre class="r"><code>AUClast &lt;- my.data[my.data$CMT==2&amp;!is.na(my.data$LIDV),]
-AUClast &lt;- data.frame(stack(sapply(split(AUClast,AUClast$ID),function(df) trapz(df$TIME,df$LIDV))))
-names(AUClast) &lt;- c(&quot;AUC&quot;,&quot;ID&quot;)
-
-AUClast$ID &lt;- as.numeric(as.character(AUClast$ID))
-AUClast &lt;- AUClast[order(AUClast$ID),]
-AUClast &lt;- merge(AUClast, unique(my.data[c(&quot;ID&quot;,&quot;DOSE&quot;,&quot;TRTACT&quot;,&quot;WEIGHTB&quot;,&quot;SEX&quot;)]), by = &quot;ID&quot;)
-
-gg &lt;- ggplot(data = AUClast, aes(x = SEX, y = AUC/DOSE))
+gg &lt;- gg + xgx_geom_ci(percentile = 0.95)
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + ylab(concnorm_label) 
+gg &lt;- gg + xgx_annotate_status(status)
+print(gg)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
+<pre class="r"><code>print(gg+ aes(color = WEIGHTB&gt;70))</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-2.png" width="768" /></p>
+<pre class="r"><code>gg &lt;- ggplot(data = NCA, aes(x = SEX, y = VALUE_NORM))
 gg &lt;- gg + geom_boxplot(aes(group = SEX))
-gg1 &lt;- gg + ylab(&quot;&quot;) + xlab(&quot;Sex&quot;) + AnnotateStatus(draft.flag)
-
-AUClast$WT0bins &lt;- cut(AUClast$WEIGHTB, c(50,70,90,110))
-gg &lt;- ggplot(data = AUClast, aes(x = WT0bins, y = AUC/DOSE))
-gg &lt;- gg + geom_boxplot(aes(group = WT0bins))
-gg2 &lt;- gg + ylab(&quot;&quot;) + xlab(&quot;Bodyweight (kg)&quot;) + AnnotateStatus(draft.flag)
-
-grid.arrange(gg1, gg2, ncol = 2, left = &quot;Dose normalized AUClast (h.(ng/mL)/mg)&quot;)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-14-1.png" width="768" /></p>
-<pre class="r"><code>AUClast$WT0bins &lt;- cut(AUClast$WEIGHTB, c(50,70,90,110))
-gg &lt;- ggplot(data = AUClast, aes(x = WT0bins, y = AUC/DOSE))
-gg &lt;- gg + geom_boxplot(aes( fill=SEX))# + geom_smooth(method = &quot;lm&quot;,color = &quot;black&quot;)
-gg + ylab(&quot;Dose normalized AUClast (h.(ng/mL)/mg)&quot;) + xlab(&quot;Bodyweight (kg)&quot;) + AnnotateStatus(draft.flag)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-14-2.png" width="768" /></p>
-<pre class="r"><code>AUClast &lt;- my.data[my.data$CMT==2&amp;!is.na(my.data$LIDV),]
-AUClast &lt;- data.frame(stack(sapply(split(AUClast,AUClast$ID),function(df) trapz(df$TIME,df$LIDV))))
-names(AUClast) &lt;- c(&quot;AUC&quot;,&quot;ID&quot;)
-
-AUClast$ID &lt;- as.numeric(as.character(AUClast$ID))
-AUClast &lt;- AUClast[order(AUClast$ID),]
-AUClast &lt;- merge(AUClast, unique(my.data[c(&quot;ID&quot;,&quot;DOSE&quot;,&quot;TRTACT&quot;,&quot;WEIGHTB&quot;,&quot;SEX&quot;)]), by = &quot;ID&quot;)
-
-gg &lt;- ggplot(data = AUClast, aes(x = WEIGHTB, y = AUC/DOSE))
-gg &lt;- gg + geom_point() + geom_smooth(method=&quot;lm&quot;)
-gg + ylab(&quot;Dose normalized AUClast (h.(ng/mL)/mg)&quot;) + xlab(&quot;Bodyweight (kg)&quot;) + AnnotateStatus(draft.flag)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<pre class="r"><code>gg &lt;- ggplot(data = AUClast, aes(x = WEIGHTB, y = AUC/DOSE, color = SEX))
-gg &lt;- gg + geom_point() + geom_smooth(method=&quot;lm&quot;)
-gg + ylab(&quot;Dose normalized AUClast (h.(ng/mL)/mg)&quot;) + xlab(&quot;Bodyweight (kg)&quot;) + AnnotateStatus(draft.flag)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
+gg &lt;- gg + ylab(&quot;&quot;) + xlab(&quot;Sex&quot;) 
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + facet_wrap(~PARAM, scales = &quot;free_y&quot;)
+gg</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+<pre class="r"><code>gg &lt;- ggplot(data = NCA, aes(x = WEIGHTB, y = VALUE_NORM))
+gg &lt;- gg + geom_point()
+gg &lt;- gg + ylab(&quot;&quot;) + xlab(&quot;Body Weight (kg)&quot;) 
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + facet_wrap(~PARAM, scales = &quot;free_y&quot;)
+gg &lt;- gg + geom_smooth(method=&quot;lm&quot;)
+gg</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
+<pre class="r"><code>gg + aes(color = SEX)</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-12-2.png" width="768" /></p>
 </div>
 </div>
 <div id="r-session-info" class="section level2">
@@ -889,27 +786,25 @@ gg + ylab(&quot;Dose normalized AUClast (h.(ng/mL)/mg)&quot;) + xlab(&quot;Bodyw
 ## 
 ## other attached packages:
 ##  [1] reshape_0.8.7   lubridate_1.7.1 survival_2.41-3 DT_0.2         
-##  [5] RxODE_0.6-1     bindrcpp_0.2    haven_1.1.0     readr_1.1.1    
-##  [9] readxl_1.0.0    xtable_1.8-2    tidyr_0.7.2     caTools_1.17.1 
-## [13] zoo_1.8-0       dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
+##  [5] haven_1.1.0     readr_1.1.1     readxl_1.0.0    xtable_1.8-2   
+##  [9] zoo_1.8-0       bindrcpp_0.2    tidyr_0.7.2     caTools_1.17.1 
+## [13] RxODE_0.6-1     dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
+## [17] xgxr_0.0.1.005 
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] purrr_0.2.4        reshape2_1.4.3     splines_3.4.3     
-##  [4] lattice_0.20-35    colorspace_1.3-2   htmltools_0.3.6   
-##  [7] yaml_2.1.16        rlang_0.1.6        pillar_1.0.1      
-## [10] glue_1.2.0         RColorBrewer_1.1-2 binom_1.1-1       
-## [13] bindr_0.1          plyr_1.8.4         stringr_1.2.0     
-## [16] munsell_0.4.3      gtable_0.2.0       cellranger_1.1.0  
-## [19] htmlwidgets_0.9    codetools_0.2-15   evaluate_0.10.1   
-## [22] memoise_1.1.0      labeling_0.3       knitr_1.18        
-## [25] forcats_0.2.0      rex_1.1.2          markdown_0.8      
-## [28] Rcpp_0.12.14       scales_0.5.0       backports_1.1.2   
-## [31] jsonlite_1.5       hms_0.4.0          digest_0.6.13     
-## [34] stringi_1.1.3      rprojroot_1.3-1    tools_3.4.3       
-## [37] bitops_1.0-6       dparser_0.1.8      magrittr_1.5      
-## [40] lazyeval_0.2.1     tibble_1.4.1       pkgconfig_2.0.1   
-## [43] Matrix_1.2-12      rsconnect_0.8.5    assertthat_0.2.0  
-## [46] rmarkdown_1.8      R6_2.2.2           compiler_3.4.3</code></pre>
+##  [1] tidyselect_0.2.3 reshape2_1.4.3   purrr_0.2.4      splines_3.4.3   
+##  [5] lattice_0.20-35  colorspace_1.3-2 htmltools_0.3.6  yaml_2.1.16     
+##  [9] rlang_0.1.6      pillar_1.0.1     glue_1.2.0       withr_2.1.1     
+## [13] binom_1.1-1      bindr_0.1        plyr_1.8.4       stringr_1.2.0   
+## [17] munsell_0.4.3    gtable_0.2.0     cellranger_1.1.0 devtools_1.13.4 
+## [21] htmlwidgets_0.9  codetools_0.2-15 memoise_1.1.0    evaluate_0.10.1 
+## [25] labeling_0.3     knitr_1.18       forcats_0.2.0    rex_1.1.2       
+## [29] markdown_0.8     Rcpp_0.12.14     scales_0.5.0     backports_1.1.2 
+## [33] jsonlite_1.5     hms_0.4.0        digest_0.6.13    stringi_1.1.3   
+## [37] rprojroot_1.3-1  tools_3.4.3      bitops_1.0-6     magrittr_1.5    
+## [41] lazyeval_0.2.1   tibble_1.4.1     pkgconfig_2.0.1  Matrix_1.2-12   
+## [45] rsconnect_0.8.5  assertthat_0.2.0 rmarkdown_1.8    R6_2.2.2        
+## [49] compiler_3.4.3</code></pre>
 </div>
 
 

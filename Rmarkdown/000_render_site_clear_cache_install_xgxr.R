@@ -9,7 +9,8 @@ system("rm -rf *_cache")
 #########################################################
 ## install xgxr package
 #########################################################
-unzip("../Rlib/xgxr-master_2019-07-10.zip", exdir = "../Rlib")
+# unzip("../Rlib/xgxr-master_2019-07-10.zip", exdir = "../Rlib")
+file.remove("../Rlib/xgxr") # check this works
 package_name = devtools::build("../Rlib/xgxr-master")
 install.packages(package_name, repos = NULL, lib = "../Rlib", type = "source")
 library(xgxr, lib.loc = "../Rlib")
