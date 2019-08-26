@@ -14,25 +14,10 @@ This document contains exploratory plots for single ascending dose PK data as we
 ## Setup
 
 ```{r, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep("usr",  .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("../Rlib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
-library(xgxr)
 library(tidyr)
+library(xgxr)
 
 #flag for labeling figures as draft
 status = "DRAFT"
@@ -69,21 +54,19 @@ cov_names = list("SEX", "WEIGHTB")
 #create a factor for the treatment variable for plotting
 pkpd_data = pkpd_data %>%
   arrange(DOSE) %>%
-  mutate(TRTACT = factor(TRTACT, levels = unique(TRTACT)))
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT)))) %>%
+  select(-TRTACT)
 
 #create pk dataset
 pk_data <- pkpd_data %>%
   filter(CMT==2)
 
-#create a reverse-order factor for some PK plots
-pk_data_revdose <- pk_data %>% 
-  mutate(TRTACT = factor(TRTACT, levels = rev(levels(TRTACT))))
-
 #perform NCA, for additional plots
 NCA = pk_data %>%
   group_by(ID, DOSE, SEX, WEIGHTB) %>%
   filter(!is.na(LIDV)) %>%
-  summarize(AUC_last = trapz(TIME,LIDV),
+  summarize(AUC_last = caTools::trapz(TIME,LIDV),
             Cmax     = max(LIDV)) %>%
   gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
@@ -111,7 +94,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
-gg <- ggplot(data = pk_data_revdose, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT)) 
+gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT_high2low)) 
 
 gg <- gg + xgx_geom_ci(percentile = .95)
 gg <- gg + xgx_scale_y_log10() 
@@ -144,9 +127,9 @@ print(gg)
 ### Dose Normalized Concentration over time, colored by Dose, mean +/- 95% CI
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
-gg <- ggplot(data = pk_data_revdose, 
+gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV_NORM, 
-                 group= DOSE, color = TRTACT))
+                 group= DOSE, color = TRTACT_high2low))
 gg <- gg + xgx_geom_ci(percentile = 0.95, alpha = 0.5, position = position_dodge(1))
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
@@ -179,10 +162,10 @@ Now that the overall trends in the mean data have been observed, look into the b
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
-gg <- ggplot(data = pk_data_revdose, aes(x = TIME, y = LIDV)) 
-gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT)), size = 1, alpha = 0.5) 
-gg <- gg + geom_point(data = pk_data_revdose %>% filter(CENS==0), aes(color = TRTACT), size = 2, alpha = 0.5)
-gg <- gg + geom_point(data = pk_data_revdose %>% filter(CENS==1), color="red",  shape=8, size = 2, alpha = 0.5)
+gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
+gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
+gg <- gg + geom_point(data = pk_data %>% filter(CENS==0), aes(color = TRTACT_high2low), size = 2, alpha = 0.5)
+gg <- gg + geom_point(data = pk_data %>% filter(CENS==1), color="red",  shape=8, size = 2, alpha = 0.5)
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
 gg <- gg + labs(y = conc_label, color = trtact_label)
@@ -204,7 +187,7 @@ gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
 gg <- gg + labs(y = conc_label, shape = "BLQ", color = "BLQ")
 
-gg <- gg + facet_grid(.~TRTACT)
+gg <- gg + facet_grid(.~TRTACT_low2high)
 gg <- gg + xgx_annotate_status(status)
 
 print(gg)
@@ -223,10 +206,10 @@ Plotting individual profiles on top of gray spaghetti plots puts individual prof
 pk_data_rep_by_trt <- list()
 for(id in unique(pk_data$ID)){
   indiv_data <- pk_data %>% subset(ID == id)
-  itrtact = unique(indiv_data$TRTACT)
+  itrtact = unique(indiv_data$TRTACT_low2high)
   
   pk_data_rep_by_trt[[as.character(id)]] <- pk_data %>% 
-        subset(TRTACT == itrtact) %>% 
+        subset(TRTACT_low2high == itrtact) %>% 
         mutate(ID_rep_by_trt = ID, ID = id)
 }
 pk_data_rep_by_trt <- bind_rows(pk_data_rep_by_trt)
@@ -237,7 +220,7 @@ gg <- gg + geom_line(data = pk_data_rep_by_trt,
                      size = 1, color = rgb(0.5,0.5,0.5), alpha = 0.3)
 gg <- gg + geom_line(data = pk_data, 
                      aes(group = ID), size = 1)
-gg <- gg + geom_point(data = pk_data_revdose %>% filter(CENS==1), 
+gg <- gg + geom_point(data = pk_data %>% filter(CENS==1), 
                       color="red",  shape=8, size = 2)
 
 gg <- gg + xgx_scale_y_log10()
@@ -246,7 +229,7 @@ gg <- gg + labs(y = conc_label)
 
 gg <- gg + theme(legend.position="none")
 gg <- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
-gg + facet_wrap(~ID + TRTACT, 
+gg + facet_wrap(~ID + TRTACT_low2high, 
                 ncol = 10 )
 
 
@@ -264,7 +247,7 @@ gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
 gg <- gg + labs(y = conc_label)
 
-gg <- gg + facet_grid(.~TRTACT) + xgx_annotate_status(status)
+gg <- gg + facet_grid(.~TRTACT_low2high) + xgx_annotate_status(status)
 
 print(gg)
 print(gg + aes(group= WEIGHTB>70, color = WEIGHTB>70) )
