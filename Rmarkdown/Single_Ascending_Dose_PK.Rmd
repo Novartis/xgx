@@ -17,8 +17,6 @@ This document contains exploratory plots for single ascending dose PK data as we
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-
-.libPaths(c("../Rlib", .libPaths())) #local xGx path
 library(xgxr, lib.loc = "../Rlib")
 
 #flag for labeling figures as draft
