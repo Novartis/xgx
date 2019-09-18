@@ -8,7 +8,13 @@ navbar:
   - icon: glyphicon-home
     href: index.html
   - text: Guiding Principles
-    href: GuidingPrinciples.html
+    menu:
+      - text: xGx Guiding Princples
+        href: GuidingPrinciples.html
+      - text: Presentation Checklist
+        href: Resources/Presentation_Checklist_v2.03.pdf
+      - text: Graphics Principles Cheat Sheet
+        href: Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf
   - text: Data Checking
     menu:
     - text: Master PK/PD Datasets used in creating example plots
