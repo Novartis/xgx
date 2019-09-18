@@ -23,7 +23,7 @@ Use the navigation menus at the top of the page, or click on an icon below to fi
 The graphs on this website were created with [Good Graphics Principles](https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf) in mind. Also check out the [Presentation Checklist](https://opensource.nibr.com/xgx/Resources/Presentation_Checklist_v2.03.pdf) for useful tips on creating presentations of your results.
 
 ```{r, echo=FALSE}
-htmltools::includeHTML("../SiteResources/icon_nav.html")
+htmltools::includeHTML("SiteResources/icon_nav.html")
 ```
 
 
