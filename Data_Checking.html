@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -26,11 +27,14 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/htmlwidgets-0.9/htmlwidgets.js"></script>
-<script src="site_libs/datatables-binding-0.2/datatables.js"></script>
-<link href="site_libs/dt-core-1.10.12/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="site_libs/dt-core-1.10.12/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="site_libs/dt-core-1.10.12/js/jquery.dataTables.min.js"></script>
+<script src="site_libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.8/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
 
 <style type="text/css">
   .visible-sm-block {padding-top: 120px;}
@@ -90,9 +94,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -106,13 +108,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -128,7 +135,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -148,6 +154,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -169,55 +212,68 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -266,8 +322,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -276,6 +330,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -397,6 +461,21 @@ div.tocify {
     </li>
     <li>
       <a href="Adverse_Events.html">Adverse Events</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Resources
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Resources/Presentation_Checklist_v2.03.pdf">Presentation Checklist</a>
+    </li>
+    <li>
+      <a href="Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf">Graphics Principles Cheat Sheet</a>
     </li>
   </ul>
 </li>
@@ -652,8 +731,8 @@ my.data$TRTACT &lt;- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order
   count() %&gt;%
   arrange(-DOSE)
 DT::datatable(patient.summary)</code></pre>
-<div id="htmlwidget-0e892a8b1c3e6bcedf16" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0e892a8b1c3e6bcedf16">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],[1600,800,400,200,100,0],[10,10,10,10,10,10]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f9286a44f5f70dc5c483" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f9286a44f5f70dc5c483">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],[1600,800,400,200,100,0],[10,10,10,10,10,10]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>Overview of number of PK datapoints at each dose</p>
 <pre class="r"><code>pk.summary = my.data %&gt;%
   filter(CMT==2) %&gt;%
@@ -661,8 +740,8 @@ DT::datatable(patient.summary)</code></pre>
   count() %&gt;%
   arrange(-DOSE)
 DT::datatable(pk.summary)</code></pre>
-<div id="htmlwidget-b83b555a37891c96a0c8" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b83b555a37891c96a0c8">{"x":{"filter":"none","data":[["1","2","3","4","5"],[1600,800,400,200,100],[282,281,282,282,281]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-eff0530eb5d0e9c25c87" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-eff0530eb5d0e9c25c87">{"x":{"filter":"none","data":[["1","2","3","4","5"],[1600,800,400,200,100],[282,283,281,281,281]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="check-for-duplicated-time-points" class="section level2">
 <h2>Check for duplicated time points</h2>
@@ -672,8 +751,8 @@ DT::datatable(pk.summary)</code></pre>
 n.duplicated = nrow(duplicated.check)</code></pre>
 <p>There are 8 duplicated time points that should be investigated. They are summarized in the list below.</p>
 <pre class="r"><code>DT::datatable(duplicated.check)</code></pre>
-<div id="htmlwidget-6abdde9d6a84bc025028" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-6abdde9d6a84bc025028">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8"],[18,26,29,35,37,48,56,57],[143.8,167.758,47.777,1.169,4.213,11.861,156.475,169.039],[2,2,2,2,2,2,2,2],[0.476,0.331,0.371,3.15,2.5,1.34,3.21,4.5]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ID<\/th>\n      <th>TIME<\/th>\n      <th>CMT<\/th>\n      <th>LIDV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-ad08a2e13c397569e66c" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ad08a2e13c397569e66c">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8"],[17,23,38,46,47,49,53,56],[11.991,122.827,124.287,128.077,95.771,0.511,4.124,168.39],[2,2,2,2,2,2,2,2],[0.229,1.04,4.92,6.09,4.77,7.25,11.5,2.78]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ID<\/th>\n      <th>TIME<\/th>\n      <th>CMT<\/th>\n      <th>LIDV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="check-for-any-missing-pk-data-at-positive-time-points" class="section level2">
 <h2>Check for any missing PK data at positive time points</h2>
@@ -706,8 +785,8 @@ grid.arrange(gg1,gg2,ncol=2)
 <p>By doing a simple ID checkout you can see that CMT = 2 and 3 represent continuous variables, while CMT = 4, 5 and 6 take on more restricted values. You can tell that CMT 4, 5 and 6 are not concentration but represent some other type of variable.</p>
 <p>Let’s checkout the descriptions for each compartment, and see if our conclusions about the observation values make sense.</p>
 <pre class="r"><code>DT::datatable(unique(my.data[order(my.data$CMT),c(&quot;CMT&quot;,&quot;NAME&quot;)]), rownames=FALSE)</code></pre>
-<div id="htmlwidget-d07e38bba90c099b3fcf" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-d07e38bba90c099b3fcf">{"x":{"filter":"none","data":[[1,2,3,4,5,6],["Dosing","PK Concentration","PD - Continuous","PD - Count","PD - Ordinal","PD - Binary"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>CMT<\/th>\n      <th>NAME<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f2f0283cbc82e862ac57" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f2f0283cbc82e862ac57">{"x":{"filter":"none","data":[[1,2,3,4,5,6],["Dosing","PK Concentration","PD - Continuous","PD - Count","PD - Ordinal","PD - Binary"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>CMT<\/th>\n      <th>NAME<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="checking-timing-of-doses-and-observations" class="section level2">
 <h2>Checking timing of doses and observations</h2>
@@ -806,43 +885,44 @@ ggplot(lst$DO,aes(DO, ID)) + geom_point() + xlab(&quot;Time between dose and nex
 <div id="r-session-info" class="section level2">
 <h2>R Session Info</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.4.3 (2017-11-30)
-## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+<pre><code>## R version 3.6.1 (2019-07-05)
+## Platform: x86_64-apple-darwin15.6.0 (64-bit)
+## Running under: macOS Mojave 10.14.3
 ## 
 ## Matrix products: default
-## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+## LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
 ## 
 ## locale:
-##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 ## 
 ## attached base packages:
 ## [1] grid      stats     graphics  grDevices utils     datasets  methods  
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] DT_0.2         RxODE_0.6-1    bindrcpp_0.2   haven_1.1.0   
-##  [5] readr_1.1.1    readxl_1.0.0   xtable_1.8-2   tidyr_0.7.2   
-##  [9] caTools_1.17.1 zoo_1.8-0      dplyr_0.7.4    ggplot2_2.2.1 
-## [13] gridExtra_2.3 
+##  [1] DT_0.8           RxODE_0.9.1-6    haven_2.1.1      readr_1.3.1     
+##  [5] readxl_1.3.1     xtable_1.8-4     tidyr_0.8.3      caTools_1.17.1.2
+##  [9] zoo_1.8-6        dplyr_0.8.3      ggplot2_3.2.1    gridExtra_2.3   
+## [13] xgxr_1.0.2      
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.14     cellranger_1.1.0 compiler_3.4.3   pillar_1.0.1    
-##  [5] plyr_1.8.4       bindr_0.1        forcats_0.2.0    bitops_1.0-6    
-##  [9] tools_3.4.3      digest_0.6.13    jsonlite_1.5     memoise_1.1.0   
-## [13] evaluate_0.10.1  tibble_1.4.1     gtable_0.2.0     lattice_0.20-35 
-## [17] pkgconfig_2.0.1  rlang_0.1.6      rex_1.1.2        yaml_2.1.16     
-## [21] stringr_1.2.0    knitr_1.18       hms_0.4.0        htmlwidgets_0.9 
-## [25] rprojroot_1.3-1  glue_1.2.0       R6_2.2.2         binom_1.1-1     
-## [29] rmarkdown_1.8    purrr_0.2.4      magrittr_1.5     codetools_0.2-15
-## [33] backports_1.1.2  scales_0.5.0     htmltools_0.3.6  rsconnect_0.8.5 
-## [37] assertthat_0.2.0 colorspace_1.3-2 labeling_0.3     stringi_1.1.3   
-## [41] lazyeval_0.2.1   munsell_0.4.3</code></pre>
+##  [1] Rcpp_1.0.2       lattice_0.20-38  png_0.1-7        assertthat_0.2.1
+##  [5] zeallot_0.1.0    digest_0.6.20    mime_0.7         ggforce_0.3.1   
+##  [9] R6_2.4.0         cellranger_1.1.0 plyr_1.8.4       backports_1.1.4 
+## [13] evaluate_0.14    pillar_1.4.2     rlang_0.4.0      lazyeval_0.2.2  
+## [17] rstudioapi_0.10  mvnfast_0.2.5    rmarkdown_1.15   labeling_0.3    
+## [21] stringr_1.4.0    pander_0.6.3     PreciseSums_0.3  htmlwidgets_1.3 
+## [25] polyclip_1.10-0  munsell_0.5.0    shiny_1.3.2      compiler_3.6.1  
+## [29] httpuv_1.5.2     xfun_0.9         pkgconfig_2.0.2  htmltools_0.3.6 
+## [33] tidyselect_0.2.5 tibble_2.1.3     binom_1.1-1      codetools_0.2-16
+## [37] crayon_1.3.4     withr_2.1.2      later_0.8.0      MASS_7.3-51.4   
+## [41] bitops_1.0-6     jsonlite_1.6     gtable_0.3.0     magrittr_1.5    
+## [45] units_0.6-4      scales_1.0.0     stringi_1.4.3    farver_1.1.0    
+## [49] promises_1.0.1   vctrs_0.2.0      lotri_0.1.1      tools_3.6.1     
+## [53] forcats_0.4.0    glue_1.3.1       tweenr_1.0.1     purrr_0.3.2     
+## [57] hms_0.5.1        crosstalk_1.0.0  yaml_2.2.0       colorspace_1.4-1
+## [61] memoise_1.1.0    knitr_1.24</code></pre>
 </div>
 
 
@@ -863,6 +943,54 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

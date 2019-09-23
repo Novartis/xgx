@@ -1,0 +1,3 @@
+#RxODE Makevars
+PKG_CFLAGS=-O3  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RxODE/include"
+PKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)

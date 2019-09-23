@@ -8,13 +8,7 @@ navbar:
   - icon: glyphicon-home
     href: index.html
   - text: Guiding Principles
-    menu:
-      - text: xGx Guiding Princples
-        href: GuidingPrinciples.html
-      - text: Presentation Checklist
-        href: Resources/Presentation_Checklist_v2.03.pdf
-      - text: Graphics Principles Cheat Sheet
-        href: Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf
+    href: GuidingPrinciples.html
   - text: Data Checking
     menu:
     - text: Master PK/PD Datasets used in creating example plots
@@ -60,6 +54,13 @@ navbar:
       href: Multiple_Ascending_Dose_PKPD_time_to_event.html
     - text: Adverse Events
       href: Adverse_Events.html
+  - text: Resources
+    menu:
+      - text: Presentation Checklist
+        href: Resources/Presentation_Checklist_v2.03.pdf
+      - text: Graphics Principles Cheat Sheet
+        href: Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf
+      
 output:
   html_document:
     include:

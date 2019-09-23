@@ -1,0 +1,343 @@
+---
+title: "PKPD Single Ascending Dose example"
+author: "Fariba Khanshan, Andrew Stein, Alison Margolskee"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    self_contained: yes
+vignette: >
+  %\VignetteIndexEntry{PKPD Single Ascending Dose example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7
+)
+```
+
+## Overview
+
+This document contains exploratory plots for single ascending dose PK and PD 
+data as well as the R code that generates these graphs. The plots presented 
+here are based on simulated data.
+
+## Setup
+
+```{r, warning=FALSE, message=FALSE}
+library(xgxr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# flag for labeling figures as draft
+status <- "DRAFT"
+ 
+# ggplot settings
+xgx_theme_set()
+```
+
+## Load Dataset
+
+```{r, warning=FALSE, message=FALSE}
+pkpd_data <- case1_pkpd %>%
+  arrange(DOSE) %>%
+  select(-IPRED) %>%
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT))),
+         DAY_label = paste("Day", PROFDAY),
+         DAY_label = ifelse(DAY_label == "Day 0","Baseline",DAY_label))
+ 
+pk_data <- pkpd_data %>%
+  filter(CMT == 2)
+
+pk_data_cycle1 <- pk_data %>%
+  filter(CYCLE == 1)
+ 
+pd_data <- pkpd_data %>%
+  filter(CMT == 3)
+
+pd_data_baseline_day85 <- pkpd_data %>%
+  filter(CMT == 3,
+         DAY_label %in% c("Baseline", "Day 85"))
+
+pk_vs_pd_data <- pkpd_data %>%
+  filter(!is.na(LIDV)) %>%
+  select(-c(EVENTU,NAME)) %>%
+  spread(CMT,LIDV) %>%
+  rename(Concentration = `2`, Response = `3`)
+
+NCA <- pk_data_cycle1 %>%
+  group_by(ID, DOSE) %>%
+  filter(!is.na(LIDV)) %>%
+  summarize(AUC_last = caTools::trapz(TIME, LIDV),
+            Cmax = max(LIDV)) %>%
+  tidyr::gather(PARAM,VALUE,-c(ID, DOSE)) %>%
+  ungroup() %>%
+  mutate(VALUE_NORM = VALUE / DOSE)
+
+AUC_last <- NCA %>%
+  filter(PARAM == "AUC_last") %>%
+  rename(AUC_last = VALUE) %>%
+  select(-c(DOSE,PARAM,VALUE_NORM))
+
+pk_vs_pd_data_day85 <- pk_vs_pd_data %>%
+  filter(DAY_label == "Day 85",
+         !is.na(Concentration),
+         !is.na(Response)) %>%
+  left_join(AUC_last)
+
+
+time_units_dataset <- "hours"
+time_units_plot    <- "days"
+trtact_label       <- "Dose"
+dose_label         <- "Dose (mg)"
+conc_label         <- "Concentration (ng/ml)" 
+auc_label          <- "AUCtau (h.(ng/ml))"
+concnorm_label     <- "Normalized Concentration (ng/ml)/mg"
+sex_label          <- "Sex"
+w100_label         <- "WEIGHTB>100"
+pd_label           <- "FEV1 (mL)"
+cens_label         <- "Censored"
+```
+
+## Provide an overview of the data
+
+Summarize the data in a way that is easy to visualize the general trend of PK 
+over time and between doses. Using summary statistics can be helpful, e.g. 
+Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by 
+dose or faceting by dose. Depending on the amount of data one graph may be 
+better than the other.
+
+When looking at summaries of PK over time, there are several things to observe. 
+Note the number of doses and number of time points or sampling schedule. 
+Observe the overall shape of the average profiles. What is the average 
+Cmax per dose? Tmax? Does the elimination phase appear to be parallel across 
+the different doses? Is there separation between the profiles for different 
+doses? Can you make a visual estimate of the number of compartments that 
+would be needed in a PK model?
+
+### Concentration over time, colored by Dose, mean +/- 95% CI
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pk_data_cycle1, aes(x     = NOMTIME,
+                                  y     = LIDV,
+                                  group = DOSE,
+                                  color = TRTACT_high2low)) +
+  xgx_geom_ci(conf_level = 0.95) +
+  xgx_scale_y_log10() +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset, units_plot = time_units_plot) +
+  labs(y = conc_label, color = trtact_label) +
+  xgx_annotate_status(status)
+```
+
+### Concentration over time, faceted by Dose, mean +/- 95% CI, overlaid on gray spaghetti plots
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pk_data_cycle1, aes(x = NOMTIME, y = LIDV)) +
+  geom_line(aes(group = ID), color = rgb(0.5, 0.5, 0.5), size = 1, alpha = 0.3) +
+  scale_shape_manual(values = c(1, 8)) +
+  scale_color_manual(values = c("grey50", "red")) +
+  xgx_geom_ci(aes(x = NOMTIME, color = NULL, group = NULL), conf_level = 0.95) +
+  xgx_scale_y_log10() +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset, units_plot = time_units_plot) +
+  labs(y = conc_label, color = trtact_label) +
+  theme(legend.position = "none") +
+  facet_grid(.~TRTACT_low2high) +
+  xgx_annotate_status(status)
+```
+
+## Assess the dose linearity of exposure
+
+### Dose Normalized Concentration over time, colored by Dose, mean +/- 95% CI
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pk_data_cycle1,
+       aes(x = NOMTIME,
+           y = LIDV / as.numeric(as.character(DOSE)),
+           group = DOSE,
+           color = TRTACT_high2low)) +
+  xgx_geom_ci(conf_level = 0.95, alpha = 0.5, position = position_dodge(1)) +
+  xgx_scale_y_log10() +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset, units_plot = time_units_plot) +
+  labs(y = concnorm_label, color = trtact_label) +
+  xgx_annotate_status(status)
+
+```
+
+### NCA of dose normalized AUC and Cmax vs Dose
+
+Observe the dose normalized AUC and Cmax over different doses. Does the 
+relationship appear to be constant across doses or do some doses stand 
+out from the rest? Can you think of reasons why some would stand out? For 
+example, the lowest dose may have dose normalized AUC much higher than the 
+rest, could this be due to BLQ observations? If the highest doses have dose 
+normalized AUC much higher than the others, could this be due to nonlinear 
+clearance, with clearance saturating at higher doses? If the highest doses 
+have dose normalized AUC much lower than the others, could there be saturation 
+of bioavailability, reaching the maximum absorbable dose?
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM)) + 
+  geom_boxplot(aes(group = DOSE)) +
+  geom_smooth(method = "lm", color = "black") +
+  facet_wrap(~PARAM, scales = "free_y") +
+  labs(x = dose_label) +
+  theme(axis.title.y = element_blank()) +
+  xgx_annotate_status(status)
+```
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = NCA[!NCA$DOSE == 3 & !NCA$DOSE == 10 , ],
+       aes(x = DOSE, y = VALUE_NORM)) +
+  geom_boxplot(aes(group = DOSE)) +
+  geom_smooth(method = "lm", color = "black") +
+  facet_wrap(~PARAM, scales = "free_y") +
+  labs(x = dose_label) +
+  theme(axis.title.y = element_blank()) +
+  xgx_annotate_status(status)
+```
+
+## Explore covariate effects on PK
+
+### Concentration over time, colored by categorical covariate, mean +/- 95% CI
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pk_data_cycle1, aes(x = NOMTIME,
+                                   y = LIDV,
+                                   group = WEIGHTB > 100,
+                                   color = WEIGHTB > 100)) + 
+  xgx_geom_ci(conf_level = 0.95) +
+  xgx_scale_y_log10() +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset, units_plot = time_units_plot) +
+  facet_grid(.~DOSE) +
+  labs(y = conc_label, color = w100_label) +
+  xgx_annotate_status(status)
+```
+
+## PD marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pd_data, aes(x     = NOMTIME,
+                           y     = LIDV,
+                           group = DOSE,
+                           color = TRTACT_high2low)) +
+  xgx_geom_ci(conf_level = 0.95) +
+  xgx_scale_y_log10() + 
+  xgx_scale_x_time_units(units_dataset = time_units_dataset, units_plot = time_units_plot) +
+  labs(y = pd_label, color = trtact_label) + 
+  xgx_annotate_status(status)
+```
+
+## PD marker over time, faceted by Dose, dots & lines grouped by individuals
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, group = ID)) +
+  geom_line(alpha = 0.5) +
+  geom_point(alpha = 0.5) +
+  xgx_scale_y_log10() + 
+  xgx_scale_x_time_units(units_dataset = time_units_dataset, units_plot = time_units_plot) +
+  facet_grid(~TRTACT_low2high) +
+  labs(y = pd_label, color = trtact_label) +
+  xgx_annotate_status(status)
+```
+
+## Explore Dose-Response Relationship
+One of the key questions when looking at PD markers is to determine if there 
+is a dose-response relationship, and if there is, what dose is necessary to 
+achieve the desired effect? Simple dose-response plots can give insight into 
+these questions.
+
+### PD marker by Dose, for endpoint of interest, mean (95% CI) by Dose
+Plot PD marker against dose. Using summary statistics can be helpful, e.g. 
+Mean +/- SE, or median, 5th & 95th percentiles.
+
+Here are some questions to ask yourself when looking at Dose-Response plots: 
+Do you see any relationship? Does response increase (decrease) with 
+increasing dose? Are you able to detect a plateau or Emax (Emin) on the 
+effect? If so, around what dose does this occur?
+
+Warning: Even if you don’t see an Emax, that doesn’t mean there isn’t one. 
+Be very careful about using linear models for Dose-Response relationships. 
+Extrapolation outside of the observed dose range could indicate a higher dose 
+is always better (even if it isn’t).
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pd_data_baseline_day85, aes(x = DOSE,
+                                          y = LIDV,
+                                          group = DOSE)) +
+  xgx_geom_ci(conf_level = 0.95) + 
+  facet_grid(~DAY_label) +
+  labs(x = dose_label, y = pd_label, color = trtact_label) +
+  xgx_annotate_status(status)
+```
+
+### PD marker by Dose, faceted by visit, mean (95% CI) by Dose
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pd_data, aes(x = DOSE, y = LIDV, group = DOSE)) +
+  xgx_geom_ci(conf_level = 0.95) +
+  facet_grid(~DAY_label) +
+  labs(x = dose_label, y = pd_label, color = trtact_label) +
+  xgx_annotate_status(status)
+```
+
+### Explore covariate effects on Dose-Response relationship
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+ggplot(data = pd_data_baseline_day85, aes(x = DOSE,
+                                          y = LIDV,
+                                          group = WEIGHTB > 100,
+                                          color = WEIGHTB > 100)) +
+  xgx_geom_ci(conf_level = .95) +
+  facet_grid(~DAY_label) +
+  labs(x = dose_label, y = pd_label, color = w100_label) +
+  xgx_annotate_status(status)
+```
+
+## Explore Exposure-Response Relationship
+
+Plot PD marker against concentration. Do you see any relationship? Does 
+response increase (decrease) with increasing dose? Are you able to detect 
+a plateau or Emax (Emin) on the effect?
+
+Warning: Even if you don’t see an Emax, that doesn’t mean there isn’t one. 
+Be very careful about using linear models for Dose-Response or 
+Exposure-Response relationships. Extrapolation outside of the observed 
+dose range could indicate a higher dose is always better (even if it isn’t).
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+g = ggplot(data = pk_vs_pd_data_day85, aes(x = Concentration, y = Response)) +
+  geom_point(aes(color = TRTACT_high2low, shape = factor(CENS))) +
+  geom_smooth(color="black",shape=NULL) +
+  xgx_scale_x_log10() +
+  labs(x = conc_label, y = pd_label, color = trtact_label, shape = cens_label) +
+  xgx_annotate_status(status)
+print(g)
+```
+
+Plotting AUC vs response instead of concentration vs response may make more 
+sense in some situations. For example, when there is a large delay between 
+PK and PD it would be difficult to relate the time-varying concentration with 
+the response. If rich sampling is only done at a particular point in the 
+study, e.g. at steady state, then the AUC calculated on the rich profile 
+could be used as the exposure variable for a number of PD visits. If PK 
+samples are scarce, average Cmin could also be used as the exposure metric.
+
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3}
+gAUC = g + 
+  aes(x = AUC_last) +
+  xlab(auc_label)
+print(gAUC)
+```
+
+## R Session Info
+
+```{r}
+sessionInfo()
+```

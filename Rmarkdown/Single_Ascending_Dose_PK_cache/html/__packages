@@ -3,15 +3,14 @@ xgxr
 gridExtra
 ggplot2
 dplyr
-RxODE
+zoo
 caTools
 tidyr
-bindrcpp
-zoo
 xtable
 readxl
 readr
 haven
+RxODE
 DT
 survival
 lubridate

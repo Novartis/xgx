@@ -1,4 +1,5 @@
 base
+xgxr
 gridExtra
 ggplot2
 dplyr
@@ -9,10 +10,3 @@ xtable
 readxl
 readr
 haven
-bindrcpp
-xgxr
-RxODE
-DT
-survival
-lubridate
-reshape

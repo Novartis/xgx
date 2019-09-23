@@ -1,0 +1,60 @@
+Package: xgxr
+Title: Exploratory Graphics for Pharmacometrics
+Version: 1.0.2
+Authors@R: 
+    c(person(given = "Andrew",
+             family = "Stein",
+             role = c("aut", "cre"),
+             email = "andy.stein@gmail.com"),
+      person(given = "Alison",
+             family = "Margolskee",
+             role = "aut",
+             email = "alison.margolskee@gmail.com"),
+      person(given = "Fariba",
+             family = "Khanshan",
+             role = "aut",
+             email = "faribashan@gmail.com"),
+      person(given = "Konstantin",
+             family = "Krismer",
+             role = "aut",
+             email = "krismer@mit.edu",
+             comment = c(ORCID = "0000-0001-8994-3416")),
+      person(given = "Matthew",
+             family = "Fidler",
+             role = "ctb",
+             email = "matthew.fidler@gmail.com",
+             comment = c(ORCID = "0000-0001-8538-6691")),
+       person("Novartis Pharma AG", role = c("cph","fnd")))
+Description: Supports a structured approach
+    for exploring PKPD data <https://opensource.nibr.com/xgx>. It also
+    contains helper functions for enabling the modeler to follow best R
+    practices (by appending the program name, figure name location, and
+    draft status to each plot). In addition, it enables the modeler to
+    follow best graphical practices (by providing a theme that
+    reduces chart ink, and by providing time-scale, log-scale, and
+    reverse-log-transform-scale functions for more readable axes).
+    Finally, it provides some data checking and summarizing functions for
+    rapidly exploring pharmacokinetics and pharmacodynamics (PKPD) datasets.
+License: MIT + file LICENSE
+URL: https://opensource.nibr.com/xgx
+Depends: R (>= 3.4.0)
+Imports: assertthat, binom, dplyr, ggplot2, graphics, grDevices,
+        labeling, magrittr, pander, png, scales, stats, tibble, utils
+Suggests: caTools, gridExtra, knitr, rmarkdown, RxODE, stringr,
+        testthat, tidyr
+VignetteBuilder: knitr
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
+NeedsCompilation: no
+Packaged: 2019-08-21 18:13:04 UTC; steinanf
+Author: Andrew Stein [aut, cre],
+  Alison Margolskee [aut],
+  Fariba Khanshan [aut],
+  Konstantin Krismer [aut] (<https://orcid.org/0000-0001-8994-3416>),
+  Matthew Fidler [ctb] (<https://orcid.org/0000-0001-8538-6691>),
+  Novartis Pharma AG [cph, fnd]
+Maintainer: Andrew Stein <andy.stein@gmail.com>
+Repository: CRAN
+Date/Publication: 2019-08-21 21:50:02 UTC
+Built: R 3.6.1; ; 2019-09-20 16:00:55 UTC; unix
