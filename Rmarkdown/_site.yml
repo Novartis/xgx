@@ -60,7 +60,10 @@ navbar:
         href: Resources/Presentation_Checklist_v2.03.pdf
       - text: Graphics Principles Cheat Sheet
         href: Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf
-      
+      - text: Fundamental PK Principles Introduction
+        href: Resources/FundamentalPK_AndyStein_Hackathon_2019.pptx      
+      - text: Fundamental PD Principles Introduction
+        href: Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx      
 output:
   html_document:
     include:
