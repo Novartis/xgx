@@ -10,3 +10,17 @@ xtable
 readxl
 readr
 haven
+scales
+MASS
+rmarkdown
+knitr
+foreign
+reshape2
+stringr
+GGally
+png
+survival
+magrittr
+ggpubr
+survminer
+RxODE
