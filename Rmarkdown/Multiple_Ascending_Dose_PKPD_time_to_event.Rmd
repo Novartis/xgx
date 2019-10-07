@@ -21,49 +21,50 @@ Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rm
 # version matches package in first filepath, in the case of multiple instances of a package
 
 # library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
 library(survival)
-# library(stringr)
-
-
-theme_set(theme_bw(base_size=12))
-
+library(survminer)
+library(xgxr)
 ```
 
-## Explore Exposure-Response Relationship
+# Explore Exposure-Response Relationship
 
-Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response
+Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by exposure quartile to give an overview of the dose-response
 
+## Create a Dataset
 
 ```{r warning=FALSE}
 
+#Use the lung dataset to create a fake exposure dataset
 km_data <- lung %>%
   mutate(fake_exposure = ph.ecog + age/50) %>%
   filter(!is.na(fake_exposure)) %>%
-  mutate(expos_quantile= cut(fake_exposure,
+  mutate(exposure_quartile= cut(fake_exposure,
                              breaks=quantile(fake_exposure,c(0,.25,.5,.75,1)),
                              include.lowest=TRUE,
                              labels=paste0("Q",c(4,3,2,1))))
-  
-km_fit <- survfit(Surv(time) ~ expos_quantile, data = km_data)
-km_fit2 <- summary(km_fit, times = c(1,30,60,90*(1:10)))
-data = data.frame(time =km_fit2$time, 
-                  surv= km_fit2$surv, 
-                  exposure_quantile = km_fit2$strata) %>%
-  mutate(exposure_quantile = stringr::str_replace(exposure_quantile,"expos_quantile=",""))
 
-gg <- ggplot(data, aes(x=time, y=surv, color = exposure_quantile))
-gg <- gg + geom_line(size = 1)
-gg <- gg + scale_y_continuous(labels=scales::percent_format())
-gg <- gg + ylab("Survival") + xlab("Time")
-gg <- gg + guides(color=guide_legend("")) 
-gg
+#these columns are required for your dataset
+km_data <- km_data %>%
+  mutate(exposure = exposure_quartile, #exposure quantile,
+         time   = time,   #time of the event (or censoring)
+         event  = status) #status: there are a three options for this column (see ?Surv)
+                          #        a) 0 = censored (alive), 1 = dead (event)
+                          #        b) 1 = censored (alive), 2 = dead (event)
+                          #        c) 0 = right censored, 1 = event at time, 
+                          #           2 = left censored,  3 = interval censored.
 ```
+
+## Plot Kaplan Meier with Confidence Intervals
+```{r warning=FALSE, message=FALSE}
+km_fit <- survfit(Surv(time) ~ exposure, data = km_data, conf.int = 0.95)
+gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
+gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
+print(gg)
+```
+  
+
 
 ## R Session Info
 ```{r}

@@ -27,15 +27,13 @@ library(dplyr)
 library(survival)
 library(survminer)
 library(xgxr)
-xgx_theme_set()
-
 ```
 
 # Single Time-to-event (e.g. survival)
 Single time-to-event plots should be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response
 
-## Crate dataset
-```{r warning=FALSE}
+## Create dataset
+```{r warning=FALSE, message=FALSE}
 #we are remapping the ecog score to dose for the purposes of
 #creating a realistic looking Kaplan-Meier plot
 km_data <- lung %>%
@@ -59,7 +57,8 @@ km_data <- km_data %>%
 ## Plot Kaplan Meier with Confidence Intervals
 ```{r warning=FALSE}
 km_fit <- survfit(Surv(time) ~ dose, data = km_data, conf.int = 0.95)
-gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE)
+gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
+gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
 print(gg)
 ```
 
