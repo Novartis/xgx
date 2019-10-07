@@ -22,41 +22,45 @@ Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rm
 # version matches package in first filepath, in the case of multiple instances of a package
 
 # library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
-
-theme_set(theme_bw(base_size=12))
+library(survival)
+library(survminer)
+library(xgxr)
+xgx_theme_set()
 
 ```
 
 # Single Time-to-event (e.g. survival)
 Single time-to-event plots should be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response
 
+## Crate dataset
 ```{r warning=FALSE}
-library(survival)
+#we are remapping the ecog score to dose for the purposes of
+#creating a realistic looking Kaplan-Meier plot
 km_data <- lung %>%
-  dplyr::rename(dose = ph.ecog)
-km_fit <- survfit(Surv(time) ~ dose, data = km_data)
-# summary(km_fit)
-km_fit2 <- summary(km_fit, times = c(1,30,60,90*(1:10)))
-data = data.frame(time =km_fit2$time, 
-                  surv= km_fit2$surv, 
-                  dose = km_fit2$strata) %>%
-  mutate(dose = stringr::str_replace(dose,"dose=","")) %>%
-  filter(dose!="3")
+  dplyr::rename(dose = ph.ecog) %>%
+  filter(dose!=3) %>%
+  mutate(dose = paste(dose,"mg")) %>%
+  select(time,dose,status)
 
-gg <- ggplot(data, aes(x=time, y=surv, color = factor(dose)))
-gg <- gg + geom_line(size = 1)
-gg <- gg + scale_y_continuous(labels=scales::percent_format())
-gg <- gg + ylab("Survival") + xlab("Time") + labs(color="Dose (mg)")
-#gg <- gg + guides(color=guide_legend("")) 
-gg
+#these columns are required for your dataset
+km_data <- km_data %>%
+  mutate(dose   = dose,
+         time   = time,   #time of the event (or censoring)
+         event  = status) #status: there are a three options for this column (see ?Surv)
+                          #        a) 0 = censored (alive), 1 = dead (event)
+                          #        b) 1 = censored (alive), 2 = dead (event)
+                          #        c) 0 = right censored, 1 = event at time, 
+                          #           2 = left censored,  3 = interval censored.
 
-pp3 <- gg + theme(legend.position = "none")
+```
+
+## Plot Kaplan Meier with Confidence Intervals
+```{r warning=FALSE}
+km_fit <- survfit(Surv(time) ~ dose, data = km_data, conf.int = 0.95)
+gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE)
+print(gg)
 ```
 
 # Repeated Time-to-event
