@@ -104,7 +104,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT_high2low)) 
-gg <- gg + xgx_geom_ci(conf_level = .95)
+gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -125,7 +125,7 @@ gg <- gg + geom_line(aes(group = ID), color = rgb(0.5,0.5,0.5), size = 1, alpha 
 gg <- gg + geom_point(aes(color = factor(CENS), shape = factor(CENS), alpha = 0.3), size = 2, alpha = 0.3)
 gg <- gg + scale_shape_manual(values=c(1,8))
 gg <- gg + scale_color_manual(values=c("grey50","red"))
-gg <- gg + xgx_geom_ci(aes(x = NOMTIME, color=NULL, group=NULL), conf_level = 0.95)
+gg <- gg + xgx_stat_ci(aes(x = NOMTIME, color=NULL, group=NULL), conf_level = 0.95)
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -146,7 +146,7 @@ print(gg)
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV_NORM, 
                  group= DOSE, color = TRTACT_high2low))
-gg <- gg + xgx_geom_ci(conf_level = 0.95, alpha = 0.5, position = position_dodge(1))
+gg <- gg + xgx_stat_ci(conf_level = 0.95, alpha = 0.5, position = position_dodge(1))
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -274,7 +274,7 @@ gg <- gg + xgx_annotate_filenames(dirs)
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
-gg <- gg + xgx_geom_ci(conf_level = 0.95)
+gg <- gg + xgx_stat_ci(conf_level = 0.95)
 
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
@@ -298,7 +298,7 @@ gg <- ggplot(data = pk_data,
              aes(x = NOMTIME, 
                  y = LIDV_NORM, 
                  color = SEX))
-gg <- gg + xgx_geom_ci(conf_level = 0.95)
+gg <- gg + xgx_stat_ci(conf_level = 0.95)
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
