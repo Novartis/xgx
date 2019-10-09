@@ -1,10 +1,10 @@
 base
-xgxr
-gridExtra
 ggplot2
 dplyr
-zoo
 caTools
+xgxr
+gridExtra
+zoo
 tidyr
 xtable
 readxl
