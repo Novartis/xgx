@@ -594,12 +594,14 @@ div.tocify {
 # version matches package in first filepath, in the case of multiple instances of a package
 
 # library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
 library(caTools)
+library(grid)
+library(gridExtra)
+library(xgxr, lib.loc = &quot;../Rlib&quot;)
+xgx_theme_set()
+
 
 #flag for labeling figures as draft
   draft.flag      = TRUE
@@ -950,20 +952,21 @@ data_to_plot = data_to_plot %&gt;%
 data_to_plot$TRTACT &lt;- factor(data_to_plot$TRTACT, 
                                    levels = rev(levels(data_to_plot$TRTACT)))
 
-gg &lt;- ggplot(data = data_to_plot, aes(x=AUC,y=Response))+theme_bw()
+data_pkpd = data_to_plot
+
+gg &lt;- ggplot(data_pkpd, aes(x=AUC,y=Response))
 gg &lt;- gg + geom_jitter(aes( color = TRTACT), width = 0, height = 0.05, alpha = 0.5) 
 gg &lt;- gg + geom_smooth( method = &quot;glm&quot;,method.args=list(family=binomial(link = logit)), color = &quot;black&quot;)
-gg &lt;- gg + stat_summary(aes(x=AUC_midpoints, y=Response),geom = &quot;errorbar&quot;,
-                            fun.data = function(y){
-                              data.frame(ymin = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$lower,
-                                         ymax = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$upper)
-                            })
-gg &lt;- gg + stat_summary(aes(x=AUC_midpoints, y=Response),shape=0,size=4, geom=&quot;point&quot;, fun.y = mean)
-gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
-gg &lt;- gg + ylab(&quot;Response&quot;)  + scale_y_continuous(breaks=c(0,1)) + coord_cartesian(ylim=c(-0.2,1.2))
-gg &lt;- gg + xlab(&quot;AUCtau (h.ng/mL)&quot;)
-gg &lt;- gg + scale_x_log10() + annotation_logticks(base = 10, sides = &quot;b&quot;, color = rgb(0.5,0.5,0.5))
-gg + facet_grid(~DAY_label)</code></pre>
+gg &lt;- gg + xgx_stat_ci(mapping = aes(x=AUC_midpoints, y=Response), conf_level = 0.95, distribution = &quot;binomial&quot;, geom = c(&quot;point&quot;), shape = 0, size = 4)
+gg &lt;- gg + xgx_stat_ci(mapping = aes(x=AUC_midpoints, y=Response), conf_level = 0.95, distribution = &quot;binomial&quot;, geom = c(&quot;errorbar&quot;), size = 0.5)
+gg &lt;- gg + facet_grid(~DAY_label)
+gg &lt;- gg + labs(color = &quot;Dose&quot;,
+                x = &quot;AUCtau (h.ng/mL)&quot;,
+                y = &quot;Response&quot;)
+gg &lt;- gg + xgx_scale_x_log10()
+gg &lt;- gg + scale_y_continuous(breaks=c(0,.5,1), labels = scales::percent) 
+gg &lt;- gg + coord_cartesian(ylim=c(-0.2,1.2))
+print(gg)</code></pre>
 <p><img src="Multiple_Ascending_Dose_PKPD_binary_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
 <div id="explore-covariate-effects-on-exposure-response-relationship" class="section level3">
 <h3>Explore covariate effects on Exposure-Response Relationship</h3>
@@ -1015,27 +1018,40 @@ gg+facet_wrap(~ID+TRTACT, ncol = 5)</code></pre>
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] reshape_0.8.8     lubridate_1.7.4   survival_2.44-1.1
-##  [4] DT_0.8            RxODE_0.9.1-6     haven_2.1.1      
-##  [7] readr_1.3.1       readxl_1.3.1      xtable_1.8-4     
-## [10] tidyr_0.8.3       caTools_1.17.1.2  zoo_1.8-6        
-## [13] dplyr_0.8.3       ggplot2_3.2.1     gridExtra_2.3    
+##  [1] reshape_0.8.8     lubridate_1.7.4   survminer_0.4.6  
+##  [4] ggpubr_0.2.3      magrittr_1.5      survival_2.44-1.1
+##  [7] DT_0.8            RxODE_0.9.1-6     haven_2.1.1      
+## [10] readr_1.3.1       readxl_1.3.1      xtable_1.8-4     
+## [13] tidyr_0.8.3       zoo_1.8-6         gridExtra_2.3    
+## [16] xgxr_1.0.2        caTools_1.17.1.2  dplyr_0.8.3      
+## [19] ggplot2_3.2.1    
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.2       lattice_0.20-38  assertthat_0.2.1 zeallot_0.1.0   
-##  [5] digest_0.6.20    ggforce_0.3.1    R6_2.4.0         cellranger_1.1.0
-##  [9] plyr_1.8.4       backports_1.1.4  evaluate_0.14    pillar_1.4.2    
-## [13] rlang_0.4.0      lazyeval_0.2.2   Matrix_1.2-17    mvnfast_0.2.5   
-## [17] rmarkdown_1.15   labeling_0.3     splines_3.6.1    stringr_1.4.0   
-## [21] PreciseSums_0.3  htmlwidgets_1.3  polyclip_1.10-0  munsell_0.5.0   
-## [25] compiler_3.6.1   xfun_0.9         pkgconfig_2.0.2  htmltools_0.3.6 
-## [29] tidyselect_0.2.5 tibble_2.1.3     crayon_1.3.4     withr_2.1.2     
-## [33] MASS_7.3-51.4    bitops_1.0-6     gtable_0.3.0     magrittr_1.5    
-## [37] units_0.6-4      scales_1.0.0     stringi_1.4.3    farver_1.1.0    
-## [41] vctrs_0.2.0      lotri_0.1.1      tools_3.6.1      forcats_0.4.0   
-## [45] glue_1.3.1       markdown_1.1     tweenr_1.0.1     purrr_0.3.2     
-## [49] hms_0.5.1        yaml_2.2.0       colorspace_1.4-1 memoise_1.1.0   
-## [53] knitr_1.24</code></pre>
+##  [1] jsonlite_1.6       binom_1.1-1        splines_3.6.1     
+##  [4] shiny_1.3.2        assertthat_0.2.1   pander_0.6.3      
+##  [7] cellranger_1.1.0   yaml_2.2.0         pillar_1.4.2      
+## [10] backports_1.1.4    lattice_0.20-38    glue_1.3.1        
+## [13] digest_0.6.20      RColorBrewer_1.1-2 promises_1.0.1    
+## [16] ggsignif_0.6.0     polyclip_1.10-0    colorspace_1.4-1  
+## [19] htmltools_0.3.6    httpuv_1.5.2       Matrix_1.2-17     
+## [22] plyr_1.8.4         pkgconfig_2.0.2    broom_0.5.2       
+## [25] purrr_0.3.2        scales_1.0.0       km.ci_0.5-2       
+## [28] tweenr_1.0.1       later_0.8.0        KMsurv_0.1-5      
+## [31] ggforce_0.3.1      tibble_2.1.3       generics_0.0.2    
+## [34] farver_1.1.0       withr_2.1.2        lazyeval_0.2.2    
+## [37] crayon_1.3.4       mvnfast_0.2.5      mime_0.7          
+## [40] memoise_1.1.0      evaluate_0.14      nlme_3.1-140      
+## [43] MASS_7.3-51.4      forcats_0.4.0      data.table_1.12.2 
+## [46] tools_3.6.1        hms_0.5.1          stringr_1.4.0     
+## [49] munsell_0.5.0      compiler_3.6.1     rlang_0.4.0       
+## [52] units_0.6-4        rstudioapi_0.10    htmlwidgets_1.3   
+## [55] crosstalk_1.0.0    lotri_0.1.1        bitops_1.0-6      
+## [58] PreciseSums_0.3    labeling_0.3       rmarkdown_1.15    
+## [61] gtable_0.3.0       codetools_0.2-16   markdown_1.1      
+## [64] reshape2_1.4.3     R6_2.4.0           knitr_1.24        
+## [67] dparser_0.1.8      survMisc_0.5.5     zeallot_0.1.0     
+## [70] stringi_1.4.3      Rcpp_1.0.2         vctrs_0.2.0       
+## [73] png_0.1-7          tidyselect_0.2.5   xfun_0.9</code></pre>
 </div>
 
 

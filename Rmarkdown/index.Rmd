@@ -67,6 +67,8 @@ We are losing programming resources
 
 The following people contributed example graphs and code or provided useful feedback on the contents and development of this website.
 
+* Anwesha Chauhury
+* Xinrui Zhang
 * Siyan Xu
 * Kostas Biliouris
 * Ivan-Toma Vranesic

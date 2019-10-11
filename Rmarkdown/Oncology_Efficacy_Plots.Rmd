@@ -19,13 +19,6 @@ Standard statistical plots for summarizing recist (e.g. Waterfall) are presented
 ## Setup
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep("usr", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
 # will load from first filepath first, then look in .libPaths for more packages not in first path
 # version matches package in first filepath, in the case of multiple instances of a package
 
@@ -34,12 +27,14 @@ library(gridExtra)
 library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
 library(caTools)
-source("../R/xgx_packages_functions.R")
+library(xgxr, lib.loc = "../Rlib")
 
-theme_set(theme_bw(base_size=18))
+#flag for labeling figures as draft
+status = "DRAFT"
 
+## ggplot settings
+xgx_theme_set()
 ```
 
 ## Load Dataset
@@ -116,7 +111,7 @@ gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + ylab("Percent Change in\nSum of Longest Diameters")
 gg <- gg + xlab("Time (Months)")
 gg <- gg + geom_hline(yintercept = 0.0, linetype="dashed")
-gg <- gg + scale_x_units(units.input = "day",units.output="month",t.start = 0,t.end = 15, increment = 3)
+gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot ="month")
 gg <- gg + theme(text = element_text(size=15))
 gg
 
@@ -136,7 +131,7 @@ gg <- gg + ylab("Percent Change in\nSum of Longest Diameters")
 gg <- gg + xlab("Time (Months)")
 gg <- gg + geom_hline(yintercept = 0.0, linetype="dashed")
 gg <- gg + theme(text = element_text(size=15))
-gg <- gg + scale_x_units(units.input = "day",units.output="month",t.start = 0,t.end = 15, increment = 3)
+gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot ="month")
 gg
 ```
 
@@ -161,29 +156,31 @@ my.data.label <- my.data %>%
   filter(!(is.na(label_psld) | label_psld==""))
 
 
-dose.shift = 50
-dose.scale = 1.2
+dose_shift = 50
+dose_scale = 1.2
 data_areaStep.monotherapy = data_areaStep.monotherapy %>%
-  mutate(DOSE.shift = DOSE/dose.scale+dose.shift)
+  mutate(dose_shift = DOSE/dose_scale+dose_shift)
 
-dose.unique = c(0,unique(my.data.monotherapy$DOSE_ABC))
-gg <- ggplot(data = my.data.monotherapy)
+dose_unique = c(0,unique(my.data.monotherapy$DOSE_ABC))
+
+data_tumor = my.data.monotherapy
+data_dose_step = data_areaStep.monotherapy
+
+gg <- ggplot(data = data_tumor)
 gg <- gg + geom_point(mapping = aes(y= psld, x= TIME))
 gg <- gg + geom_text(data= my.data.label,aes(y= label_psld, x= TIME_OR, label=OR), vjust=-.5)
 gg <- gg + geom_hline(aes(yintercept = 0),size=0.25,linetype="dashed", colour="red")
 gg <- gg + geom_line(mapping = aes(y= psld, x= TIME))
-gg <- gg + geom_ribbon(data= data_areaStep.monotherapy,
-                       aes( ymin = 50, ymax = DOSE.shift , x= TIME),
+gg <- gg + geom_ribbon(data = data_dose_step,
+                       aes( ymin = 50, ymax = dose_shift , x= TIME),
                        fill="palegreen2", color = "black", alpha=0.5 )
 gg <- gg + facet_wrap(~IDSHORT, ncol = 6)
+gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot ="month")
 gg <- gg + scale_y_continuous(
-  sec.axis = sec_axis(~(.-dose.shift)*dose.scale, name = "Dose(mg)", breaks = dose.unique))
-gg <- gg + labs(y = "Percent Change in\nSum of Longest Diameters",
-                x = "Time (months)",
-                colour = "Parameter")
-gg <- gg + scale_x_units(units.input = "day",units.output="month",t.start = 0,t.end = 15, increment = 3)
+  sec.axis = sec_axis(~(.-dose_shift)*dose_scale, name = "Dose(mg)", breaks = dose_unique))
+gg <- gg + labs(y = "Percent Change in\nSum of Longest Diameters", colour = "Parameter")
 gg <- gg + theme(text = element_text(size=15))
-gg
+print(gg)
 ```
 
 
