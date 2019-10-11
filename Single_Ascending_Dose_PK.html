@@ -494,25 +494,10 @@ div.tocify {
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
-<pre class="r"><code># remove reference to home directory in libPaths
-.libPaths(grep(&quot;home&quot;, .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep(&quot;usr&quot;,  .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c(&quot;../Rlib&quot;, .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
-library(ggplot2)
+<pre class="r"><code>library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
-library(xgxr)
 library(tidyr)
+library(xgxr, lib.loc = &quot;../Rlib&quot;)
 
 #flag for labeling figures as draft
 status = &quot;DRAFT&quot;
@@ -540,27 +525,25 @@ pkpd_data &lt;- read.csv(&quot;../Data/Single_Ascending_Dose_Dataset2.csv&quot;)
            LIDV_UNIT    = ifelse(CMT==2, &quot;ng/ml&quot;, NA )
     )
 
-cov_names = list(&quot;SEX&quot;, &quot;WEIGHTB&quot;)
-  
 #create a factor for the treatment variable for plotting
 pkpd_data = pkpd_data %&gt;%
   arrange(DOSE) %&gt;%
-  mutate(TRTACT = factor(TRTACT, levels = unique(TRTACT)))
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT)))) %&gt;%
+  select(-TRTACT)
 
 #create pk dataset
 pk_data &lt;- pkpd_data %&gt;%
   filter(CMT==2)
 
-#create a reverse-order factor for some PK plots
-pk_data_revdose &lt;- pk_data %&gt;% 
-  mutate(TRTACT = factor(TRTACT, levels = rev(levels(TRTACT))))
-
 #perform NCA, for additional plots
 NCA = pk_data %&gt;%
-  group_by(ID, DOSE, SEX, WEIGHTB) %&gt;%
+  group_by(ID, DOSE) %&gt;%
   filter(!is.na(LIDV)) %&gt;%
-  summarize(AUC_last = trapz(TIME,LIDV),
-            Cmax     = max(LIDV)) %&gt;%
+  summarize(AUC_last = caTools::trapz(TIME,LIDV),
+            Cmax     = max(LIDV),
+            SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
+            WEIGHTB  = WEIGHTB[1]) %&gt;%
   gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %&gt;%
   ungroup() %&gt;%
   mutate(VALUE_NORM = VALUE/DOSE)
@@ -573,7 +556,16 @@ NCA = pk_data %&gt;%
   conc_label         = &quot;Concentration (ng/ml)&quot;  
   concnorm_label     = &quot;Normalized Concentration (ng/ml)/mg&quot;
   conc_units         = &quot;ng/ml&quot;
-  AUC_units          = &quot;h.ng/ml&quot;</code></pre>
+  AUC_units          = &quot;h.ng/ml&quot;
+  
+#directories for saving individual graphs
+dirs = list(
+  parent_dir= tempdir(),
+  rscript_dir  = &quot;./&quot;,
+  rscript_name = &quot;Example.R&quot;,
+  results_dir  = &quot;./&quot;,
+  filename_prefix   = &quot;&quot;,
+  filename     = &quot;Example.png&quot;)</code></pre>
 </div>
 <div id="provide-an-overview-of-the-data" class="section level2">
 <h2>Provide an overview of the data</h2>
@@ -581,13 +573,16 @@ NCA = pk_data %&gt;%
 <p>When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?</p>
 <div id="concentration-over-time-colored-by-dose-mean---95-ci" class="section level3">
 <h3>Concentration over time, colored by Dose, mean +/- 95% CI</h3>
-<pre class="r"><code>gg &lt;- ggplot(data = pk_data_revdose, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT)) 
-
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT_high2low)) 
 gg &lt;- gg + xgx_geom_ci(percentile = .95)
 gg &lt;- gg + xgx_scale_y_log10() 
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y=conc_label,color = trtact_label)
 gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
 </div>
@@ -600,10 +595,14 @@ gg &lt;- gg + scale_shape_manual(values=c(1,8))
 gg &lt;- gg + scale_color_manual(values=c(&quot;grey50&quot;,&quot;red&quot;))
 gg &lt;- gg + xgx_geom_ci(aes(x = NOMTIME, color=NULL, group=NULL), percentile = 0.95)
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y=conc_label,color = trtact_label)
-gg &lt;- gg + theme(legend.position=&quot;none&quot;) + facet_grid(.~TRTACT)
+gg &lt;- gg + theme(legend.position=&quot;none&quot;) + facet_grid(.~TRTACT_low2high)
 gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 </div>
@@ -612,14 +611,18 @@ print(gg)</code></pre>
 <h2>Assess the dose linearity of exposure</h2>
 <div id="dose-normalized-concentration-over-time-colored-by-dose-mean---95-ci" class="section level3">
 <h3>Dose Normalized Concentration over time, colored by Dose, mean +/- 95% CI</h3>
-<pre class="r"><code>gg &lt;- ggplot(data = pk_data_revdose, 
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV_NORM, 
-                 group= DOSE, color = TRTACT))
+                 group= DOSE, color = TRTACT_high2low))
 gg &lt;- gg + xgx_geom_ci(percentile = 0.95, alpha = 0.5, position = position_dodge(1))
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y=concnorm_label, color = trtact_label)
 gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
 </div>
@@ -632,6 +635,9 @@ gg &lt;- gg + geom_smooth(method = &quot;lm&quot;, color = &quot;black&quot;)
 gg &lt;- gg + facet_wrap(~PARAM, scales = &quot;free_y&quot;) 
 gg &lt;- gg + labs(x = dose_label, y = concnorm_label)
 gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
 </div>
@@ -641,14 +647,18 @@ print(gg)</code></pre>
 <p>Now that the overall trends in the mean data have been observed, look into the between subject variability by plotting spaghetti plots. Consider again whether to color by dose or facet by dose. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations?</p>
 <div id="concentration-over-time-colored-by-dose-dots-and-lines-grouped-by-individual" class="section level3">
 <h3>Concentration over time, colored by Dose, dots and lines grouped by individual</h3>
-<pre class="r"><code>gg &lt;- ggplot(data = pk_data_revdose, aes(x = TIME, y = LIDV)) 
-gg &lt;- gg + geom_line(aes(group = ID, color = factor(TRTACT)), size = 1, alpha = 0.5) 
-gg &lt;- gg + geom_point(data = pk_data_revdose %&gt;% filter(CENS==0), aes(color = TRTACT), size = 2, alpha = 0.5)
-gg &lt;- gg + geom_point(data = pk_data_revdose %&gt;% filter(CENS==1), color=&quot;red&quot;,  shape=8, size = 2, alpha = 0.5)
+<pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
+gg &lt;- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
+gg &lt;- gg + geom_point(data = pk_data %&gt;% filter(CENS==0), aes(color = TRTACT_high2low), size = 2, alpha = 0.5)
+gg &lt;- gg + geom_point(data = pk_data %&gt;% filter(CENS==1), color=&quot;red&quot;,  shape=8, size = 2, alpha = 0.5)
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y = conc_label, color = trtact_label)
 gg &lt;- gg + xgx_annotate_status(status) 
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 </div>
@@ -662,13 +672,15 @@ gg &lt;- gg + scale_shape_manual(values=c(1,8))
 gg &lt;- gg + scale_color_manual(values=c(&quot;grey50&quot;,&quot;red&quot;))
 
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y = conc_label, shape = &quot;BLQ&quot;, color = &quot;BLQ&quot;)
 
-# gg &lt;- gg + theme(legend.position=&quot;none&quot;) 
-gg &lt;- gg + facet_grid(.~TRTACT)
+gg &lt;- gg + facet_grid(.~TRTACT_low2high)
 gg &lt;- gg + xgx_annotate_status(status)
-
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/single_ascending_PK3-1.png" width="960" /></p>
 </div>
@@ -682,10 +694,10 @@ print(gg)</code></pre>
 <pre class="r"><code>pk_data_rep_by_trt &lt;- list()
 for(id in unique(pk_data$ID)){
   indiv_data &lt;- pk_data %&gt;% subset(ID == id)
-  itrtact = unique(indiv_data$TRTACT)
+  itrtact = unique(indiv_data$TRTACT_low2high)
   
   pk_data_rep_by_trt[[as.character(id)]] &lt;- pk_data %&gt;% 
-        subset(TRTACT == itrtact) %&gt;% 
+        subset(TRTACT_low2high == itrtact) %&gt;% 
         mutate(ID_rep_by_trt = ID, ID = id)
 }
 pk_data_rep_by_trt &lt;- bind_rows(pk_data_rep_by_trt)
@@ -696,18 +708,21 @@ gg &lt;- gg + geom_line(data = pk_data_rep_by_trt,
                      size = 1, color = rgb(0.5,0.5,0.5), alpha = 0.3)
 gg &lt;- gg + geom_line(data = pk_data, 
                      aes(group = ID), size = 1)
-gg &lt;- gg + geom_point(data = pk_data_revdose %&gt;% filter(CENS==1), 
+gg &lt;- gg + geom_point(data = pk_data %&gt;% filter(CENS==1), 
                       color=&quot;red&quot;,  shape=8, size = 2)
 
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y = conc_label)
-
 gg &lt;- gg + theme(legend.position=&quot;none&quot;)
-gg &lt;- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
-gg + facet_wrap(~ID + TRTACT, 
+gg + facet_wrap(~ID + TRTACT_low2high, 
                 ncol = 10 )</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
+<pre class="r"><code>gg &lt;- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)</code></pre>
 </div>
 </div>
 <div id="explore-covariate-effects-on-pk" class="section level2">
@@ -718,11 +733,15 @@ gg + facet_wrap(~ID + TRTACT,
 gg &lt;- gg + xgx_geom_ci(percentile = 0.95)
 
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + labs(y = conc_label)
 
-gg &lt;- gg + facet_grid(.~TRTACT) + xgx_annotate_status(status)
-
+gg &lt;- gg + facet_grid(.~TRTACT_low2high) 
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
 <pre class="r"><code>print(gg + aes(group= WEIGHTB&gt;70, color = WEIGHTB&gt;70) )</code></pre>
@@ -736,9 +755,13 @@ print(gg)</code></pre>
                  color = SEX))
 gg &lt;- gg + xgx_geom_ci(percentile = 0.95)
 gg &lt;- gg + xgx_scale_y_log10()
-gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
 gg &lt;- gg + ylab(concnorm_label) 
 gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 <pre class="r"><code>print(gg+ aes(color = WEIGHTB&gt;70))</code></pre>
@@ -746,17 +769,23 @@ print(gg)</code></pre>
 <pre class="r"><code>gg &lt;- ggplot(data = NCA, aes(x = SEX, y = VALUE_NORM))
 gg &lt;- gg + geom_boxplot(aes(group = SEX))
 gg &lt;- gg + ylab(&quot;&quot;) + xlab(&quot;Sex&quot;) 
-gg &lt;- gg + xgx_annotate_status(status)
 gg &lt;- gg + facet_wrap(~PARAM, scales = &quot;free_y&quot;)
-gg</code></pre>
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
+print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
 <pre class="r"><code>gg &lt;- ggplot(data = NCA, aes(x = WEIGHTB, y = VALUE_NORM))
 gg &lt;- gg + geom_point()
 gg &lt;- gg + ylab(&quot;&quot;) + xlab(&quot;Body Weight (kg)&quot;) 
-gg &lt;- gg + xgx_annotate_status(status)
 gg &lt;- gg + facet_wrap(~PARAM, scales = &quot;free_y&quot;)
 gg &lt;- gg + geom_smooth(method=&quot;lm&quot;)
-gg</code></pre>
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
+print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
 <pre class="r"><code>gg + aes(color = SEX)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-12-2.png" width="768" /></p>
@@ -785,26 +814,29 @@ gg</code></pre>
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] reshape_0.8.7   lubridate_1.7.1 survival_2.41-3 DT_0.2         
-##  [5] haven_1.1.0     readr_1.1.1     readxl_1.0.0    xtable_1.8-2   
-##  [9] zoo_1.8-0       bindrcpp_0.2    tidyr_0.7.2     caTools_1.17.1 
-## [13] RxODE_0.6-1     dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
-## [17] xgxr_0.0.1.005 
+##  [1] xgxr_0.0.1.005  reshape_0.8.7   lubridate_1.7.1 survival_2.41-3
+##  [5] DT_0.2          RxODE_0.6-1     bindrcpp_0.2    haven_1.1.0    
+##  [9] readr_1.1.1     readxl_1.0.0    xtable_1.8-2    tidyr_0.7.2    
+## [13] caTools_1.17.1  zoo_1.8-0       dplyr_0.7.4     ggplot2_2.2.1  
+## [17] gridExtra_2.3  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] tidyselect_0.2.3 reshape2_1.4.3   purrr_0.2.4      splines_3.4.3   
-##  [5] lattice_0.20-35  colorspace_1.3-2 htmltools_0.3.6  yaml_2.1.16     
-##  [9] rlang_0.1.6      pillar_1.0.1     glue_1.2.0       withr_2.1.1     
-## [13] binom_1.1-1      bindr_0.1        plyr_1.8.4       stringr_1.2.0   
-## [17] munsell_0.4.3    gtable_0.2.0     cellranger_1.1.0 devtools_1.13.4 
-## [21] htmlwidgets_0.9  codetools_0.2-15 memoise_1.1.0    evaluate_0.10.1 
-## [25] labeling_0.3     knitr_1.18       forcats_0.2.0    rex_1.1.2       
-## [29] markdown_0.8     Rcpp_0.12.14     scales_0.5.0     backports_1.1.2 
-## [33] jsonlite_1.5     hms_0.4.0        digest_0.6.13    stringi_1.1.3   
-## [37] rprojroot_1.3-1  tools_3.4.3      bitops_1.0-6     magrittr_1.5    
-## [41] lazyeval_0.2.1   tibble_1.4.1     pkgconfig_2.0.1  Matrix_1.2-12   
-## [45] rsconnect_0.8.5  assertthat_0.2.0 rmarkdown_1.8    R6_2.2.2        
-## [49] compiler_3.4.3</code></pre>
+##  [1] tidyselect_0.2.3   purrr_0.2.4        reshape2_1.4.3    
+##  [4] splines_3.4.3      lattice_0.20-35    colorspace_1.3-2  
+##  [7] htmltools_0.3.6    yaml_2.1.16        rlang_0.1.6       
+## [10] pillar_1.0.1       glue_1.2.0         RColorBrewer_1.1-2
+## [13] binom_1.1-1        bindr_0.1          plyr_1.8.4        
+## [16] stringr_1.2.0      munsell_0.4.3      gtable_0.2.0      
+## [19] cellranger_1.1.0   htmlwidgets_0.9    codetools_0.2-15  
+## [22] evaluate_0.10.1    memoise_1.1.0      labeling_0.3      
+## [25] knitr_1.18         forcats_0.2.0      rex_1.1.2         
+## [28] markdown_0.8       Rcpp_0.12.14       scales_0.5.0      
+## [31] backports_1.1.2    jsonlite_1.5       hms_0.4.0         
+## [34] digest_0.6.13      stringi_1.1.3      rprojroot_1.3-1   
+## [37] tools_3.4.3        bitops_1.0-6       dparser_0.1.8     
+## [40] magrittr_1.5       lazyeval_0.2.1     tibble_1.4.1      
+## [43] pkgconfig_2.0.1    Matrix_1.2-12      assertthat_0.2.0  
+## [46] rmarkdown_1.8      R6_2.2.2           compiler_3.4.3</code></pre>
 </div>
 
 
