@@ -101,7 +101,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 ### Concentration over time, colored by Dose, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 6}
 
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
