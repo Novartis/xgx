@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Single Ascending Dose Data Set</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for sad {xgxr}"><tr><td>sad {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Single Ascending Dose Data Set</h2>
+
+<h3>Description</h3>
+
+<p>Model generated PK data to mimic an orally administered small molecule.
+Simulated single dose administration ranging from 100 mg to 1600 mg.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+sad
+</pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with the following 16 columns:
+</p>
+
+<table summary="Rd table">
+<tr>
+ <td style="text-align: right;">
+  column 1: </td><td style="text-align: left;"> <code>ID</code> </td><td style="text-align: left;"> numeric; unique subject ID</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 2: </td><td style="text-align: left;"> <code>TIME</code> </td><td style="text-align: left;"> numeric; time relative to first drug 
+  administration</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 3: </td><td style="text-align: left;"> <code>NOMTIME</code> </td><td style="text-align: left;"> numeric; nominal time</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 4: </td><td style="text-align: left;"> <code>TIMEUNIT</code> </td><td style="text-align: left;"> character; unit of TIME</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 5: </td><td style="text-align: left;"> <code>AMT</code> </td><td style="text-align: left;"> numeric; dosing amount (for dosing events) 
+  in mg</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 6: </td><td style="text-align: left;"> <code>LIDV</code> </td><td style="text-align: left;"> numeric; observation on a linear scale 
+  (observation type determined by CMT), units determined by EVENTU column</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 7: </td><td style="text-align: left;"> <code>MDV</code> </td><td style="text-align: left;"> numeric; missing dependent variable </td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  (1 if missing, 0 otherwise)</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 8: </td><td style="text-align: left;"> <code>CMT</code> </td><td style="text-align: left;"> integer; compartment number 
+  (determines observation type):</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  </td><td style="text-align: left;"> </td><td style="text-align: left;"> CMT 1 = Dosing event</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  </td><td style="text-align: left;"> </td><td style="text-align: left;"> CMT 2 = PK concentration</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 9: </td><td style="text-align: left;"> <code>NAME</code> </td><td style="text-align: left;"> character; description of event</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 10: </td><td style="text-align: left;"> <code>EVENTU</code> </td><td style="text-align: left;"> character; unit for observation</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 11: </td><td style="text-align: left;"> <code>CENS</code> </td><td style="text-align: left;"> integer; censored values
+  (0 = not censored, 1 = censored)</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 12: </td><td style="text-align: left;"> <code>EVID</code> </td><td style="text-align: left;"> integer; event ID (0 = observation, 
+  1 = dosing event)</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 13: </td><td style="text-align: left;"> <code>WEIGHTB</code> </td><td style="text-align: left;"> numeric; baseline body weight (kg)</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 14: </td><td style="text-align: left;"> <code>SEX</code> </td><td style="text-align: left;"> character; sex</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 15: </td><td style="text-align: left;"> <code>TRTACT</code> </td><td style="text-align: left;"> factor; treatment group label</td>
+</tr>
+<tr>
+ <td style="text-align: right;">
+  column 16: </td><td style="text-align: left;"> <code>DOSE</code> </td><td style="text-align: left;"> numeric; randomized dose in mg 
+  received
+</td>
+</tr>
+
+</table>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 1.0.2 <a href="00Index.html">Index</a>]</div>
+</body></html>

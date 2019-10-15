@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Annotate a png file or directory of png files</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for xgx_annotate_status_png {xgxr}"><tr><td>xgx_annotate_status_png {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Annotate a png file or directory of png files</h2>
+
+<h3>Description</h3>
+
+<p>These function annotates a single png file or all files within a
+directory.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+xgx_annotate_status_png(file_or_dir, script = "", status = "DRAFT",
+  date_format = "%a %b %d %X %Y", col = grDevices::grey(0.8, alpha
+  = 0.7), font = 2, cex_status_mult = 7, cex_footnote_mult = 0.8,
+  status_angle = 45, x11 = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>file_or_dir</code></td>
+<td>
+<p>The png file to annotate or directory location for
+annotating png files.  Note this will annotate just once, so if
+you generate multiple png files and then annotate at the end of
+your script it will have the correct script name on it. Then if
+you create new images in a different script in the same directory
+and then annotate with the script name the second script, the PNG
+files will show the correct script location for each file.</p>
+</td></tr>
+<tr valign="top"><td><code>script</code></td>
+<td>
+<p>Script name to add as a footnote; By default this is
+empty, though it could name the script that</p>
+</td></tr>
+<tr valign="top"><td><code>status</code></td>
+<td>
+<p>Draft or other status; If <code>status="Final"</code> or
+<code>status=""</code> the status overlay will be removed.  By default
+the status is DRAFT.</p>
+</td></tr>
+<tr valign="top"><td><code>date_format</code></td>
+<td>
+<p>Date format for adding the time the png was
+annotated.</p>
+</td></tr>
+<tr valign="top"><td><code>col</code></td>
+<td>
+<p>Color for annotating the draft status</p>
+</td></tr>
+<tr valign="top"><td><code>font</code></td>
+<td>
+<p>Font to use for the annotation function</p>
+</td></tr>
+<tr valign="top"><td><code>cex_status_mult</code></td>
+<td>
+<p>Multiplication factor for the status
+annotation.  By default 7</p>
+</td></tr>
+<tr valign="top"><td><code>cex_footnote_mult</code></td>
+<td>
+<p>Multiplication factor for the footnote
+annotation. By default 0.8</p>
+</td></tr>
+<tr valign="top"><td><code>status_angle</code></td>
+<td>
+<p>Angle to rotate status</p>
+</td></tr>
+<tr valign="top"><td><code>x11</code></td>
+<td>
+<p>Display on the X11/Windows device</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>If a png file has been annotated once, this function will not
+annotate it again.  Therefore, you can run this function on
+directories with different input script names and it will label
+each file based on when each file was run.
+</p>
+<p>Based on code from MrFlick on
+<a href="https://stackoverflow.com/a/23816416">Stack Overflow</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>nothing
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthew Fidler, Alison M, ....
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# using the examples from plot()
+file.name &lt;- tempfile()
+grDevices::png(file.name)
+graphics::plot(cars)
+graphics::lines(stats::lowess(cars))
+grDevices::dev.off()
+# annotate one file
+xgx_annotate_status_png(file.name, "/tmp/script1.R")
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 1.0.2 <a href="00Index.html">Index</a>]</div>
+</body></html>

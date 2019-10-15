@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Convert time units for plotting</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for xgx_scale_x_time_units {xgxr}"><tr><td>xgx_scale_x_time_units {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Convert time units for plotting</h2>
+
+<h3>Description</h3>
+
+<p><code>xgx_scale_x_time_units</code> converts x axis scale from one time unit 
+to another.  
+Supported units include hours, days, weeks, months, and years, which 
+can also be called using just the first letter (h, d, w, m, y).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+xgx_scale_x_time_units(units_dataset, units_plot = NULL, breaks = NULL,
+  labels = NULL, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>units_dataset</code></td>
+<td>
+<p>units of the input dataset, must be specified by user 
+as &quot;h&quot;, &quot;d&quot;, &quot;w&quot;, &quot;m&quot;, or &quot;y&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>units_plot</code></td>
+<td>
+<p>units of the plot, will be units of the dataset if empty</p>
+</td></tr>
+<tr valign="top"><td><code>breaks</code></td>
+<td>
+<p>One of:
+</p>
+
+<ul>
+<li> <p><code>NULL</code> for no breaks
+</p>
+</li>
+<li> <p><code>waiver()</code> for the default breaks computed by the
+transformation object
+</p>
+</li>
+<li><p> A numeric vector of positions
+</p>
+</li>
+<li><p> A function that takes the limits as input and returns breaks
+as output
+</p>
+</li></ul>
+</td></tr>
+<tr valign="top"><td><code>labels</code></td>
+<td>
+<p>One of:
+</p>
+
+<ul>
+<li> <p><code>NULL</code> for no labels
+</p>
+</li>
+<li> <p><code>waiver()</code> for the default labels computed by the
+transformation object
+</p>
+</li>
+<li><p> A character vector giving labels (must be same length as <code>breaks</code>)
+</p>
+</li>
+<li><p> A function that takes the breaks as input and returns labels
+as output
+</p>
+</li></ul>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>other parameters for 
+<code><a href="../../ggplot2/html/scale_continuous.html">scale_x_continuous</a></code></p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>ggplot2 compatible scale object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+data &lt;- data.frame(x = 1:1000, y = rnorm(1000))
+ggplot2::ggplot(data = data, ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_point() +
+  xgx_scale_x_time_units(units_dataset = "hours", units_plot = "weeks")
+  
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 1.0.2 <a href="00Index.html">Index</a>]</div>
+</body></html>
