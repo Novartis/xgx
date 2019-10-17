@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Check data for various issues</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for xgx_check_data {xgxr}"><tr><td>xgx_check_data {xgxr}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Check data for various issues</h2>
+
+<h3>Description</h3>
+
+<p><code>xgx_check_data</code> performs a series of checks on a PK or PKPD dataset
+It was inspired by the dataset preparation table from 
+<a href="https://iqrtools.intiquan.com/doc/book/analysis-dataset-preparation.html">IntiQuan</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+xgx_check_data(data, covariates = NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>data, </code></td>
+<td>
+<p>the dataset to check.  Must contain the above columns</p>
+</td></tr>
+<tr valign="top"><td><code>covariates, </code></td>
+<td>
+<p>the column names of covariates, to explore</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The dataset must have the following columns
+</p>
+
+<ul>
+<li><p> ID      = unique subject identifier.  USUBJID is another option 
+if ID is not there
+</p>
+</li>
+<li><p> EVID    = event ID: 1 for dose, 0 otherwise
+</p>
+</li>
+<li><p> AMT     = value of the dose
+</p>
+</li>
+<li><p> TIME    = time of the measurement
+</p>
+</li>
+<li><p> DV      = dependent value (linear scale).  will check if LIDV or 
+LNDV are also there if DV is not
+</p>
+</li>
+<li><p> YTYPE   = data measurement for LIDV.  will check if CMT is there, 
+if YTYPE is not
+</p>
+</li></ul>
+
+<p>The dataset may also have additional columns
+</p>
+
+<ul>
+<li><p> CENS = flag for censoring of the data because it's below the 
+limit of quantification (BLOQ)
+</p>
+</li>
+<li><p> MDV  = missing dependent variable - will be counted and then 
+filtered out from the data check
+</p>
+</li></ul>
+
+
+
+<h3>Value</h3>
+
+<p>data.frame
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+covariates &lt;- c("WEIGHTB", "SEX")
+check &lt;- xgx_check_data(mad_missing_duplicates, covariates)
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>xgxr</em> version 1.0.2 <a href="00Index.html">Index</a>]</div>
+</body></html>

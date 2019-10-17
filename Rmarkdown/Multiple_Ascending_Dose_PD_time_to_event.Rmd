@@ -26,7 +26,7 @@ library(ggplot2)
 library(dplyr)
 library(survival)
 library(survminer)
-library(xgxr)
+library(xgxr, lib.loc = "../Rlib")
 ```
 
 # Single Time-to-event (e.g. survival)
