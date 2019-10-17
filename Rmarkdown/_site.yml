@@ -64,7 +64,7 @@ navbar:
         href: Resources/FundamentalPK_AndyStein_Hackathon_2019.pptx      
       - text: Fundamental PD Principles Introduction
         href: Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx 
-      - text: Uncernainty Assessment - Pedigree Table
+      - text: Uncertainty Assessment - Pedigree Table
         href: Resources/Uncertainty_Assessment_Pedigree_Table.pdf
 output:
   html_document:
