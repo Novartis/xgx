@@ -31,16 +31,19 @@ folders_files = www_contents[grep("_files",www_contents)]
 # remove *.html documents from root directory
 # and copy new *.html documents from www
 system("rm ../*.html")
+Sys.sleep(2)
 system(paste0("cp www/", files_html, " ../", files_html, collapse = "&"))
 
 # remove *_files directories from root directory
 # and copy new *_files from www
 system("rm -r ../*_files")
+Sys.sleep(2)
 system(paste0("cp -r www/", folders_files, " ../", folders_files, collapse = "&"))
 
 # copy standard folders required for website from www to root
 folders_to_replace = c("SiteResources","site_libs")
 system(paste0("rm -r ../",folders_to_replace, collapse = "&"))
+Sys.sleep(2)
 system(paste0("cp -r www/", folders_to_replace, " ../", folders_to_replace, collapse = "&"))
 
 # remove www folder for clean up
