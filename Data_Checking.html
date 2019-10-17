@@ -673,8 +673,8 @@ my.data$TRTACT &lt;- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order
   count() %&gt;%
   arrange(-DOSE)
 DT::datatable(patient.summary)</code></pre>
-<div id="htmlwidget-241985d6047c7b28b803" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-241985d6047c7b28b803">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],[1600,800,400,200,100,0],[10,10,10,10,10,10]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a645ef6e2f2ace1f62fc" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a645ef6e2f2ace1f62fc">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],[1600,800,400,200,100,0],[10,10,10,10,10,10]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>Overview of number of PK datapoints at each dose</p>
 <pre class="r"><code>pk.summary = my.data %&gt;%
   filter(CMT==2) %&gt;%
@@ -682,8 +682,8 @@ DT::datatable(patient.summary)</code></pre>
   count() %&gt;%
   arrange(-DOSE)
 DT::datatable(pk.summary)</code></pre>
-<div id="htmlwidget-47b468d024847a3865ef" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-47b468d024847a3865ef">{"x":{"filter":"none","data":[["1","2","3","4","5"],[1600,800,400,200,100],[285,281,280,282,280]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-e3a44eaee5c46bbd4f06" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e3a44eaee5c46bbd4f06">{"x":{"filter":"none","data":[["1","2","3","4","5"],[1600,800,400,200,100],[280,280,282,282,284]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DOSE<\/th>\n      <th>n<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="check-for-duplicated-time-points" class="section level2">
 <h2>Check for duplicated time points</h2>
@@ -693,8 +693,8 @@ DT::datatable(pk.summary)</code></pre>
 n.duplicated = nrow(duplicated.check)</code></pre>
 <p>There are 8 duplicated time points that should be investigated. They are summarized in the list below.</p>
 <pre class="r"><code>DT::datatable(duplicated.check)</code></pre>
-<div id="htmlwidget-fe847dc936df767fc0aa" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-fe847dc936df767fc0aa">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8"],[22,24,46,53,57,57,59,60],[138.593,191.358,191.817,120.428,120.729,121.137,72.117,0.007],[2,2,2,2,2,2,2,2],[0.372,0.119,1.23,2.96,4.56,32.8,4.01,0.491]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ID<\/th>\n      <th>TIME<\/th>\n      <th>CMT<\/th>\n      <th>LIDV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-bb239f1ccb241d54f28c" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-bb239f1ccb241d54f28c">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8"],[12,14,14,17,24,26,34,36],[120.395,121.66,215.689,120.481,8.073,18.126,4.109,4.036],[2,2,2,2,2,2,2,2],[0.459,0.806,0.105,1.86,1.49,0.273,5.57,5.61]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>ID<\/th>\n      <th>TIME<\/th>\n      <th>CMT<\/th>\n      <th>LIDV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="check-for-any-missing-pk-data-at-positive-time-points" class="section level2">
 <h2>Check for any missing PK data at positive time points</h2>
@@ -727,8 +727,8 @@ grid.arrange(gg1,gg2,ncol=2)
 <p>By doing a simple ID checkout you can see that CMT = 2 and 3 represent continuous variables, while CMT = 4, 5 and 6 take on more restricted values. You can tell that CMT 4, 5 and 6 are not concentration but represent some other type of variable.</p>
 <p>Let’s checkout the descriptions for each compartment, and see if our conclusions about the observation values make sense.</p>
 <pre class="r"><code>DT::datatable(unique(my.data[order(my.data$CMT),c(&quot;CMT&quot;,&quot;NAME&quot;)]), rownames=FALSE)</code></pre>
-<div id="htmlwidget-77731d7f485c9df1d6bb" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-77731d7f485c9df1d6bb">{"x":{"filter":"none","data":[[1,2,3,4,5,6],["Dosing","PK Concentration","PD - Continuous","PD - Count","PD - Ordinal","PD - Binary"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>CMT<\/th>\n      <th>NAME<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a25a76fa4a06cf5151c4" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a25a76fa4a06cf5151c4">{"x":{"filter":"none","data":[[1,2,3,4,5,6],["Dosing","PK Concentration","PD - Continuous","PD - Count","PD - Ordinal","PD - Binary"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>CMT<\/th>\n      <th>NAME<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="checking-timing-of-doses-and-observations" class="section level2">
 <h2>Checking timing of doses and observations</h2>
@@ -847,23 +847,33 @@ ggplot(lst$DO,aes(DO, ID)) + geom_point() + xlab(&quot;Time between dose and nex
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] DT_0.2         RxODE_0.6-1    bindrcpp_0.2   haven_1.1.0   
-##  [5] readr_1.1.1    readxl_1.0.0   xtable_1.8-2   tidyr_0.7.2   
-##  [9] caTools_1.17.1 zoo_1.8-0      dplyr_0.7.4    ggplot2_2.2.1 
-## [13] gridExtra_2.3  xgxr_1.0.2    
+##  [1] xgxr_1.0.2      survminer_0.4.1 ggpubr_0.1.6    magrittr_1.5   
+##  [5] survival_2.41-3 DT_0.2          RxODE_0.6-1     bindrcpp_0.2   
+##  [9] haven_1.1.0     readr_1.1.1     readxl_1.0.0    xtable_1.8-2   
+## [13] tidyr_0.7.2     caTools_1.17.1  zoo_1.8-0       dplyr_0.7.4    
+## [17] ggplot2_2.2.1   gridExtra_2.3  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] pander_0.6.1     purrr_0.2.4      lattice_0.20-35  colorspace_1.3-2
-##  [5] htmltools_0.3.6  yaml_2.1.16      rlang_0.1.6      pillar_1.0.1    
-##  [9] glue_1.2.0       binom_1.1-1      bindr_0.1        plyr_1.8.4      
-## [13] stringr_1.2.0    munsell_0.4.3    gtable_0.2.0     cellranger_1.1.0
-## [17] htmlwidgets_0.9  codetools_0.2-15 evaluate_0.10.1  memoise_1.1.0   
-## [21] labeling_0.3     knitr_1.18       forcats_0.2.0    rex_1.1.2       
-## [25] Rcpp_0.12.14     backports_1.1.2  scales_0.5.0     jsonlite_1.5    
-## [29] hms_0.4.0        png_0.1-7        digest_0.6.13    stringi_1.1.3   
-## [33] rprojroot_1.3-1  tools_3.4.3      bitops_1.0-6     magrittr_1.5    
-## [37] lazyeval_0.2.1   tibble_1.4.1     pkgconfig_2.0.1  assertthat_0.2.0
-## [41] rmarkdown_1.8    R6_2.2.2         compiler_3.4.3</code></pre>
+##  [1] Rcpp_0.12.14        lattice_0.20-35     png_0.1-7          
+##  [4] assertthat_0.2.0    rprojroot_1.3-1     digest_0.6.13      
+##  [7] psych_1.7.8         R6_2.2.2            cellranger_1.1.0   
+## [10] plyr_1.8.4          backports_1.1.2     evaluate_0.10.1    
+## [13] pillar_1.0.1        rlang_0.1.6         lazyeval_0.2.1     
+## [16] data.table_1.10.4-3 Matrix_1.2-12       rmarkdown_1.8      
+## [19] labeling_0.3        splines_3.4.3       pander_0.6.1       
+## [22] stringr_1.2.0       foreign_0.8-69      htmlwidgets_0.9    
+## [25] munsell_0.4.3       broom_0.4.3         compiler_3.4.3     
+## [28] pkgconfig_2.0.1     mnormt_1.5-5        htmltools_0.3.6    
+## [31] tibble_1.4.1        km.ci_0.5-2         binom_1.1-1        
+## [34] codetools_0.2-15    bitops_1.0-6        nlme_3.1-131       
+## [37] jsonlite_1.5        gtable_0.2.0        KMsurv_0.1-5       
+## [40] scales_0.5.0        stringi_1.1.3       reshape2_1.4.3     
+## [43] rex_1.1.2           survMisc_0.5.4      RColorBrewer_1.1-2 
+## [46] tools_3.4.3         cmprsk_2.2-7        forcats_0.2.0      
+## [49] glue_1.2.0          markdown_0.8        purrr_0.2.4        
+## [52] hms_0.4.0           parallel_3.4.3      yaml_2.1.16        
+## [55] colorspace_1.3-2    memoise_1.1.0       knitr_1.18         
+## [58] bindr_0.1</code></pre>
 </div>
 
 
