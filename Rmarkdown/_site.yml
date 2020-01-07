@@ -11,10 +11,10 @@ navbar:
     href: GuidingPrinciples.html
   - text: Data Checking
     menu:
-    - text: Master PK/PD Datasets used in creating example plots
-      href: PKPD_Datasets.html
     - text: Dataset Specifications
       href: Datasets.html
+    - text: Master PK/PD Datasets used in creating example plots
+      href: PKPD_Datasets.html
     - text: Data Checking
       href: Data_Checking.html
   - text: Dose-PK/Exposure
