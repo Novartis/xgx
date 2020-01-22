@@ -33,8 +33,6 @@ set.seed(123456)
 
 # Explore Exposure-Response Relationship
 
-Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by exposure quartile to give an overview of the dose-response
-
 ## Create a Dataset
 
 ```{r warning=FALSE}
@@ -66,6 +64,10 @@ km_data_Cmax_AUC <- km_data %>%
 
 ## Plot Kaplan Meier with Confidence Intervals using only Cmax
 
+Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by exposure quartile to give an overview of the dose-response.  To see if there's an effect on exposure vs response, look to see if there is separation between the quartiles.  However note that it may be that there are factors that impact both exposure and response and so a more careful model-based analysis may be needed to formally assess any causal relationship, as described in the reference below.
+
+Yang, Jun, et al. "The combination of exposure‐response and case‐control analyses in regulatory decision making." The Journal of Clinical Pharmacology 53.2 (2013): 160-166.
+
 ```{r warning=FALSE, message=FALSE}
 km_fit <- survfit(Surv(time) ~ exposure, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
@@ -76,7 +78,7 @@ print(gg)
 
 ## Plot Kaplan Meier faceted by exposure metric
 
-Using the `ggsurvplot_facet` command, one can look at many exposure metrics at once.
+Using the `ggsurvplot_facet` command, one can look at many exposure metrics at once.  Again, look for separation in the quartiles, but be aware that something like a case-control analysis may be needed to assess whether exposure causes reduced response or whether other factors may affect both exposure and response.
 
 ```{r warning=FALSE, message=FALSE}
 km_fit_Cmax_AUC <- survfit(Surv(time) ~ NCAvalue, data = km_data_Cmax_AUC, conf.int = 0.95)
@@ -105,7 +107,7 @@ print(gg)
 ```
 
 ## Performing Cox regression on the above data. 
-In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.
+In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.  Look for small p values or large hazard ratios to identify covariates that have a large effect.
 
 ```{r warning=FALSE, message=FALSE}
 km_cox = coxph(Surv(time) ~ fake_AUC + fake_Cmax,
