@@ -57,6 +57,7 @@ We are losing programming resources
 * Alison Margolskee
 * Andrew Stein
 * Fariba Khanshan
+* Camille Vong
 
 ### Extended Team
 * Matt Fidler
