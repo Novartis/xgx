@@ -22,8 +22,17 @@ library(xgxr, lib.loc = "../Rlib")
 #flag for labeling figures as draft
 status = "DRAFT"
 
-## ggplot settings
+# ggplot settings
 xgx_theme_set()
+
+#directories for saving individual graphs
+dirs = list(
+  parent_dir= tempdir(),
+  rscript_dir  = "./",
+  rscript_name = "Example.R",
+  results_dir  = "./",
+  filename_prefix   = "",
+  filename     = "Example.png")
 
 ```
 
@@ -81,16 +90,6 @@ NCA = pk_data %>%
   concnorm_label     = "Normalized Concentration (ng/ml)/mg"
   conc_units         = "ng/ml"
   AUC_units          = "h.ng/ml"
-  
-#directories for saving individual graphs
-dirs = list(
-  parent_dir= tempdir(),
-  rscript_dir  = "./",
-  rscript_name = "Example.R",
-  results_dir  = "./",
-  filename_prefix   = "",
-  filename     = "Example.png")
-  
 ```
 
 ## Provide an overview of the data

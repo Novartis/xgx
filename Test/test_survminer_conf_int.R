@@ -1,0 +1,5 @@
+library(survival)
+library(survminer)
+surv = survfit(Surv(time) ~ ph.ecog, data = lung, conf.int = 0.95)
+ggsurvplot(surv, lung, conf_int = TRUE)
+sessionInfo()
