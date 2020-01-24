@@ -27,7 +27,7 @@ xgx_theme_set()
 
 #directories for saving individual graphs
 dirs = list(
-  parent_dir= tempdir(),
+  parent_dir = "Parent_Directory",
   rscript_dir  = "./",
   rscript_name = "Example.R",
   results_dir  = "./",
