@@ -23,9 +23,8 @@ Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown t
   library(ggplot2)
   library(tidyr)
   library(dplyr)
-  library(lubridate)
   library(stringr)
-  library(xgxr,lib.loc = "../Rlib")
+  library(xgxr)
   
   
 #flag for labeling figures as draft
@@ -47,56 +46,42 @@ dirs = list(
 #### Load in data from dzz (concentrations) and format for plotting
 
 ```{r load_dzz, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
-LOQassay = 1
-drug1 = "ABC123"
-drug2 = "DEF456"
-  
+
 #load data located here:
 data_in = read.csv("../Data/dzz_PKConc.csv",stringsAsFactors = FALSE)
 
 #create columns with dosing regimen information, based on ARM
-data = data %>%
-  mutate(DOSSTR          = str_replace(ARM,"Phase Ib? ",""),
-         DRG1STR         = str_replace(DOSSTR,paste0(drug1," "),""),
-         DRG1STR         = str_extract(DRG1STR,"^\\d* *mg Q\\dW"),
-         DRG1DOS0        = as.numeric(str_extract(DRG1STR,"\\d*")),
-         DRG1REG          = str_extract(DRG1STR,"Q\\dW"),
-         DRG2STR          = str_extract(DOSSTR,paste0(drug2," \\d* *mg Q\\dW")),
-         DRG2STR          = str_replace(DRG2STR,paste0(drug2," "),""),
-         DRG2DOS0         = as.numeric(str_extract(DRG2STR,"\\d*")),
-         DRG2REG          = str_extract(DRG2STR,"Q\\dW"),
-         Comed           = ifelse(is.na(DRG2DOS0),"monotherapy","combination"),
-         DRG1.DRG2       = paste(DRG1DOS0,Comed))
-
-#create columns with time and normalized PK
-data = data %>%
-  filter(PCDTC!="") %>%
-  group_by(SUBJID) %>%
-  mutate(CYCLE      = as.numeric(substr(VISIT,7,8)),
-         NOMTIMEH   = (CYCLE-1)*28*24+TMTPT,
-         DATE       = ymd_hms(PCDTC),
-         DATE0      = ymd_hms(first(PCDTC)),
-         TIMEH      = (DATE-DATE0)/3600,
-         RESN       = as.numeric(RESN),
-         CENS       = RESN<LOQassay,
-         RESN       = ifelse(CENS,LOQassay,RESN),
-         RESNorm    = RESN/DRG1DOS0) %>%
-  ungroup() %>%
-  filter(NOMTIMEH>0)
+LOQassay = 1
+drug_name = "ABC123"
 
 #create simplified column names for plotting
-data = data %>%
-  arrange(DRG1DOS0,desc(DRG1REG)) %>%
-  mutate(ID = SUBJID,
-         DOSElabel = factor(DRG1STR,levels=rev(unique(DRG1STR))), #for proper ordering
-         DOSE0 = DRG1DOS0,
-         DOSE0label = paste(DOSE0,"mg"),
-         DOSE0label = factor(DOSE0label,levels=rev(unique(DOSE0label))),
-         REG = DRG1REG,
-         NOMTIME = NOMTIMEH,
-         TIME = TIMEH,
-         CONC=RESN,
-         CONCnorm = RESNorm)
+data = data_in %>%
+  mutate(TRTACT          = str_replace(ARM,"Phase Ib? ",""),
+        TRTACT           = str_replace(TRTACT,paste0(drug_name," "),""),
+        TRTACT           = str_extract(TRTACT ,"^\\d* *mg Q\\dW"),
+        DOSE             = as.numeric(str_extract(TRTACT,"\\d*")),
+        REGIMEN          = str_extract(TRTACT,"Q\\dW")) %>%
+  arrange(DOSE,desc(REGIMEN)) %>%
+  mutate(TRTACT_high2low = factor(TRTACT,levels = rev(unique(TRTACT))),
+         TRTACT_low2high = factor(TRTACT,levels =     unique(TRTACT)),
+         DOSE_mg         = paste(DOSE,"mg"),
+         DOSE_high2low   = factor(DOSE_mg, levels = rev(unique(DOSE_mg))),
+         DOSE_low2high   = factor(DOSE_mg, levels =     unique(DOSE_mg)),
+         ID              = SUBJID,
+         CYCLE           = as.numeric(substr(VISIT,7,8)),
+         TIME            = as.numeric((lubridate::ymd_hms(PCDTC) - 
+                                       lubridate::ymd_hms(first(PCDTC)))/3600),
+         TIMEUNIT        = "hours",
+         DAY_OF_CYCLE    = TMTPT,
+         NOMTIME         = (CYCLE-1)*28*24+DAY_OF_CYCLE,
+         LIDV            = as.numeric(RESN),
+         CENS            = LIDV < LOQassay,
+         LIDV            = ifelse(CENS, LOQassay, LIDV),
+         LIDVNORM        = RESN/DOSE,
+         LIDV_UNIT       = "ng/ml") %>%
+  select(-TRTACT) %>%
+  ungroup() %>%
+  filter(NOMTIME>0, !is.na(TIME), !is.na(LIDV))
 ```
 
 #### Load in data from PPtmp (NCA) and format for plotting
@@ -106,26 +91,16 @@ nca = read.csv("../Data/PPtmp_NCA.csv",stringsAsFactors = FALSE)
 
 #create columns with dosing regimen information, based on ARM
 nca = nca %>%
-  mutate(DOSSTR          = str_replace(ARM,"Phase Ib? ",""),
-         DRG1STR         = str_replace(DOSSTR,paste0(drug1," "),""),
-         DRG1STR         = str_extract(DRG1STR,"^\\d* *mg Q\\dW"),
-         DRG1DOS0        = as.numeric(str_extract(DRG1STR,"\\d*")),
-         DRG1REG          = str_extract(DRG1STR,"Q\\dW"),
-         DRG2STR          = str_extract(DOSSTR,paste0(drug2," \\d* *mg Q\\dW")),
-         DRG2STR          = str_replace(DRG2STR,paste0(drug2," "),""),
-         DRG2DOS0         = as.numeric(str_extract(DRG2STR,"\\d*")),
-         DRG2REG          = str_extract(DRG2STR,"Q\\dW"),
-         Comed           = ifelse(is.na(DRG2DOS0),"monotherapy","combination"),
-         DRG1.DRG2       = paste(DRG1DOS0,Comed),
-         PPORRESNnorm    = PPORRESN/DRG1DOS0)
-
-#create simplified column names  
-nca = nca %>%
-  arrange(DRG1DOS0,desc(DRG1REG)) %>%
-  mutate(ID = SUBJID,
-         DOSElabel = factor(DRG1STR,levels=unique(DRG1STR)), #for proper ordering
-         DOSE0 = DRG1DOS0,
-         REG = DRG1REG)  
+  mutate(ID              = SUBJID,
+         TRTACT          = str_replace(ARM,"Phase Ib? ",""),
+         TRTACT          = str_replace(TRTACT,paste0(drug_name," "),""),
+         TRTACT          = str_extract(TRTACT,"^\\d* *mg Q\\dW"),
+         DOSE            = as.numeric(str_extract(TRTACT,"\\d*")),
+         REGIMEN         = str_extract(TRTACT,"Q\\dW"),
+         PPORRESNnorm    = PPORRESN/DOSE) %>%
+  arrange(DOSE,desc(REGIMEN)) %>%
+  mutate(TRTACT_high2low = factor(TRTACT,levels=rev(unique(TRTACT))),
+         TRTACT_low2high = factor(TRTACT,levels=unique(TRTACT))) 
 ```
 
 ## Specify units
@@ -146,9 +121,9 @@ nca = nca %>%
 ### Concentration over time, faceted by regimen, colored by dose
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
-gg <- ggplot(data = d, aes(x = NOMTIME, y = CONC, color = DOSE0label, group=DOSE0label))
+gg <- ggplot(data = data, aes(x = NOMTIME, y = LIDV, color = DOSE_high2low, group=DOSE_high2low))
 gg <- gg + xgx_geom_ci()
-gg <- gg + facet_grid(~REG)
+gg <- gg + facet_grid(~REGIMEN)
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
@@ -164,10 +139,10 @@ print(gg)
 ### Concentration over time, faceted by regimen and cycle number, colored by dose
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 6}
-gg = gg %+% filter(d,CYCLE %in% c(1,3))
-gg = gg + aes(x=TMTPT,y=CONC)
-gg = gg + labs(x = "Day")
-gg = gg + facet_grid(CYCLE~REG,labeller=label_both,switch="y")
+gg <- gg %+% filter(data, CYCLE %in% c(1,3))
+gg <- gg + aes(x = DAY_OF_CYCLE ,y = LIDV)
+gg <- gg + labs(x = "Day")
+gg <- gg + facet_grid(CYCLE~REGIMEN, labeller = label_both, switch = "y")
 print(gg)
 ```
 
@@ -177,9 +152,9 @@ print(gg)
 ### Dose normalized concentration
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
-gg <- ggplot(data = d, aes(x = NOMTIME, y = CONCnorm, color = DOSE0label, group=DOSE0label))
+gg <- ggplot(data = data, aes(x = NOMTIME, y = LIDVNORM, color = DOSE_high2low, group=DOSE_high2low))
 gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + facet_grid(~REG)
+gg <- gg + facet_grid(~REGIMEN)
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -196,20 +171,20 @@ print(gg)
 ```{r NCA, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 6, fig.height = 8}
 nca.filter = nca %>% 
   filter(WNLPARM %in% c("AUCINF_obs","AUClast","AUCtau","Cmax"))
-g = ggplot(nca.filter,aes(x=DOSE0,y=PPORRESNnorm,group=DOSE0))
-g = g + geom_boxplot(outlier.shape=NA)
-g = g + geom_smooth(aes(group=NULL),show.legend = FALSE,se=FALSE)
-g = g + geom_jitter(width=0,alpha=.3)
-g = g + facet_grid(WNLPARM~REG,scales="free_y",switch="y")
-g = g + xgx_scale_y_log10()
-g = g + xgx_scale_x_log10(breaks=unique(d$DOSE0))
-g = g + labs(x="First Dose (mg)",
+gg <- ggplot(nca.filter,aes(x=DOSE,y=PPORRESNnorm,group=DOSE))
+gg <- gg + geom_boxplot(outlier.shape=NA)
+gg <- gg + geom_smooth(aes(group=NULL),show.legend = FALSE,se=FALSE)
+gg <- gg + geom_jitter(width=0,alpha=.3)
+gg <- gg + facet_grid(WNLPARM~REGIMEN,scales="free_y",switch="y")
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + xgx_scale_x_log10(breaks=unique(d$DOSE))
+gg <- gg + labs(x="First Dose (mg)",
              y="Normalized value (ug/ml/mg or ug/ml*d/mg)")
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
-print(g)
+print(gg)
 ```
 
 ## Explore variability
@@ -217,15 +192,15 @@ print(g)
 ### Spaghetti, grouped by dose
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
-gg = ggplot(data = d, aes(x=TIME, y=CONC, group=ID))
-gg = gg + geom_line(mapping=aes(group=ID),alpha = 0.5) 
-gg = gg + geom_point(alpha = 0.5)
+gg <- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
+gg <- gg + geom_line(mapping=aes(group=ID),alpha = 0.5) 
+gg <- gg + geom_point(alpha = 0.5)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg = gg + xgx_scale_y_log10() 
+gg <- gg + xgx_scale_y_log10() 
 gg <- gg + labs(y=conc_label,color = trtact_label)
-gg = gg + theme(legend.position="none")   
-gg = gg + facet_grid(REG~DOSE0,switch="y")
+gg <- gg + theme(legend.position="none")   
+gg <- gg + facet_grid(REGIMEN~DOSE_low2high,switch="y")
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
@@ -237,16 +212,15 @@ print(gg)
 
 ### Individual profiles
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 18}
-gg = ggplot(data = d, aes(x=TIME, y=CONC, group=ID))
-gg = gg + geom_line() 
-gg = gg + geom_point()
-gg = gg + facet_wrap(~DOSElabel+ID)
+gg <- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
+gg <- gg + geom_line() 
+gg <- gg + geom_point()
+gg <- gg + facet_wrap(~TRTACT_low2high + ID)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg = gg + xgx_scale_y_log10() 
+gg <- gg + xgx_scale_y_log10() 
 gg <- gg + labs(y=conc_label,color = trtact_label)
-gg = gg + theme(legend.position="none")   
-gg = gg + facet_grid(REG~DOSE0,switch="y")
+gg <- gg + theme(legend.position="none")   
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
