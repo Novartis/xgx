@@ -69,7 +69,7 @@ Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by ex
 Yang, Jun, et al. "The combination of exposure‐response and case‐control analyses in regulatory decision making." The Journal of Clinical Pharmacology 53.2 (2013): 160-166.
 
 ```{r warning=FALSE, message=FALSE}
-km_fit <- survfit(Surv(time) ~ exposure, data = km_data, conf.int = 0.95)
+km_fit <- survfit(Surv(time, status) ~ exposure, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
 gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
 print(gg)
@@ -81,7 +81,7 @@ print(gg)
 Using the `ggsurvplot_facet` command, one can look at many exposure metrics at once.  Again, look for separation in the quartiles, but be aware that something like a case-control analysis may be needed to assess whether exposure causes reduced response or whether other factors may affect both exposure and response.
 
 ```{r warning=FALSE, message=FALSE}
-km_fit_Cmax_AUC <- survfit(Surv(time) ~ NCAvalue, data = km_data_Cmax_AUC, conf.int = 0.95)
+km_fit_Cmax_AUC <- survfit(Surv(time, status) ~ NCAvalue, data = km_data_Cmax_AUC, conf.int = 0.95)
 gg <- ggsurvplot_facet(km_fit_Cmax_AUC, 
                        km_data_Cmax_AUC, 
                        facet.by = "NCAparam",
@@ -96,10 +96,11 @@ print(gg)
 This plot can help in assessing the impact of a covariate (ECOG) on outcome.
 
 ```{r warning=FALSE, message=FALSE}
-km_fit_ecog <- survfit(Surv(time) ~ ph.ecog, data = km_data, conf.int = 0.95)
+km_fit_ecog <- survfit(Surv(time, status) ~ ph.ecog, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot_facet(km_fit_ecog, 
                        km_data, 
                        facet.by = c("Cmax_quartile"),
+#                      conf.int = TRUE, 
                        ggtheme = xgx_theme(),
                        legend.labs = paste0("ECOG=",sort(unique(km_data$ph.ecog))))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
@@ -110,7 +111,7 @@ print(gg)
 In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.  Look for small p values or large hazard ratios to identify covariates that have a large effect.
 
 ```{r warning=FALSE, message=FALSE}
-km_cox = coxph(Surv(time) ~ fake_AUC + fake_Cmax,
+km_cox = coxph(Surv(time, status) ~ fake_AUC + fake_Cmax,
              data =km_data)
 km_cox_summary = broom::tidy(km_cox) %>%
   mutate(HR.chg20pct = (1.2)^estimate,
