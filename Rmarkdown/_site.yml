@@ -38,7 +38,7 @@ navbar:
       href: Multiple_Ascending_Dose_PD_count.html
     - text: Time to Event
       href: Multiple_Ascending_Dose_PD_time_to_event.html
-    - text: Oncology Efficacy Endpoints
+    - text: Oncology Efficacy Endpoints (RECIST)
       href: Oncology_Efficacy_Plots.html
     - text: PD/Efficacy Example using realistic data
       href: Multiple_Ascending_Dose_PD_real_example.html
