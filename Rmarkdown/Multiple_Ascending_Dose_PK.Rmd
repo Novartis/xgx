@@ -35,6 +35,8 @@ library(reshape)
 
 #flag for labeling figures as draft
   draft.flag      = TRUE
+  
+  test =1
 
 ## ggplot settings
 theme_set(theme_bw(base_size=12))
