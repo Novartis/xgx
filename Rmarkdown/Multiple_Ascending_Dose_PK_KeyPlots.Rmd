@@ -24,7 +24,7 @@ Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown t
   library(tidyr)
   library(dplyr)
   library(stringr)
-  library(xgxr)
+  library(xgxr, lib.loc = "../Rlib")
   
   
 #flag for labeling figures as draft
