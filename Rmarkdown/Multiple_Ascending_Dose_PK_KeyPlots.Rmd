@@ -61,15 +61,16 @@ data = data_in %>%
         TRTACT           = str_extract(TRTACT ,"^\\d* *mg Q\\dW"),
         DOSE             = as.numeric(str_extract(TRTACT,"\\d*")),
         REGIMEN          = str_extract(TRTACT,"Q\\dW")) %>%
-  arrange(DOSE,desc(REGIMEN)) %>%
+  arrange(DOSE, desc(REGIMEN), lubridate::ymd_hms(PCDTC)) %>%
   mutate(TRTACT_high2low = factor(TRTACT,levels = rev(unique(TRTACT))),
          TRTACT_low2high = factor(TRTACT,levels =     unique(TRTACT)),
          DOSE_mg         = paste(DOSE,"mg"),
          DOSE_high2low   = factor(DOSE_mg, levels = rev(unique(DOSE_mg))),
          DOSE_low2high   = factor(DOSE_mg, levels =     unique(DOSE_mg)),
          ID              = SUBJID,
-         CYCLE           = as.numeric(substr(VISIT,7,8)),
-         TIME            = as.numeric((lubridate::ymd_hms(PCDTC) - 
+         CYCLE           = as.numeric(substr(VISIT,7,8))) %>%
+  group_by(ID) %>%
+  mutate(TIME            = as.numeric((lubridate::ymd_hms(PCDTC) - 
                                        lubridate::ymd_hms(first(PCDTC)))/3600),
          TIMEUNIT        = "hours",
          DAY_OF_CYCLE    = TMTPT,
@@ -81,7 +82,7 @@ data = data_in %>%
          LIDV_UNIT       = "ng/ml") %>%
   select(-TRTACT) %>%
   ungroup() %>%
-  filter(NOMTIME>0, !is.na(TIME), !is.na(LIDV))
+  filter(NOMTIME > 0, TIME > 0, !is.na(TIME), !is.na(LIDV))
 ```
 
 #### Load in data from PPtmp (NCA) and format for plotting
