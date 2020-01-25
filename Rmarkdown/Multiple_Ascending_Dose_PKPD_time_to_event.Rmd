@@ -1,5 +1,6 @@
 ---
 title: "PK/PD, Exposure-Response - Time to Event"
+author: "Andy Stein, Anwesha Chaudhury"
 output:
   html_document:
     code_folding: hide
@@ -95,14 +96,20 @@ print(gg)
 
 This plot can help in assessing the impact of a covariate (ECOG) on outcome.
 
+Note, `ph.ecog == 3` patient are removed from dataset because there is only one patient
+with ECOG = 3 and this causes an error when generating the confidence interval.  This bug was [reported to the survminer developer and fixed in the github version](https://github.com/kassambara/survminer/issues/443).
+
 ```{r warning=FALSE, message=FALSE}
-km_fit_ecog <- survfit(Surv(time, status) ~ ph.ecog, data = km_data, conf.int = 0.95)
+km_data_noecog3 = km_data %>% filter (ph.ecog != 3)
+km_fit_ecog <- survfit(Surv(time, status) ~ ph.ecog, 
+                       data = km_data_noecog3 , 
+                       conf.int = 0.95)
 gg <- ggsurvplot_facet(km_fit_ecog, 
-                       km_data, 
+                       km_data_noecog3, 
                        facet.by = c("Cmax_quartile"),
-#                      conf.int = TRUE, 
+                       conf.int = TRUE,
                        ggtheme = xgx_theme(),
-                       legend.labs = paste0("ECOG=",sort(unique(km_data$ph.ecog))))
+                       legend.labs = paste0("ECOG=",sort(unique(km_data_noecog3$ph.ecog))))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
 print(gg)
 ```
@@ -111,7 +118,7 @@ print(gg)
 In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.  Look for small p values or large hazard ratios to identify covariates that have a large effect.
 
 ```{r warning=FALSE, message=FALSE}
-km_cox = coxph(Surv(time, status) ~ fake_AUC + fake_Cmax,
+km_cox = coxph(Surv(time) ~ fake_AUC + fake_Cmax,
              data =km_data)
 km_cox_summary = broom::tidy(km_cox) %>%
   mutate(HR.chg20pct = (1.2)^estimate,
