@@ -1,5 +1,6 @@
 ---
 title: "PK/PD, Exposure-Response - Binary"
+author: "Andy Stein, Alison Margolskee"
 output:
   html_document:
     toc: true
@@ -11,6 +12,108 @@ output:
 
 This document contains exploratory plots for binary response data as well as the R code that generates these graphs.The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
+## Setup
+```{r, echo = TRUE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(xgxr)
+library(tidyr)
+
+#set seed for random number generator (for plots with jitter)
+set.seed(12345)
+
+#flag for labeling figures as draft
+status = "DRAFT"
+
+# ggplot settings
+xgx_theme_set()
+
+#directories for saving individual graphs
+dirs = list(
+  parent_dir = "Parent_Directory",
+  rscript_dir  = "./",
+  rscript_name = "Example.R",
+  results_dir  = "./",
+  filename_prefix   = "",
+  filename     = "Example.png")
+
+```
+
+## Load Dataset
+The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
+
+```{r, warning=FALSE, message=FALSE}
+#load dataset
+data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+
+#ensure dataset has all the necessary columns
+data = data %>%
+  mutate(ID      = ID,     #ID   column
+         TIME    = TIME,   #TIME column name 
+         NOMTIME = NOMTIME,#NOMINAL TIME column name
+         EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+         LIDV    = LIDV,   #DEPENDENT VARIABLE column name
+         CENS    = CENS,   #CENSORING column name
+         CMT     = CMT,    #COMPARTMENT column
+         DOSE    = DOSE,   #DOSE column here (numeric value)
+         TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+         LIDV_NORM = LIDV/DOSE,
+         LIDV_UNIT    = ifelse(CMT==2, "ng/ml", NA )
+  )
+
+#create a factor for the treatment variable for plotting
+data = data %>%
+  arrange(DOSE) %>%
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT)))) %>%
+  select(-TRTACT)    
+
+#create pk dataset
+pk_data <- data %>%
+  filter(CMT==2)
+
+#create pd binary dataset
+pd_data <- data %>%
+  filter(CMT==6) %>%
+  mutate(LIDV_jitter = jitter(LIDV, amount = 0.1))
+
+#create pkpd dataset
+pkpd_data = bind_rows(pk_data, pd_data)
+
+#create wide pkpd dataset for plotting PK vs PD
+pkpd_data_wide = pd_data %>%
+  select(ID, NOMTIME, RESPONSE = LIDV) %>%
+  right_join(pk_data) %>%
+  rename(CONC = LIDV) %>%
+  mutate(RESPONSE_STR = factor(plyr::mapvalues(RESPONSE, c(0,1), c("Nonresponder","Responder")))) %>%
+  filter(!is.na(RESPONSE))
+
+
+#perform NCA, for additional plots
+NCA = pk_data %>%
+  group_by(ID, DOSE) %>%
+  filter(!is.na(LIDV)) %>%
+  summarize(AUC_last = caTools::trapz(TIME,LIDV),
+            Cmax     = max(LIDV),
+            SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
+            WEIGHTB  = WEIGHTB[1]) %>%
+  gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
+  ungroup() %>%
+  mutate(VALUE_NORM = VALUE/DOSE)
+
+#units and labels
+  time_units_dataset = "hours"
+  time_units_plot    = "days"
+  trtact_label       = "Dose"
+  dose_label         = "Dose (mg)"
+  conc_label         = "Concentration (ng/ml)"  
+  pd_label           = "Responder Rate (%)"
+  concnorm_label     = "Normalized Concentration (ng/ml)/mg"
+  conc_units         = "ng/ml"
+  AUC_units          = "h.ng/ml"
+  
+```
+
 Binary data is data that can take on one of two values. This often happens when there is a characteristic/event/response, etc. of interest that subjects either have/achieve or they don't. Binary response data can also come out of dichotomizing continuous data. For example in the psoriasis indication the binary response variable PASI90 (yes/no) is defined as subjects achieving a PASI score of at least 90.
 
 There are two broad categories of PK/PD exploratory plots covered on this page
@@ -19,81 +122,6 @@ There are two broad categories of PK/PD exploratory plots covered on this page
 2. *Response vs Exposure* at a particular time.  For binomial response vs exposure plots, fitting a logistic regression is often helpful, as you will see below.
 
 These plots are displayed below.
-
-## Setup
-
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep("usr", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(ggplot2)
-library(dplyr)
-library(caTools)
-library(grid)
-library(gridExtra)
-library(xgxr, lib.loc = "../Rlib")
-xgx_theme_set()
-
-
-#flag for labeling figures as draft
-  draft.flag      = TRUE
-
-## ggplot settings
-theme_set(theme_bw(base_size=12))
-
-```
-
-
-## Define Useful Graphics Functions
-
-```{r}
-
-# annotation of plots with status of code
-AnnotateStatus <- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color="grey") {
-  
-  x.pos <- -Inf
-  if (log.x)
-    x.pos <- 0
-  
-  y.pos <- -Inf
-  if (log.y)
-    y.pos <- 0
-  
-  if(draft.flag) {
-    annotateStatus <- annotate("text",
-                               label="DRAFT",
-                               x=x.pos, y=y.pos,
-                               hjust=-0.1, vjust=-1.0,
-                               cex=fontsize,
-                               col=color, alpha=0.7, fontface="bold")
-  } else {
-    annotateStatus <- NULL
-  }
-  
-  return(annotateStatus)
-}
-
-```
-
-
-## Load Dataset
-The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
-
-```{r, warning=FALSE, message=FALSE}
-my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
-
-# Define order for factors
-my.data$TRTACT <- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order(my.data$DOSE)]))
-
-```
 
 
 ## Provide an overview of the data
@@ -113,44 +141,30 @@ Questions to ask:
  * Do you detect a saturation of the effect?
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[2]] <- my.data[my.data$CMT==6,]
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  data_to_plot[[iplot]]$TRTACT <- factor(data_to_plot[[iplot]]$TRTACT, levels = rev(levels(data_to_plot[[iplot]]$TRTACT)))
+#PK data
+  gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
+  gg <- gg + xgx_stat_ci()
+  gg <- gg + xgx_scale_y_log10() 
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+  gg <- gg + labs(y=conc_label,color = trtact_label)
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + xgx_annotate_filenames(dirs)
+  #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+  #xgx_save(width,height,dirs,"filename_main",status)
+  print(gg)
   
-  gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=NOMTIME/24,y=LIDV, color = TRTACT, fill = TRTACT))+theme_bw()
-  if(iplot == 1){
-    gg <- gg + stat_summary(geom="errorbar", 
-                            fun.data=function(y){
-                              data.frame(y=mean(y),
-                                         ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)),
-                                         ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y))
-                              )}, size = 1, width = 0)
-    gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-  }else{
-    gg <- gg + stat_summary(geom = "errorbar",
-                            fun.data = function(y){
-                              data.frame(ymin = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$lower,
-                                         ymax = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$upper)
-                            }, size = 1, width = 0)
-    gg <- gg + ylab("Responder Rate (%)") + scale_y_continuous(labels=scales::percent)
-  }
-  
-  
-  gg <- gg + stat_summary(geom="point", fun.y=mean)
-  gg <- gg + stat_summary(aes(group = TRTACT), geom="line", 
-                          fun.y=mean)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg  + xlab("Time (days)") + scale_x_continuous(breaks = seq(-1,8,1))
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+#PD data
+  gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
+  gg <- gg + xgx_stat_ci(distribution = "binomial")
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+  gg <- gg + labs(y = pd_label, color = trtact_label)  
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + xgx_annotate_filenames(dirs)
+  #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+  #xgx_save(width,height,dirs,"filename_main",status)
+  print(gg)
 ```
 
 ### PK and PD marker over time, faceted by Dose, mean +/- 95% CI by nominal time
@@ -158,41 +172,32 @@ grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
 If coloring by dose makes a messy plot, you can try faceting by dose instead. Here we show the same data, but faceted by dose. 
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[2]] <- my.data[my.data$CMT==6&my.data$DOSE>0,]
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=NOMTIME/24,y=LIDV))+theme_bw()
-  if(iplot == 1){
-    gg <- gg + stat_summary(geom="errorbar", 
-                            fun.data=function(y){
-                              data.frame(y=mean(y),
-                                         ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)),
-                                         ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y))
-                              )}, size = 1, width = 0)
-    gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-  }else{
-    gg <- gg + stat_summary(geom = "errorbar",
-                            fun.data = function(y){
-                              data.frame(ymin = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$lower,
-                                         ymax = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$upper)
-                            }, size = 1, width = 0)
-    gg <- gg + ylab("Responder Rate (%)") + scale_y_continuous(labels=scales::percent)
-  }
-  gg <- gg + stat_summary(geom="point", fun.y=mean, size = 2)
-  gg <- gg + stat_summary(aes(group = TRTACT), geom="line", 
-                          fun.y=mean)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg  + xlab("Time (days)") + scale_x_continuous(breaks = seq(-1,8,1))
-  gg <- gg + facet_grid(~TRTACT)
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+#PK data
+  gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV))
+  gg <- gg + xgx_stat_ci()
+  gg <- gg + xgx_scale_y_log10() 
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+  gg <- gg + labs(y=conc_label,color = trtact_label)
+  gg <- gg + facet_grid(~TRTACT_low2high)
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + xgx_annotate_filenames(dirs)
+  #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+  #xgx_save(width,height,dirs,"filename_main",status)
+  print(gg)
+  
+#PD data
+  gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV))
+  gg <- gg + xgx_stat_ci(distribution = "binomial")
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+  gg <- gg + labs(y = pd_label, color = trtact_label)  
+  gg <- gg + facet_grid(~TRTACT_low2high)
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + xgx_annotate_filenames(dirs)
+  #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+  #xgx_save(width,height,dirs,"filename_main",status)
+  print(gg)
 ```
 
 ### PK over time, dots colored by response type
@@ -200,30 +205,15 @@ grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
 Another longitudinal plot that can be useful for binary data is plotting the PK over time for all individuals, and coloring by response type. This plot is often used for adverse events plotting. For studies with few PK observations, a PK model may be needed in order to produce concentrations at each time point where response is measured.
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- my.data[my.data$CMT==2,c("NOMTIME","LIDV","ID","DOSE","TRTACT","PROFDAY")]
-data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
-data_to_plot[[1]]$LIDV <- NULL
-
-data_to_plot[[2]] <- my.data[my.data$CMT==6,c("NOMTIME","LIDV","ID","DOSE","TRTACT","PROFDAY")]
-data_to_plot[[2]]$Response <- data_to_plot[[2]]$LIDV
-data_to_plot[[2]]$LIDV <- NULL
-
-data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("NOMTIME","ID","DOSE","TRTACT","PROFDAY"))
-
-data_to_plot2$TRTACT <- factor(data_to_plot2$TRTACT, levels = rev(levels(data_to_plot2$TRTACT)))
-data_to_plot2$Response <- factor(plyr::mapvalues(data_to_plot2$Response, c(0,1), c("Nonresponder","Responder")))
-
-gg <- ggplot(data = data_to_plot2, aes(x=NOMTIME/24,y=Concentration))+theme_bw()
-# gg <- gg + geom_path(aes(group = ID))
-gg <- gg + geom_jitter(aes( color = factor(Response), alpha = factor(Response)), width = 0.1, height = 0) 
-gg <- gg + geom_boxplot(aes(group = factor(NOMTIME/24)),fill=NA, width = 0.5)
+gg <- ggplot(data = pkpd_data_wide, aes(x = NOMTIME, y = CONC))
+gg <- gg + geom_boxplot(aes(group = factor(NOMTIME)), width = 0.5*24)
+gg <- gg + geom_jitter(aes( color = factor(RESPONSE_STR), alpha = factor(RESPONSE_STR)), width = 0.1*24, height = 0) 
 gg <- gg + scale_color_manual(values = c("black","blue")) + scale_alpha_manual(values = c(0.2,1))
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""), alpha = guide_legend(""))
-gg <- gg + xlab("Time (days)") + scale_x_continuous(breaks = seq(0,8))
-gg <- gg + ylab("Concentration (ng/mL)")
-gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-gg 
+gg <- gg + labs(y = conc_label, color = "Response", alpha = "Response")
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+print(gg)
 ```
 
 ## Explore Variability
@@ -236,38 +226,30 @@ When plotting individual binomial data, it is often helpful to stagger the dots 
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
 
-data_to_plot <- list()
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[2]] <- my.data[my.data$CMT==6,]
+gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
+gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
+gg <- gg + geom_point(data = pk_data %>% filter(CENS==0), aes(color = TRTACT_high2low), size = 2, alpha = 0.5)
+gg <- gg + geom_point(data = pk_data %>% filter(CENS==1), color="red",  shape=8, size = 2, alpha = 0.5)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + labs(y = conc_label, color = trtact_label)
+gg <- gg + xgx_annotate_status(status) 
+gg <- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,"filename_main",status)
+print(gg)
 
-set.seed(12345)
-data_to_plot[[2]]$LIDV <- jitter(data_to_plot[[2]]$LIDV, amount=0.1)
-# data_to_plot[[2]]$DAY2 <- jitter(data_to_plot[[2]]$PROFDAY, amount=0.1)
-
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  data_to_plot[[iplot]]$TRTACT <- factor(data_to_plot[[iplot]]$TRTACT, levels = rev(levels(data_to_plot[[iplot]]$TRTACT)))
-
-  gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=TIME/24, y=LIDV,group=ID, color =factor(TRTACT))) + theme_bw()
-  gg <- gg + geom_line(alpha = 0.5)
-  gg <- gg + geom_point(alpha = 0.5)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg  + xlab("Time (days)") + scale_x_continuous(breaks = seq(0,9,1)) + coord_cartesian(xlim=c(0,9))
-  if(iplot == 1){
-    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==1,], color="red", shape=8,
-               alpha = 0.5)
-    gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-  }else{
-    gg <- gg + ylab("Response") + scale_y_continuous(breaks=c(0,1)) + coord_cartesian(ylim=c(-0.2,1.2))
-  }
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
-
+gg <- ggplot(data = pd_data, aes(x = TIME, y = LIDV_jitter)) 
+gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + labs(y = conc_label, color = pd_label)
+gg <- gg + xgx_annotate_status(status) 
+gg <- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,"filename_main",status)
+print(gg)
 ```
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
