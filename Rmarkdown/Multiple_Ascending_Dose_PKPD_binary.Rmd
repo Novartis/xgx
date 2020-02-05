@@ -316,6 +316,7 @@ Plot response against exposure. Include a logistic regression for binary data to
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 pkpd_data_wide_plot = pkpd_data_wide %>%
+  mutate(PROFDAY_STR = paste("Day",PROFDAY)) %>%
   filter(PROFDAY %in% c(1,3,5)) %>%
   mutate(CONC_QUART = cut(CONC, quantile(CONC, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
   group_by(CONC_QUART) %>%
@@ -324,11 +325,11 @@ pkpd_data_wide_plot = pkpd_data_wide %>%
 gg <- ggplot(data = pkpd_data_wide_plot, aes(x = CONC, y = RESPONSE))
 gg <- gg + geom_jitter(aes(color = TRTACT_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = RESPONSE), distribution = "binomial", geom = "errorbar")
+gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = RESPONSE), distribution = "binomial", geom = "errorbar", size = 0.5)
 gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = RESPONSE), distribution = "binomial", geom = "point", shape = 0, size = 4)
 gg <- gg + labs(x = conc_label, y = pd_label, color = "Dose")
 gg <- gg + xgx_scale_x_log10()
-gg <- gg + facet_grid(~PROFDAY)
+gg <- gg + facet_grid(~PROFDAY_STR)
 print(gg)
 ```
 
@@ -349,52 +350,15 @@ gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = RESPONSE),
 gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = RESPONSE), 
                        conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
 gg <- gg + facet_wrap(~PARAM, scales = "free_x")
-gg <- gg + labs(color = "Dose",
-                x = "NCA parameter",
-                y = pd_label)
+gg <- gg + labs(color = "Dose", x = "NCA parameter", y = pd_label)
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + scale_y_continuous(breaks=c(0,.5,1), labels = scales::percent) 
-#gg <- gg + coord_cartesian(ylim=c(-0.2,1.2))
 print(gg)
 ```
 
 ### Explore covariate effects on Exposure-Response Relationship
 
 Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. For examples of plots and code startifying by covariate, see [Continuous PKPD Covariate Section](Multiple_Ascending_Dose_PKPD_continuous.html#explore_covariate_effects_on_exposure-response_relationship)
-
-### Individual response vs exposure hysteresis plots
-
-Using geom_path you can create hysteresis plots of response vs exposure. Including details like arrows or colors can be helpful to indicate the direction of time.
-
-If most of the arrows point up and to the right or down and to the left, this indicates a positive relationship between exposure and response (i.e. increasing exposure -> increasing response). Arrows pointing down and to the right or up and to the left indicate a negative relationship. 
-
-In a hysteresis plot, you want to determine whether the path is curving, and if so in what direction. If you detect a curve in the hysteresis plot, this indicates there is a delay between the exposure and the response. Normally, a clockwise turn indicates that increasing exposure is associated with (a delayed) increasing response, while a counter clockwise turn indicates increasing concentration gives (a delayed) decreasing response. 
-
-In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
-
-```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
-
-data_to_plot <- list()
-data_to_plot[[1]] <- my.data[my.data$CMT==2&my.data$DOSE!=0,c("TIME","LIDV","ID","DOSE","TRTACT")]
-data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
-data_to_plot[[1]]$LIDV <- NULL
-
-data_to_plot[[2]] <- my.data[my.data$CMT==6&my.data$DOSE!=0,c("TIME","LIDV","ID","DOSE","TRTACT")]
-data_to_plot[[2]]$Response <- data_to_plot[[2]]$LIDV
-data_to_plot[[2]]$LIDV <- NULL
-
-data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("TIME","ID","DOSE","TRTACT"))
-data_to_plot2<- data_to_plot2[order(data_to_plot2$TIME),]
-
-gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color=TIME))+theme_bw()
-gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
-gg <- gg + ylab("Response")  + scale_y_continuous(breaks=c(0,1)) + coord_cartesian(ylim=c(-0.2,1.2))
-gg <- gg + xlab("Concentration (ng/mL)")
-gg <- gg + scale_x_log10() + annotation_logticks(base = 10, sides = "b", color = rgb(0.5,0.5,0.5))
-gg+facet_wrap(~ID+TRTACT, ncol = 5)
-
-```
-
 
 ## R Session Info
 ```{r}
