@@ -680,6 +680,8 @@ nca = nca %&gt;%
 </div>
 <div id="provide-an-overview-of-the-data" class="section level2">
 <h2>Provide an overview of the data</h2>
+<p>Summarize the data in a way that is easy to visualize the general trend of PK over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th &amp; 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.</p>
+<p>When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?</p>
 <div id="concentration-over-time-faceted-by-regimen-colored-by-dose" class="section level3">
 <h3>Concentration over time, faceted by regimen, colored by dose</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = data, aes(x = NOMTIME, y = LIDV, color = DOSE_high2low, group=DOSE_high2low))
@@ -729,6 +731,7 @@ print(gg)</code></pre>
 </div>
 <div id="noncompartmental-analysis" class="section level3">
 <h3>Noncompartmental Analysis</h3>
+<p>Observe the dose normalized AUC over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to CENS observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?</p>
 <pre class="r"><code>nca.filter = nca %&gt;% 
   filter(WNLPARM %in% c(&quot;AUCINF_obs&quot;,&quot;AUClast&quot;,&quot;AUCtau&quot;,&quot;Cmax&quot;))
 gg &lt;- ggplot(nca.filter,aes(x=DOSE,y=PPORRESNnorm,group=DOSE))
@@ -750,6 +753,7 @@ print(gg)</code></pre>
 </div>
 <div id="explore-variability" class="section level2">
 <h2>Explore variability</h2>
+<p>Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?</p>
 <div id="spaghetti-grouped-by-dose" class="section level3">
 <h3>Spaghetti, grouped by dose</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
@@ -771,6 +775,7 @@ print(gg)</code></pre>
 </div>
 <div id="explore-irregularities-in-profiles" class="section level2">
 <h2>Explore irregularities in profiles</h2>
+<p>Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)?</p>
 <div id="individual-profiles" class="section level3">
 <h3>Individual profiles</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
@@ -810,16 +815,16 @@ print(gg)</code></pre>
 ## [1] xgxr_1.0.7    stringr_1.4.0 dplyr_0.8.3   tidyr_1.0.0   ggplot2_3.2.1
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.3       plyr_1.8.4       pillar_1.4.2     compiler_3.6.1  
-##  [5] tools_3.6.1      zeallot_0.1.0    digest_0.6.20    evaluate_0.14   
-##  [9] tibble_2.1.3     lifecycle_0.1.0  gtable_0.3.0     png_0.1-7       
-## [13] pkgconfig_2.0.2  rlang_0.4.0      yaml_2.2.0       xfun_0.9        
-## [17] withr_2.1.2      knitr_1.24       vctrs_0.2.0      grid_3.6.1      
-## [21] tidyselect_0.2.5 glue_1.3.1       R6_2.4.0         binom_1.1-1     
-## [25] rmarkdown_1.15   reshape2_1.4.3   pander_0.6.3     purrr_0.3.2     
-## [29] magrittr_1.5     codetools_0.2-16 scales_1.0.0     backports_1.1.4 
-## [33] htmltools_0.3.6  assertthat_0.2.1 colorspace_1.4-1 labeling_0.3    
-## [37] stringi_1.4.3    lazyeval_0.2.2   munsell_0.5.0    crayon_1.3.4</code></pre>
+##  [1] Rcpp_1.0.3       pillar_1.4.2     compiler_3.6.1   tools_3.6.1     
+##  [5] zeallot_0.1.0    digest_0.6.20    evaluate_0.14    tibble_2.1.3    
+##  [9] lifecycle_0.1.0  gtable_0.3.0     png_0.1-7        pkgconfig_2.0.2 
+## [13] rlang_0.4.0      yaml_2.2.0       xfun_0.9         withr_2.1.2     
+## [17] knitr_1.24       vctrs_0.2.0      grid_3.6.1       tidyselect_0.2.5
+## [21] glue_1.3.1       R6_2.4.0         binom_1.1-1      rmarkdown_1.15  
+## [25] pander_0.6.3     purrr_0.3.2      magrittr_1.5     scales_1.0.0    
+## [29] backports_1.1.4  htmltools_0.3.6  assertthat_0.2.1 colorspace_1.4-1
+## [33] labeling_0.3     stringi_1.4.3    lazyeval_0.2.2   munsell_0.5.0   
+## [37] crayon_1.3.4</code></pre>
 </div>
 </div>
 
