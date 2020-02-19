@@ -1,0 +1,402 @@
+---
+title: "PK/PD, Exposure-Response - Continuous"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+## Overview
+
+This document contains exploratory plots for continuous PD data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_continuous.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
+
+## Setup
+
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(xgxr, lib.loc = "../Rlib")
+
+#flag for labeling figures as draft
+status = "DRAFT"
+
+## ggplot settings
+xgx_theme_set()
+
+```
+
+## Load Dataset
+
+```{r, warning=FALSE, message=FALSE}
+
+#load dataset
+pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+
+#ensure dataset has all the necessary columns
+  pkpd_data = pkpd_data %>%
+    mutate(ID      = ID,     #ID   column
+           TIME    = TIME,   #TIME column name 
+           NOMTIME = NOMTIME,#NOMINAL TIME column name
+           EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+           LIDV    = LIDV,   #DEPENDENT VARIABLE column name
+           CENS    = CENS,   #CENSORING column name
+           CMT     = CMT,    #COMPARTMENT column
+           DOSE    = DOSE,   #DOSE column here (numeric value)
+           TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+           LIDV_NORM = LIDV/DOSE,
+           LIDV_UNIT    = ifelse(CMT==2, "ng/ml",
+                                 ifelse(CMT==3, "IU/L", NA )
+                                 )
+    )
+#create a factor for the treatment variable for plotting
+pkpd_data = pkpd_data %>%
+  arrange(DOSE) %>%
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT))))
+
+#create pk and pd datasets
+pk_data <- pkpd_data %>%
+  filter(CMT==2)
+
+pd_data <- pkpd_data %>%
+  filter(CMT==3)
+
+#perform NCA, for additional plots
+NCA = pk_data %>%
+  group_by(ID, DOSE) %>%
+  filter(!is.na(LIDV)) %>%
+  summarize(AUC_last = caTools::trapz(TIME,LIDV),
+            Cmax     = max(LIDV),
+            SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
+            WEIGHTB  = WEIGHTB[1]) %>%
+  gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
+  ungroup() %>%
+  mutate(VALUE_NORM = VALUE/DOSE)
+
+#units and labels
+  time_units_dataset = "hours"
+  time_units_plot    = "days"
+  trtact_label       = "Dose"
+  dose_label         = "Dose (mg)"
+  pkconc_label       = "Concentration (ng/ml)"  
+  pdconc_label       = "Continuous PD Marker (IU/L)"  
+  concnorm_label     = "Normalized Concentration (ng/ml)/mg"
+  conc_units         = "ng/ml"
+  AUC_units          = "AUCtau (h.ng/ml)"
+  
+#directories for saving individual graphs
+dirs = list(
+  parent_dir= tempdir(),
+  rscript_dir  = "./",
+  rscript_name = "Example.R",
+  results_dir  = "./",
+  filename_prefix   = "",
+  filename     = "Example.png")
+  
+```
+
+
+## Provide an overview of the data
+
+Summarize the data in a way that is easy to visualize the general trend of PD over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
+
+### PK and PD marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
+
+Observe the overall shape of the average profiles. Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect? 
+
+```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data
+data_to_plot[[2]] <- pd_data
+
+ggs <- list()
+for(iplot in 1:length(data_to_plot)){
+  data_to_plot[[iplot]]$TRTACT_low2high <- factor(data_to_plot[[iplot]]$TRTACT_low2high, 
+                                       levels = rev(levels(data_to_plot[[iplot]]$TRTACT_low2high)))
+  gg <- ggplot(data = data_to_plot[[iplot]], 
+               aes(x=NOMTIME,y=LIDV, color = TRTACT_low2high, fill = TRTACT_low2high))+theme_bw() 
+  gg <- gg + xgx_stat_ci(conf_level = .95)
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+  if(iplot == 1){
+    gg <- gg + xgx_scale_y_log10() 
+    gg <- gg + labs(y=pkconc_label)
+  }else{
+    gg <- gg + labs(y=pdconc_label)
+  }
+  ggs[[iplot]] <- gg
+}
+grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+
+```
+
+### PK and PD marker over time, faceted by Dose, mean (95% CI) by nominal time
+
+```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data
+data_to_plot[[2]] <- pd_data[pd_data$DOSE>0,]
+
+ggs <- list()
+for(iplot in 1:length(data_to_plot)){
+  gg <- ggplot(data = data_to_plot[[iplot]], 
+               aes(x=NOMTIME,y=LIDV))+theme_bw()
+  gg <- gg + xgx_stat_ci(conf_level = .95)
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+  gg <- gg + facet_grid(~TRTACT_low2high)
+  if(iplot == 1){
+    gg <- gg + xgx_scale_y_log10() 
+    gg <- gg + labs(y=pkconc_label)
+  }else{
+    gg <- gg + labs(y=pdconc_label)
+  }
+  ggs[[iplot]] <- gg
+}
+
+grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+```
+
+## Explore variability
+
+Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?
+
+### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
+
+```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data
+data_to_plot[[2]] <- pd_data
+
+ggs <- list()
+for(iplot in 1:length(data_to_plot)){
+  data_to_plot[[iplot]]$TRTACT_low2high <- factor(data_to_plot[[iplot]]$TRTACT_low2high, 
+                                       levels = rev(levels(data_to_plot[[iplot]]$TRTACT_low2high)))
+  gg <- ggplot(data = data_to_plot[[iplot]], 
+               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_low2high))) + theme_bw()
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + geom_line(alpha = 0.5)
+  gg <- gg + geom_point(alpha = 0.5)
+  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+  if(iplot == 1){
+    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==1,], color="red", shape=8,alpha = 0.5)
+    gg <- gg + xgx_scale_y_log10() 
+    gg <- gg + labs(y=pkconc_label)
+  }else{
+    gg <- gg + labs(y=pdconc_label)
+  }
+  ggs[[iplot]] <- gg
+}
+grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+```
+
+### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
+
+```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data
+data_to_plot[[2]] <- pd_data[pd_data$DOSE>0,]
+
+ggs <- list()
+for(iplot in 1:length(data_to_plot)){
+  gg <- ggplot(data = data_to_plot[[iplot]], aes(x=TIME,y=LIDV,group=ID))+theme_bw()
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + geom_line(alpha = 0.5)
+  gg <- gg + geom_point(alpha = 0.5)
+  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+  gg <- gg + facet_grid(~TRTACT_low2high)
+  if(iplot == 1){
+    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==1,], color="red", shape=8, alpha = 0.5)
+    gg <- gg + xgx_scale_y_log10() 
+    gg <- gg + labs(y=pkconc_label)
+  }else{
+    gg <- gg + labs(y=pdconc_label)
+  }
+  ggs[[iplot]] <- gg
+}
+grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+```
+
+## Explore Exposure-Response Relationship
+
+Plot PD marker against concentration. Do you see any relationship? Does response increase (decrease) with increasing dose? Are you able to detect a plateau or emax (emin) on the effect? 
+
+**Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response or Exposure-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
+
+```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
+
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data[pk_data$TRTACT_low2high!="Placebo"&pk_data$PROFDAY==5,
+                             c("TIME","LIDV","ID","TRTACT_low2high","CENS")]
+data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
+data_to_plot[[1]]$LIDV <- NULL
+
+data_to_plot[[2]] <- pd_data[pd_data$PROFDAY==5,
+                             c("TIME","LIDV","ID","TRTACT_low2high")]
+data_to_plot[[2]]$Response <- data_to_plot[[2]]$LIDV
+data_to_plot[[2]]$LIDV <- NULL
+
+data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("TIME","ID","TRTACT_low2high"))
+
+data_to_plot2$TRTACT_low2high <- factor(data_to_plot2$TRTACT_low2high, levels = rev(levels(data_to_plot2$TRTACT_low2high)))
+
+gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response))+theme_bw()
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_point(aes(color = TRTACT_low2high))
+gg <- gg + geom_point(data=data_to_plot2[data_to_plot2$CENS==1,], color="red", shape = 8)
+gg <- gg + labs(x=pkconc_label , y=pdconc_label)
+gg <- gg + xgx_scale_x_log10() 
+gg <- gg + guides(color = guide_legend(""))
+gg
+
+```
+
+```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data[pk_data$PROFDAY%in%c(1,3,5,7,9),
+                             c("TIME","LIDV","ID","TRTACT_low2high","CENS","PROFDAY")]
+data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
+data_to_plot[[1]]$LIDV <- NULL
+
+data_to_plot[[2]] <- pd_data[pd_data$PROFDAY%in%c(1,3,5,7,9),
+                             c("TIME","LIDV","ID","TRTACT_low2high","PROFDAY")]
+data_to_plot[[2]]$Response <- data_to_plot[[2]]$LIDV
+data_to_plot[[2]]$LIDV <- NULL
+
+data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],
+                       by=c("TIME","ID","TRTACT_low2high","PROFDAY"))
+data_to_plot2$DAY_label <- paste("Day", data_to_plot2$PROFDAY)
+data_to_plot2$TRTACT_low2high <- factor(data_to_plot2$TRTACT_low2high, 
+                                   levels = rev(levels(data_to_plot2$TRTACT_low2high)))
+
+gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color = TRTACT_low2high))+theme_bw()
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_point()
+gg <- gg + geom_point(data=data_to_plot2[data_to_plot2$CENS==1,], color="red", shape = 8)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + labs(x=pkconc_label , y=pdconc_label)
+gg <- gg + xgx_scale_x_log10() 
+gg + facet_grid(~DAY_label)
+```
+
+
+Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
+
+```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
+AUC_0_24 <- pk_data[pk_data$NOMTIME>0&pk_data$NOMTIME<=24,]
+AUC_0_24 <- data.frame(stack(sapply(split(AUC_0_24,AUC_0_24$ID),
+                                    function(df) trapz(df$TIME,df$LIDV))))
+names(AUC_0_24) <- c("AUC","ID")
+AUC_0_24$PROFDAY = 1
+if(length(AUC_0_24[is.na(AUC_0_24$AUC),]$AUC) > 0 ){
+AUC_0_24[is.na(AUC_0_24$AUC),]$AUC <-0
+}
+
+AUCtau <- pk_data[pk_data$NOMTIME>120&pk_data$NOMTIME<=144,]
+AUCtau <- data.frame(stack(sapply(split(AUCtau,AUCtau$ID),
+                                  function(df) trapz(df$TIME,df$LIDV))))
+names(AUCtau) <- c("AUC","ID")
+AUCtau$PROFDAY = 6
+if(length(AUCtau[is.na(AUCtau$AUC),]$AUC) > 0 ){
+AUCtau[is.na(AUCtau$AUC),]$AUC<-0
+}
+
+AUC <- rbind(AUC_0_24, AUCtau)
+AUC$ID <- as.numeric(as.character(AUC$ID))
+AUC <- AUC[order(AUC$ID,AUC$PROFDAY),]
+
+RESPONSE <- pd_data[pd_data$PROFDAY%in%c(1,6),
+                    c("ID","PROFDAY","LIDV","DOSE","TRTACT_low2high", "SEX")]
+names(RESPONSE) <- c("ID","PROFDAY","Response","DOSE","TRTACT_low2high", "SEX")
+
+data_to_plot <- merge(AUC, RESPONSE, by = c("ID","PROFDAY"))
+data_to_plot$ID <- as.numeric(as.character(data_to_plot$ID))
+data_to_plot <- data_to_plot[order(data_to_plot$ID,data_to_plot$PROFDAY),]
+
+data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
+
+data_to_plot$AUC_bins <- cut(data_to_plot$AUC, 
+                               quantile(data_to_plot$AUC, na.rm=TRUE), na.rm=TRUE)
+data_to_plot = data_to_plot %>%
+  group_by(AUC_bins) %>%
+  mutate(AUC_midpoints = median(AUC))
+
+
+data_to_plot$TRTACT <- factor(data_to_plot$TRTACT_low2high, 
+                                   levels = rev(levels(data_to_plot$TRTACT_low2high)))
+
+gg <- ggplot(data = data_to_plot, aes(x = AUC, y = Response))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_point(aes(color = TRTACT)) + geom_smooth(color="black")
+gg <- gg + xgx_stat_ci(geom = "errorbar")
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + labs(x=AUC_units , y=pdconc_label)
+gg + facet_grid(.~DAY_label)
+
+```
+
+### Explore covariate effects on Exposure-Response Relationship
+
+Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. 
+
+```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
+gg <- ggplot(data = data_to_plot, aes(x = AUC, y = Response)) + theme_bw()
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_point(aes(color = SEX)) + geom_smooth(aes(color = SEX))
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + labs(x=AUC_units , y=pdconc_label)
+gg + facet_grid(.~DAY_label) 
+```
+
+### Individual response vs exposure hysteresis plots
+
+Using geom_path you can create hysteresis plots of response vs exposure. Including details like arrows or colors can be helpful to indicate the direction of time.
+
+If most of the arrows point up and to the right or down and to the left, this indicates a positive relationship between exposure and response (i.e. increasing exposure -> increasing response). Arrows pointing down and to the right or up and to the left indicate a negative relationship. 
+
+In a hysteresis plot, you want to determine whether the path is curving, and if so in what direction. If you detect a curve in the hysteresis plot, this indicates there is a delay between the exposure and the response. Normally, a clockwise turn indicates that increasing exposure is associated with (a delayed) increasing response, while a counter clockwise turn indicates increasing concentration gives (a delayed) decreasing response. 
+
+In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
+
+```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
+
+data_to_plot <- list()
+data_to_plot[[1]] <- pk_data[pk_data$TRTACT!="Placebo",c("TIME","LIDV","ID","TRTACT")]
+data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
+data_to_plot[[1]]$LIDV <- NULL
+
+data_to_plot[[2]] <- pd_data[pd_data$CMT==3,c("TIME","LIDV","ID","TRTACT")]
+data_to_plot[[2]]$Response <- data_to_plot[[2]]$LIDV
+data_to_plot[[2]]$LIDV <- NULL
+
+data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("TIME","ID","TRTACT"))
+
+data_to_plot2$TRTACT <- factor(data_to_plot2$TRTACT, 
+                                   levels = rev(levels(data_to_plot2$TRTACT)))
+
+data_to_plot2<- data_to_plot2[order(data_to_plot2$TIME),]
+
+gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color=TIME))+theme_bw()
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
+gg <- gg + labs(x=pkconc_label , y=pdconc_label)
+gg <- gg + xgx_scale_x_log10() 
+gg <- gg + xgx_scale_y_log10() 
+gg+facet_wrap(~ID+TRTACT, ncol = 5)
+```
+
+
+## R Session Info
+```{r}
+sessionInfo()
+```

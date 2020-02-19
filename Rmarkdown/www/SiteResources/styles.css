@@ -1,0 +1,12 @@
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}

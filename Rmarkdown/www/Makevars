@@ -1,0 +1,2 @@
+PKG_CPPFLAGS=-I/CHBS/apps/R/3.2.3/lib64/R/library/RxODE/include
+PKG_LIBS=-L/CHBS/apps/R/3.2.3/lib64/R/library/RxODE/libs/ -lodeaux $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)
