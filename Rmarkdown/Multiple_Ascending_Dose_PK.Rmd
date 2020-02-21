@@ -1,5 +1,6 @@
 ---
 title: "PK - Multiple Ascending Dose"
+author: "Alison Margolskee"
 output:
   html_document:
     toc: true
@@ -17,7 +18,7 @@ This document contains exploratory plots for multiple ascending dose PK data as 
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(xgxr, lib.loc = "../Rlib")
+library(xgxr)
 
 #flag for labeling figures as draft
 status = "DRAFT"
