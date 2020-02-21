@@ -296,7 +296,7 @@ print(gg + facet_grid(.~DAY_label))
 
 ```
 
-For multiple ascending dose studies, plot the ratio between the steady state AUC and the AUC from the first PROFDAY. Is there any accumulation?
+For multiple ascending dose studies, plot the ratio between the steady state AUC and the AUC from the first dose administration. Is there any accumulation?
 
 ```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 
@@ -318,7 +318,7 @@ gg %+%
   facet_grid(.~DAY_label)
 ```
 
-For multiple ascending dose studies, plot the ratio between the steady state Cmax and the Cmax from the first PROFDAY. Is there any accumulation?
+For multiple ascending dose studies, plot the ratio between the steady state Cmax and the Cmax from the first dose administration. Is there any accumulation?
 
 ```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 
