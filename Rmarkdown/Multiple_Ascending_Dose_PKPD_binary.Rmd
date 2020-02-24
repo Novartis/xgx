@@ -1,6 +1,6 @@
 ---
 title: "PK/PD, Exposure-Response - Binary"
-author: "Andy Stein, Alison Margolskee"
+author: "Alison Margolskee, Andy Stein"
 output:
   html_document:
     toc: true
