@@ -87,10 +87,10 @@ NCA = pk_data %>%
   time_units_plot    = "days"
   trtact_label       = "Dose"
   dose_label         = "Dose (mg)"
-  conc_label         = "Concentration (ng/ml)"  
-  concnorm_label     = "Normalized Concentration (ng/ml)/mg"
   conc_units         = "ng/ml"
-  AUC_units          = "h.ng/ml"
+  AUC_units          = paste0("h.", conc_units)
+  conc_label         = paste0("Concentration (", conc_units, ")") 
+  concnorm_label     = paste0("Normalized Concentration (", conc_units, ")/mg")
 ```
 
 ## Provide an overview of the data
@@ -103,7 +103,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 ```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 6}
 
-gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= DOSE, color = TRTACT_high2low)) 
+gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= TRTACT_high2low, color = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
