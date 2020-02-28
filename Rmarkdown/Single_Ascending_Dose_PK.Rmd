@@ -47,7 +47,7 @@ pkpd_data <- read.csv("../Data/Single_Ascending_Dose_Dataset2.csv")
 #ensure dataset has all the necessary columns
   pkpd_data = pkpd_data %>%
     mutate(ID      = ID,     #ID   column
-           TIME    = TIME,   #TIME column name 
+           TIME    = TIME,   #TIME column name, time relative to first dose 
            NOMTIME = NOMTIME,#NOMINAL TIME column name
            EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
            LIDV    = LIDV,   #DEPENDENT VARIABLE column name
