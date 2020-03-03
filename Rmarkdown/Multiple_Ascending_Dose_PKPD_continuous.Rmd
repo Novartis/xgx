@@ -18,20 +18,18 @@ This document contains exploratory plots for continuous PD data as well as the R
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(xgxr, lib.loc = "../Rlib")
+library(xgxr)
 
 #flag for labeling figures as draft
 status = "DRAFT"
 
 ## ggplot settings
 xgx_theme_set()
-
 ```
 
 ## Load Dataset
 
 ```{r, warning=FALSE, message=FALSE}
-
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
@@ -73,30 +71,19 @@ NCA = pk_data %>%
             Cmax_0_24     = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
             AUC_tau = caTools::trapz(TIME[NOMTIME > 120 & NOMTIME <= 144], LIDV[NOMTIME > 120 & NOMTIME <= 144]),
             Cmax_tau     = max(LIDV[NOMTIME > 120 & NOMTIME <= 144]), 
-            AUC_acc = AUC_tau / AUC_0_24, 
-            Cmax_acc = Cmax_tau / Cmax_0_24,
             SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
             WEIGHTB  = WEIGHTB[1]) %>%
   gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
-  mutate(VALUE_NORM = VALUE/DOSE)
+  mutate(VALUE_NORM = VALUE/DOSE,
+         PROFDAY= ifelse(PARAM == "AUC_0_24" | PARAM == "Cmax_0_24", 1, 6))
 
-#AUC dataset for AUC_0_24 and AUCtau
-AUC_0_24 <- NCA[NCA$PARAM=="AUC_0_24",]
-AUC_0_24 <- AUC_0_24[c("VALUE","ID")]
-names(AUC_0_24) <- c("AUC","ID")
-AUC_0_24$PROFDAY = 1
-
-AUCtau <- NCA[NCA$PARAM=="AUC_tau",]
-AUCtau <- AUCtau[c("VALUE","ID")]
-names(AUCtau) <- c("AUC","ID")
-AUCtau$PROFDAY = 6
-if(length(AUCtau[is.na(AUCtau$AUC),]$AUC) > 0 ){
-AUCtau[is.na(AUCtau$AUC),]$AUC<-0
-}
-AUC <- rbind(AUC_0_24, AUCtau)
-AUC$ID <- as.numeric(as.character(AUC$ID))
-AUC <- AUC[order(AUC$ID,AUC$PROFDAY),]
+#add response data at day 1 and 6 to NCA for additional plots
+RESPONSE <- pd_data[pd_data$PROFDAY%in%c(1,6),
+                    c("ID","PROFDAY","LIDV","TRTACT_low2high")]
+names(RESPONSE) <- c("ID","PROFDAY","Response","TRTACT_low2high")
+NCA <- merge(NCA, RESPONSE, by = c("ID","PROFDAY"))
+NCA$DAY_label <- paste("Day", NCA$PROFDAY)
 
 #units and labels
   time_units_dataset = "hours"
@@ -132,7 +119,7 @@ Observe the overall shape of the average profiles. Does the effect appear to inc
 
 #PK data
 gg <- ggplot(data = pk_data, 
-               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))+theme_bw() 
+               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
@@ -145,7 +132,7 @@ print(gg)
 
 #PD data
 gg <- ggplot(data = pd_data, 
-               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))+theme_bw() 
+               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
@@ -160,7 +147,7 @@ print(gg)
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, 
-               aes(x=NOMTIME,y=LIDV))+theme_bw()
+               aes(x=NOMTIME,y=LIDV))
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -172,7 +159,7 @@ print(gg)
 
 #PD data
 gg <- ggplot(data = pd_data[pd_data$DOSE>0,], 
-               aes(x=NOMTIME,y=LIDV))+theme_bw()
+               aes(x=NOMTIME,y=LIDV))
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -191,7 +178,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
 #PK data
  gg <- ggplot(data = pk_data, 
-               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) + theme_bw()
+               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) 
  gg <- gg + xgx_annotate_status(status)
  gg <- gg + geom_line(alpha = 0.5)
  gg <- gg + geom_point(alpha = 0.5)
@@ -205,7 +192,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
  
  #PD data
  gg <- ggplot(data = pd_data, 
-               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) + theme_bw()
+               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) 
  gg <- gg + xgx_annotate_status(status)
  gg <- gg + geom_line(alpha = 0.5)
  gg <- gg + geom_point(alpha = 0.5)
@@ -221,7 +208,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
 #PK data
-gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))+theme_bw()
+gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_line(alpha = 0.5)
 gg <- gg + geom_point(alpha = 0.5)
@@ -236,7 +223,7 @@ print(gg)
 
 #PD data
 gg <- ggplot(data = pd_data[pd_data$DOSE>0,], 
-             aes(x=TIME,y=LIDV,group=ID))+theme_bw()
+             aes(x=TIME,y=LIDV,group=ID))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_line(alpha = 0.5)
 gg <- gg + geom_point(alpha = 0.5)
@@ -272,7 +259,7 @@ data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("TIME","ID","TRT
 
 data_to_plot2$TRTACT_low2high <- factor(data_to_plot2$TRTACT_low2high, levels = rev(levels(data_to_plot2$TRTACT_low2high)))
 
-gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response))+theme_bw()
+gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT_low2high))
 gg <- gg + geom_point(data=data_to_plot2[data_to_plot2$CENS==1,], color="red", shape = 8)
@@ -300,7 +287,7 @@ data_to_plot2$DAY_label <- paste("Day", data_to_plot2$PROFDAY)
 data_to_plot2$TRTACT_low2high <- factor(data_to_plot2$TRTACT_low2high, 
                                    levels = rev(levels(data_to_plot2$TRTACT_low2high)))
 
-gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color = TRTACT_low2high))+theme_bw()
+gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color = TRTACT_low2high))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point()
 gg <- gg + geom_point(data=data_to_plot2[data_to_plot2$CENS==1,], color="red", shape = 8)
@@ -314,29 +301,18 @@ gg + facet_grid(~DAY_label)
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 
 ```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
-RESPONSE <- pd_data[pd_data$PROFDAY%in%c(1,6),
-                    c("ID","PROFDAY","LIDV","DOSE","TRTACT_low2high", "SEX")]
-names(RESPONSE) <- c("ID","PROFDAY","Response","DOSE","TRTACT_low2high", "SEX")
-
-data_to_plot <- merge(AUC, RESPONSE, by = c("ID","PROFDAY"))
-data_to_plot$ID <- as.numeric(as.character(data_to_plot$ID))
-data_to_plot <- data_to_plot[order(data_to_plot$ID,data_to_plot$PROFDAY),]
-
-data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
-
-data_to_plot$AUC_bins <- cut(data_to_plot$AUC, 
-                               quantile(data_to_plot$AUC, na.rm=TRUE), na.rm=TRUE)
-data_to_plot = data_to_plot %>%
+#separate NCA data to only inclue AUC_0_24 and AUC_tau 
+NCA_AUC <- NCA[NCA$PARAM=="AUC_0_24" | NCA$PARAM=="AUC_tau",]
+NCA_AUC$ID <- as.numeric(as.character(NCA_AUC$ID))
+NCA_AUC <- NCA_AUC[order(NCA_AUC$ID,NCA_AUC$PROFDAY),]
+NCA_AUC$AUC_bins <- cut(NCA_AUC$VALUE, quantile(NCA_AUC$VALUE, na.rm=TRUE), na.rm=TRUE)
+NCA_AUC = NCA_AUC %>%
   group_by(AUC_bins) %>%
-  mutate(AUC_midpoints = median(AUC))
+  mutate(AUC_midpoints = median(VALUE))
 
-
-data_to_plot$TRTACT <- factor(data_to_plot$TRTACT_low2high, 
-                                   levels = rev(levels(data_to_plot$TRTACT_low2high)))
-
-gg <- ggplot(data = data_to_plot, aes(x = AUC, y = Response))
+gg <- ggplot(data = NCA_AUC, aes(x = VALUE, y = Response))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + geom_point(aes(color = TRTACT)) + geom_smooth(color="black")
+gg <- gg + geom_point(aes(color = TRTACT_low2high)) + geom_smooth(color="black")
 gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "errorbar")
 gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "point", shape = 0, size = 4)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
@@ -349,7 +325,7 @@ gg + facet_grid(.~DAY_label)
 Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. 
 
 ```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
-gg <- ggplot(data = data_to_plot, aes(x = AUC, y = Response)) + theme_bw()
+gg <- ggplot(data = NCA_AUC, aes(x = VALUE, y = Response)) 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = SEX)) + geom_smooth(aes(color = SEX))
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
@@ -384,7 +360,7 @@ data_to_plot2$TRTACT <- factor(data_to_plot2$TRTACT,
 
 data_to_plot2<- data_to_plot2[order(data_to_plot2$TIME),]
 
-gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color=TIME))+theme_bw()
+gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response, color=TIME))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
 gg <- gg + labs(x=pkconc_label , y=pdconc_label)
