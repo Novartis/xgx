@@ -63,9 +63,6 @@ print(gg)
 
 This plot can help in assessing the impact of a covariate (ECOG) on outcome.
 
-Note, `ph.ecog == 3` patient are removed from dataset because there is only one patient
-with ECOG = 3 and this causes an error when generating the confidence interval.  This bug was [reported to the survminer developer and fixed in the github version](https://github.com/kassambara/survminer/issues/443).
-
 ```{r warning=FALSE, message=FALSE}
 km_fit_sex <- survfit(Surv(time, status) ~ sex, 
                        data = km_data, 
