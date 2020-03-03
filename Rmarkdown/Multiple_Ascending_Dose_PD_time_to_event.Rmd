@@ -91,13 +91,33 @@ km_cox_summary <- broom::tidy(km_cox) %>%
 kable(km_cox_summary)  
 ```
 
-### Mean Cumulative Function
+## Mean Event Rate over time
+
+For repeated time to event data, the rate of occurance of the events can be plotted. The observed average rate of occurance would be related to the Hazard rate in a time-to-event model. 
+
+Calculate the rate of occurance of an event as the number of events occuring within specific time intervals, average over the number of subjects being observed. 
+
+Observe the mean event rate, do you see any patterns? Does the event rate increase or decrease over time, or at specific time points (e.g. dosing intervals, circadian rhythms)?
+
+
+```{r}
+# (coming soon)
+```
+
+<img src="SiteResources/Event_Rate.png" width=100%>
+
+
+## Mean Cumulative Function
 
 The mean cumulative function is another way of looking at repeated time-to-event data. The mean cumulative function is the population average of the cumulative number of events over time, and would be related to the Cumulative Hazard in a time-to-event model. 
 
 Calculate the mean cumulative function by ordering all of the events by increasing time, calculate the cumulative number of occurances up to each time point, and take the average over the number of subjects being observed. For repeated time-to-event data, the mean cumulative function can achieve values greater than 1.
 
-<img src="SiteResources/Event_Rate.png" width=100%>
+```{r}
+# (coming soon)
+```
+
+<img src="SiteResources/Mean_Cumulative_Function.png" width=75%>
 
 ## R Session Info
 ```{r}
