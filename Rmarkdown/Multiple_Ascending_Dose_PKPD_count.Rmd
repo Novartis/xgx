@@ -262,9 +262,7 @@ In the plots below, most of the hysteresis paths follow a counter clockwise turn
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
 
-data_to_plot2 <- pkpd_data_wide
-
-gg <- ggplot(data = data_to_plot2, aes(x = CONC, y = RESPONSE, color = TIME))
+gg <- ggplot(data = pkpd_data_wide, aes(x = CONC, y = RESPONSE, color = TIME))
 gg <- gg + geom_path(arrow = arrow(length=unit(0.15,"cm")))
 gg <- gg + xgx_scale_x_log10() + xgx_scale_y_log10()
 gg <- gg + ylab(pd_label) + xlab(conc_label)
