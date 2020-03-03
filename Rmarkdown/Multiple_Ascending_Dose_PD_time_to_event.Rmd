@@ -61,7 +61,7 @@ print(gg)
 
 ## Plot Kaplan Meier faceted by exposure quartile for assessing covariates
 
-This plot can help in assessing the impact of a covariate (ECOG) on outcome.
+This plot can help in assessing the impact of a covariate (sex) on outcome.
 
 ```{r warning=FALSE, message=FALSE}
 km_fit_sex <- survfit(Surv(time, status) ~ sex, 
