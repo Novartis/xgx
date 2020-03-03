@@ -95,7 +95,7 @@ gg <- gg + xgx_geom_pi(percent_level = 0.95, geom = c("line", "point", "errorbar
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + ylab("Count")
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -113,7 +113,7 @@ gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + facet_grid(~TRTACT_low2high)
 gg <- gg + ylab("Count")
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -129,7 +129,7 @@ gg <- gg + geom_bar(position = "fill") + scale_fill_grey(start = 0.8, end = 0.2,
 gg <- gg + scale_y_continuous(labels = scales::percent)
 gg <- gg + ylab("Percent of Subjects") + xlab("Time (days)") + guides(fill=guide_legend("Count"))
 gg <- gg + facet_grid(.~TRTACT_low2high) 
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -152,7 +152,7 @@ gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + ylab("Count")
 gg <- gg + facet_grid(~TRTACT_low2high)
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -176,7 +176,7 @@ gg <- gg + geom_line(aes(group = ID))
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + facet_wrap(~ID + TRTACT_low2high, ncol = ncol)
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -205,7 +205,7 @@ gg <- gg + guides(color=guide_legend(""), fill=guide_legend(""))
 gg <- gg + scale_x_continuous(breaks = unique(data_to_plot$DOSE))
 gg <- gg + xlab("Dose (mg)") + ylab("Count")
 gg <- gg + geom_smooth(method = "glm", method.args=list(family=poisson), position = position_dodge(50))
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -226,7 +226,7 @@ gg <- gg + geom_smooth(method = "glm",method.args=list(family=poisson), color = 
 gg <- gg + xlab("Dose (mg)") 
 gg <- gg + ylab("Count")
 gg <- gg + facet_grid(~DAY_label)
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -252,7 +252,7 @@ gg <- gg + scale_y_continuous(labels = scales::percent)
 gg <- gg + ylab("Percent of Subjects") + xlab("Dose (mg)") 
 gg <- gg + guides(fill=guide_legend(""))
 gg <- gg + facet_grid(.~DAY_label)
-gg <- gg + xgx_annotate_status()
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
