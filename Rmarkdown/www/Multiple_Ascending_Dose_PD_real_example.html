@@ -641,9 +641,9 @@ pd_data &lt;- pkpd_data %&gt;%
   mutate(CHG = LIDV - LIDV[NOMTIME == 0]) ##create column with change from baseline
 
 # Separate the SAD and MAD datasets for plotting
-data_to_plot &lt;- pd_data
-data_to_plot_single_dosing &lt;- data_to_plot %&gt;% subset(MAD == 0)
-data_to_plot_multiple_dosing &lt;- data_to_plot %&gt;% 
+pd_single_dosing &lt;- pd_data %&gt;% 
+  subset(MAD == 0)
+pd_multiple_dosing &lt;- pd_data %&gt;% 
   subset(MAD == 1 &amp; DOSE != 100) ##remove dose = 100mg as there is only zero time for that.
 
 #units and labels
@@ -682,22 +682,23 @@ dirs = list(
 ytitle &lt;- ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
 xtitle &lt;- xlab(&quot;Time (days)&quot;)
 
-plot2 &lt;- ggplot(data_to_plot_multiple_dosing, 
-                aes(y = CHG, x = PROFDAY, group = NOMTIME)) + 
-  geom_boxplot(width = 5) +
-  ggtitle(&quot;Multiple dosing&quot;) + 
-  theme_bw() +
-  ytitle +
-  xtitle +
-  geom_hline(yintercept = 0,
-             color = &quot;red&quot;,linetype = &quot;dashed&quot;) +
-  scale_x_continuous(breaks = c(-1,7,14)) +
-  theme(axis.text = element_text(size = 13), 
+gg &lt;- ggplot(pd_multiple_dosing, 
+                aes(y = CHG, x = PROFDAY, group = NOMTIME)) 
+gg &lt;- gg + geom_boxplot(width = 5)  
+gg &lt;- gg + ggtitle(&quot;Multiple dosing&quot;)  
+gg &lt;- gg + ytitle  
+gg &lt;- gg + xtitle  
+gg &lt;- gg + geom_hline(yintercept = 0,
+             color = &quot;red&quot;,linetype = &quot;dashed&quot;)  
+gg &lt;- gg +  scale_x_continuous(breaks = c(-1,7,14))  
+gg &lt;- gg +  theme(axis.text = element_text(size = 13), 
         axis.title = element_text(size = 14), 
-        strip.text = element_text(size = 14)) +
-  facet_wrap(~DOSE,nrow = 1, label = labelFun)
+        strip.text = element_text(size = 14))  
+gg &lt;- gg +  facet_wrap(~DOSE,nrow = 1, label = labelFun)
+gg &lt;- gg + xgx_annotate_status()
+gg &lt;- gg + xgx_annotate_filenames(dirs)
 
-plot2</code></pre>
+gg</code></pre>
 <p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
 </div>
 </div>
@@ -713,42 +714,43 @@ plot2</code></pre>
 ytitle &lt;- ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
 xtitle &lt;- xlab(&quot;Dose (mg)&quot;)
 
-plot1 &lt;- ggplot(data_to_plot_single_dosing, 
-                aes(y = CHG, x = factor(DOSE), group = NOMTIME)) + 
-  geom_boxplot(aes(group = factor(DOSE))) +
-  ggtitle(&quot;Single dosing&quot;) + 
-  theme_bw() +
-  ytitle +
-  xtitle +
-  geom_hline(yintercept = 0,
-             color = &quot;red&quot;,linetype = &quot;dashed&quot;) +
-  theme(axis.text = element_text(size = 13),
+gg &lt;- ggplot(pd_single_dosing, 
+                aes(y = CHG, x = factor(DOSE), group = NOMTIME))  
+gg &lt;- gg + geom_boxplot(aes(group = factor(DOSE)))  
+gg &lt;- gg + ggtitle(&quot;Single dosing&quot;)   
+gg &lt;- gg + ytitle + xtitle   
+gg &lt;- gg + geom_hline(yintercept = 0,
+             color = &quot;red&quot;,linetype = &quot;dashed&quot;)   
+gg &lt;- gg + theme(axis.text = element_text(size = 13),
         axis.title = element_text(size = 14),
-        strip.text = element_text(size = 14)) +
-  facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+        strip.text = element_text(size = 14))   
+gg &lt;- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg &lt;- gg + xgx_annotate_status()
+gg &lt;- gg + xgx_annotate_filenames(dirs)
 
-plot1 </code></pre>
+gg</code></pre>
 <p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 <p>In the plot above, the doses are uniformly spaced, not proportionally spaced according to the numerical value of the doses. Producing this type of plot allows to clearly determine distinctions between different dose groups. However, it is wise to produce plots of dose vs response with dose on a scale proportional to the numerical value of the doses. This allows to more clearly see the shape of the dose-response relationship. Drug ABC123 has a nice dose-response curve shape that resembles a typical Emax model, appearing to plateau around 7.5 change from baseline in intensity score.</p>
 <pre class="r"><code>labelFun &lt;- function(variable,value){     
   paste0(value,&quot; h&quot;)                             
 }
 
-plot1b &lt;- ggplot(data_to_plot_single_dosing %&gt;% subset(NOMTIME == 24,), 
-               aes(y = CHG, x = DOSE, group = NOMTIME)) + 
-  xgx_stat_ci(conf_level = 0.975, geom = c(&quot;point&quot;, &quot;errorbar&quot;), alpha = 0.5) +
-  ggtitle(&quot;Single dosing&quot;) + 
-  theme_bw() +
-  ytitle +
-  xtitle +
-  geom_hline(yintercept = 0, color = &quot;red&quot;, linetype = &quot;dashed&quot;)+
-  #scale_x_log10(breaks = unique(data_to_plot_single_dosing$DOSE))+
-  theme(axis.text = element_text(size = 13),
+gg &lt;- ggplot(pd_single_dosing %&gt;% subset(NOMTIME == 24,), 
+               aes(y = CHG, x = DOSE, group = NOMTIME))   
+gg &lt;- gg + xgx_stat_ci(conf_level = 0.975, 
+                       geom = c(&quot;point&quot;, &quot;errorbar&quot;), 
+                       alpha = 0.5)   
+gg &lt;- gg +  ggtitle(&quot;Single dosing&quot;)   
+gg &lt;- gg +  ytitle +  xtitle   
+gg &lt;- gg +  geom_hline(yintercept = 0, color = &quot;red&quot;, linetype = &quot;dashed&quot;)  
+gg &lt;- gg +  theme(axis.text = element_text(size = 13),
         axis.title = element_text(size = 14),
-        strip.text = element_text(size = 14))+
-  facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+        strip.text = element_text(size = 14))  
+gg &lt;- gg +  facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg &lt;- gg + xgx_annotate_status()
+gg &lt;- gg + xgx_annotate_filenames(dirs)
 
-plot1b </code></pre>
+gg </code></pre>
 <p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
 </div>
 </div>
