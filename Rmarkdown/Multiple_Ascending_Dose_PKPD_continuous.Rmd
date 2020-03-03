@@ -1,5 +1,6 @@
 ---
 title: "PK/PD, Exposure-Response - Continuous"
+author: "Alison Margolskee, Fariba Khanshan"
 output:
   html_document:
     toc: true
@@ -40,6 +41,7 @@ pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
            TIME    = TIME,   #TIME column name 
            NOMTIME = NOMTIME,#NOMINAL TIME column name
            EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+           PROFDAY = PROFDAY,#PROFILE DAY day associated with profile, e.g. day of dose administration
            LIDV    = LIDV,   #DEPENDENT VARIABLE column name
            CENS    = CENS,   #CENSORING column name
            CMT     = CMT,    #COMPARTMENT column
@@ -67,13 +69,34 @@ pd_data <- pkpd_data %>%
 NCA = pk_data %>%
   group_by(ID, DOSE) %>%
   filter(!is.na(LIDV)) %>%
-  summarize(AUC_last = caTools::trapz(TIME,LIDV),
-            Cmax     = max(LIDV),
+  summarize(AUC_0_24 = caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= 24], LIDV[NOMTIME > 0 & NOMTIME <= 24]), 
+            Cmax_0_24     = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
+            AUC_tau = caTools::trapz(TIME[NOMTIME > 120 & NOMTIME <= 144], LIDV[NOMTIME > 120 & NOMTIME <= 144]),
+            Cmax_tau     = max(LIDV[NOMTIME > 120 & NOMTIME <= 144]), 
+            AUC_acc = AUC_tau / AUC_0_24, 
+            Cmax_acc = Cmax_tau / Cmax_0_24,
             SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
             WEIGHTB  = WEIGHTB[1]) %>%
   gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
   mutate(VALUE_NORM = VALUE/DOSE)
+
+#AUC dataset for AUC_0_24 and AUCtau
+AUC_0_24 <- NCA[NCA$PARAM=="AUC_0_24",]
+AUC_0_24 <- AUC_0_24[c("VALUE","ID")]
+names(AUC_0_24) <- c("AUC","ID")
+AUC_0_24$PROFDAY = 1
+
+AUCtau <- NCA[NCA$PARAM=="AUC_tau",]
+AUCtau <- AUCtau[c("VALUE","ID")]
+names(AUCtau) <- c("AUC","ID")
+AUCtau$PROFDAY = 6
+if(length(AUCtau[is.na(AUCtau$AUC),]$AUC) > 0 ){
+AUCtau[is.na(AUCtau$AUC),]$AUC<-0
+}
+AUC <- rbind(AUC_0_24, AUCtau)
+AUC$ID <- as.numeric(as.character(AUC$ID))
+AUC <- AUC[order(AUC$ID,AUC$PROFDAY),]
 
 #units and labels
   time_units_dataset = "hours"
@@ -94,7 +117,6 @@ dirs = list(
   results_dir  = "./",
   filename_prefix   = "",
   filename     = "Example.png")
-  
 ```
 
 
@@ -107,60 +129,57 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 Observe the overall shape of the average profiles. Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect? 
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- pk_data
-data_to_plot[[2]] <- pd_data
 
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  data_to_plot[[iplot]]$TRTACT_low2high <- factor(data_to_plot[[iplot]]$TRTACT_low2high, 
-                                       levels = rev(levels(data_to_plot[[iplot]]$TRTACT_low2high)))
-  gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=NOMTIME,y=LIDV, color = TRTACT_low2high, fill = TRTACT_low2high))+theme_bw() 
-  gg <- gg + xgx_stat_ci(conf_level = .95)
-  gg <- gg + xgx_annotate_status(status)
-  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+#PK data
+gg <- ggplot(data = pk_data, 
+               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))+theme_bw() 
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  if(iplot == 1){
-    gg <- gg + xgx_scale_y_log10() 
-    gg <- gg + labs(y=pkconc_label)
-  }else{
-    gg <- gg + labs(y=pdconc_label)
-  }
-  ggs[[iplot]] <- gg
-}
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + labs(y=pkconc_label)
+print(gg)
 
+
+#PD data
+gg <- ggplot(data = pd_data, 
+               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))+theme_bw() 
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + labs(y=pdconc_label)
+print(gg)
 ```
 
 ### PK and PD marker over time, faceted by Dose, mean (95% CI) by nominal time
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- pk_data
-data_to_plot[[2]] <- pd_data[pd_data$DOSE>0,]
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  gg <- ggplot(data = data_to_plot[[iplot]], 
+#PK data
+gg <- ggplot(data = pk_data, 
                aes(x=NOMTIME,y=LIDV))+theme_bw()
-  gg <- gg + xgx_stat_ci(conf_level = .95)
-  gg <- gg + xgx_annotate_status(status)
-  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg + facet_grid(~TRTACT_low2high)
-  if(iplot == 1){
-    gg <- gg + xgx_scale_y_log10() 
-    gg <- gg + labs(y=pkconc_label)
-  }else{
-    gg <- gg + labs(y=pdconc_label)
-  }
-  ggs[[iplot]] <- gg
-}
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + labs(y=pkconc_label)
+print(gg)
 
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+#PD data
+gg <- ggplot(data = pd_data[pd_data$DOSE>0,], 
+               aes(x=NOMTIME,y=LIDV))+theme_bw()
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + labs(y=pdconc_label)
+print(gg)
 ```
 
 ## Explore variability
@@ -170,61 +189,64 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 ### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- pk_data
-data_to_plot[[2]] <- pd_data
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  data_to_plot[[iplot]]$TRTACT_low2high <- factor(data_to_plot[[iplot]]$TRTACT_low2high, 
-                                       levels = rev(levels(data_to_plot[[iplot]]$TRTACT_low2high)))
-  gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_low2high))) + theme_bw()
-  gg <- gg + xgx_annotate_status(status)
-  gg <- gg + geom_line(alpha = 0.5)
-  gg <- gg + geom_point(alpha = 0.5)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
-                                  units_plot    = time_units_plot)
-  if(iplot == 1){
-    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==1,], color="red", shape=8,alpha = 0.5)
-    gg <- gg + xgx_scale_y_log10() 
-    gg <- gg + labs(y=pkconc_label)
-  }else{
-    gg <- gg + labs(y=pdconc_label)
-  }
-  ggs[[iplot]] <- gg
-}
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+#PK data
+ gg <- ggplot(data = pk_data, 
+               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) + theme_bw()
+ gg <- gg + xgx_annotate_status(status)
+ gg <- gg + geom_line(alpha = 0.5)
+ gg <- gg + geom_point(alpha = 0.5)
+ gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+ gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                   units_plot    = time_units_plot)    
+ gg <- gg + geom_point(data = pk_data[pk_data$CENS==1,], color="red", shape=8,alpha = 0.5)
+ gg <- gg + xgx_scale_y_log10() 
+ gg <- gg + labs(y=pkconc_label)
+ print(gg)
+ 
+ #PD data
+ gg <- ggplot(data = pd_data, 
+               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) + theme_bw()
+ gg <- gg + xgx_annotate_status(status)
+ gg <- gg + geom_line(alpha = 0.5)
+ gg <- gg + geom_point(alpha = 0.5)
+ gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+ gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                   units_plot    = time_units_plot)    
+ gg <- gg + geom_point(data = pd_data[pd_data$CENS==1,], color="red", shape=8,alpha = 0.5)
+ gg <- gg + labs(y=pdconc_label)
+ print(gg)
 ```
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()
-data_to_plot[[1]] <- pk_data
-data_to_plot[[2]] <- pd_data[pd_data$DOSE>0,]
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  gg <- ggplot(data = data_to_plot[[iplot]], aes(x=TIME,y=LIDV,group=ID))+theme_bw()
-  gg <- gg + xgx_annotate_status(status)
-  gg <- gg + geom_line(alpha = 0.5)
-  gg <- gg + geom_point(alpha = 0.5)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+#PK data
+gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))+theme_bw()
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-  gg <- gg + facet_grid(~TRTACT_low2high)
-  if(iplot == 1){
-    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==1,], color="red", shape=8, alpha = 0.5)
-    gg <- gg + xgx_scale_y_log10() 
-    gg <- gg + labs(y=pkconc_label)
-  }else{
-    gg <- gg + labs(y=pdconc_label)
-  }
-  ggs[[iplot]] <- gg
-}
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + geom_point(data = pk_data[pk_data$CENS==1,], color="red", shape=8, alpha = 0.5)
+gg <- gg + xgx_scale_y_log10() 
+gg <- gg + labs(y=pkconc_label)
+print(gg)
+
+#PD data
+gg <- ggplot(data = pd_data[pd_data$DOSE>0,], 
+             aes(x=TIME,y=LIDV,group=ID))+theme_bw()
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + geom_point(data = pd_data[pd_data$CENS==1,], color="red", shape=8, alpha = 0.5)
+gg <- gg + labs(y=pdconc_label)
+print(gg)
 ```
 
 ## Explore Exposure-Response Relationship
@@ -257,8 +279,7 @@ gg <- gg + geom_point(data=data_to_plot2[data_to_plot2$CENS==1,], color="red", s
 gg <- gg + labs(x=pkconc_label , y=pdconc_label)
 gg <- gg + xgx_scale_x_log10() 
 gg <- gg + guides(color = guide_legend(""))
-gg
-
+print(gg)
 ```
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
@@ -293,28 +314,6 @@ gg + facet_grid(~DAY_label)
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 
 ```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
-AUC_0_24 <- pk_data[pk_data$NOMTIME>0&pk_data$NOMTIME<=24,]
-AUC_0_24 <- data.frame(stack(sapply(split(AUC_0_24,AUC_0_24$ID),
-                                    function(df) trapz(df$TIME,df$LIDV))))
-names(AUC_0_24) <- c("AUC","ID")
-AUC_0_24$PROFDAY = 1
-if(length(AUC_0_24[is.na(AUC_0_24$AUC),]$AUC) > 0 ){
-AUC_0_24[is.na(AUC_0_24$AUC),]$AUC <-0
-}
-
-AUCtau <- pk_data[pk_data$NOMTIME>120&pk_data$NOMTIME<=144,]
-AUCtau <- data.frame(stack(sapply(split(AUCtau,AUCtau$ID),
-                                  function(df) trapz(df$TIME,df$LIDV))))
-names(AUCtau) <- c("AUC","ID")
-AUCtau$PROFDAY = 6
-if(length(AUCtau[is.na(AUCtau$AUC),]$AUC) > 0 ){
-AUCtau[is.na(AUCtau$AUC),]$AUC<-0
-}
-
-AUC <- rbind(AUC_0_24, AUCtau)
-AUC$ID <- as.numeric(as.character(AUC$ID))
-AUC <- AUC[order(AUC$ID,AUC$PROFDAY),]
-
 RESPONSE <- pd_data[pd_data$PROFDAY%in%c(1,6),
                     c("ID","PROFDAY","LIDV","DOSE","TRTACT_low2high", "SEX")]
 names(RESPONSE) <- c("ID","PROFDAY","Response","DOSE","TRTACT_low2high", "SEX")
@@ -338,11 +337,11 @@ data_to_plot$TRTACT <- factor(data_to_plot$TRTACT_low2high,
 gg <- ggplot(data = data_to_plot, aes(x = AUC, y = Response))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT)) + geom_smooth(color="black")
-gg <- gg + xgx_stat_ci(geom = "errorbar")
+gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "errorbar")
+gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "point", shape = 0, size = 4)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + labs(x=AUC_units , y=pdconc_label)
 gg + facet_grid(.~DAY_label)
-
 ```
 
 ### Explore covariate effects on Exposure-Response Relationship
@@ -369,7 +368,6 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
-
 data_to_plot <- list()
 data_to_plot[[1]] <- pk_data[pk_data$TRTACT!="Placebo",c("TIME","LIDV","ID","TRTACT")]
 data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
