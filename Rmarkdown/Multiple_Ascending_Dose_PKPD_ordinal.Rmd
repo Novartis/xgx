@@ -20,6 +20,7 @@ Ordinal data can be thought of as categorical data that has a natural order. For
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(gridExtra)
 library(xgxr)
 
 #flag for labeling figures as draft
@@ -113,26 +114,27 @@ Does the effect appear to increase and decrease quickly on a short time scale, o
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
-gg <- ggplot(data = pk_data, 
+gg1 <- ggplot(data = pk_data, 
                aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
-gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
-                                  units_plot    = time_units_plot)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + xgx_scale_y_log10()
-gg <- gg + labs(y=conc_label)
-gg
+gg1 <- gg1 + xgx_stat_ci(conf_level = .95)
+gg1 <- gg1 + xgx_annotate_status(status)
+gg1 <- gg1 + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+gg1 <- gg1 + guides(color=guide_legend(""),fill=guide_legend(""))
+gg1 <- gg1 + xgx_scale_y_log10()
+gg1 <- gg1 + labs(y=conc_label)
 
 #PD data
-gg <- ggplot(data = pd_data, aes(x = factor(DAY), fill = Severity_high2low)) 
-gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
-gg <- gg + labs(x=time_label, y=pdresponse_label)
-gg <- gg + facet_grid(TRTACT_high2low~.)
-gg <- gg + scale_fill_brewer(palette=6)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + xgx_annotate_status(status)
-gg
+gg2 <- ggplot(data = pd_data, aes(x = factor(DAY), fill = Severity_high2low)) 
+gg2 <- gg2 + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
+gg2 <- gg2 + labs(x=time_label, y=pdresponse_label)
+gg2 <- gg2 + facet_grid(TRTACT_high2low~.)
+gg2 <- gg2 + scale_fill_brewer(palette=6)
+gg2 <- gg2 + guides(color=guide_legend(""),fill=guide_legend(""))
+gg2 <- gg2 + xgx_annotate_status(status)
+
+#put PK and PD plots side-by-side:
+grid.arrange(gg1, gg2, ncol=2)
 ```
 
 ### PK and PD marker over time, faceted by Dose, mean +/- 95% CI by nominal time
@@ -249,7 +251,7 @@ gg
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
 pkpd_data_wide_d5 <- pkpd_data_wide[pkpd_data_wide$PROFDAY==5,]
-gg <- ggplot(data = pkpd_data_wide_d5, aes(y=CONC,x=Severity_label))
+
 gg <- ggplot(data = pkpd_data_wide_d5, aes(y=CONC,x=Severity_label))
 gg <- gg + geom_jitter(data = pkpd_data_wide_d5[pkpd_data_wide_d5$CENS==0,],
                        aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0.0, alpha = 0.5)
@@ -281,7 +283,7 @@ In the plots below, most of the hysteresis paths follow a counter clockwise turn
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
 pkpd_data_wide<- pkpd_data_wide[order(pkpd_data_wide$TIME),]
-pkpd_data_wide<- pkpd_data_wide[order(pkpd_data_wide$TIME),]
+
 gg <- ggplot(data = pkpd_data_wide, aes(x=CONC,y=Severity_label,group = ID, color = TIME))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
