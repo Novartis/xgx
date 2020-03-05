@@ -1,5 +1,6 @@
 ---
 title: "PK/PD, Exposure-Response - Ordinal Response"
+author: "Alison Margolskee, Fariba Khanshan"
 output:
   html_document:
     toc: true
@@ -16,74 +17,90 @@ Ordinal data can be thought of as categorical data that has a natural order. For
 ## Setup
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
+library(tidyr)
+library(gridExtra)
+library(xgxr)
 
 #flag for labeling figures as draft
-  draft.flag      = TRUE
+status = "DRAFT"
 
 ## ggplot settings
-theme_set(theme_bw(base_size=12))
-
+xgx_theme_set()
 ```
 
-
-## Define Useful Graphics Functions
-
-```{r}
-
-# annotation of plots with status of code
-AnnotateStatus <- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color="grey") {
-  
-  x.pos <- -Inf
-  if (log.x)
-    x.pos <- 0
-  
-  y.pos <- -Inf
-  if (log.y)
-    y.pos <- 0
-  
-  if(draft.flag) {
-    annotateStatus <- annotate("text",
-                               label="DRAFT",
-                               x=x.pos, y=y.pos,
-                               hjust=-0.1, vjust=-1.0,
-                               cex=fontsize,
-                               col=color, alpha=0.7, fontface="bold")
-  } else {
-    annotateStatus <- NULL
-  }
-  
-  return(annotateStatus)
-}
-
-```
 
 ## Load Dataset
 
 ```{r, warning=FALSE, message=FALSE}
 my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
-# Define order for factors
-my.data$TRTACT <- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order(my.data$DOSE)]))
-
+#ensure dataset has all the necessary columns
+my.data = my.data %>%
+  mutate(ID      = ID,     #ID   column
+         TIME    = TIME,   #TIME column name
+         NOMTIME = NOMTIME,#NOMINAL TIME column name
+         EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+         PROFDAY = PROFDAY,#PROFILE DAY day associated with profile, e.g. day of dose administration
+         LIDV    = LIDV,   #DEPENDENT VARIABLE column name
+         CENS    = CENS,   #CENSORING column name
+         CMT     = CMT,    #COMPARTMENT column
+         DOSE    = DOSE,   #DOSE column here (numeric value)
+         TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+         )
 my.data$Severity <- my.data$LIDV
 my.data[my.data$CMT!=5,]$Severity <- NA
 my.data$Severity_label <- factor(plyr::mapvalues(my.data$Severity,c(1,2,3), c("Mild", "Moderate","Severe")), levels = c("Mild","Moderate","Severe"))
+
+#create a factor for the treatment variable for plotting
+my.data$DAY <- floor(my.data$TIME/24 )
+
+my.data = my.data %>%
+  arrange(DOSE) %>%
+  mutate(TRTACT_low2high      = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low      = factor(TRTACT, levels = rev(unique(TRTACT))),
+         Severity_high2low    = factor(Severity_label, levels = rev(levels(Severity_label))))
+
+#create pk and pd datasets
+pk_data <- my.data %>%
+  filter(CMT==2)
+
+pd_data <- my.data %>%
+  filter(CMT==5) %>%
+  mutate(Severity2 = jitter(Severity, amount=0.1),
+         time2     = jitter(TIME, amount=0.1*24)
+         )
+#create wide pkpd dataset for plotting PK vs PD
+pkpd_data_wide <- pd_data %>%
+  select(ID, NOMTIME, RESPONSE = LIDV) %>%
+  right_join(pk_data) %>%
+  rename(CONC = LIDV)%>%
+  filter(!is.na(RESPONSE))%>%
+  filter(!is.na(CONC))
+pkpd_data_wide$Severity_label <- factor(plyr::mapvalues(pkpd_data_wide$RESPONSE,c(1,2,3), c("Mild", "Moderate","Severe")), levels =
+                                          c("Mild","Moderate","Severe"))
+#units and labels
+time_units_dataset = "hours"
+time_units_plot    = "days"
+trtact_label       = "Dose"
+dose_label         = "Dose (mg)"
+time_label         = "Time(Days)"
+conc_label         = "Concentration (ng/ml)"
+trough_label       = "Trough Concentration (ng/mL)"
+pdresponse_label   = "Responder Rate (%)"
+pdseverity_label   = "Severity"
+concnorm_label     = "Normalized Concentration (ng/ml)/mg"
+conc_units         = "ng/ml"
+
+#directories for saving individual graphs
+dirs = list(
+parent_dir= tempdir(),
+rscript_dir  = "./",
+rscript_name = "Example.R",
+results_dir  = "./",
+filename_prefix   = "",
+filename     = "Example.png")
 ```
 
 
@@ -96,119 +113,71 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect?
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- list()  
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[1]]$TRTACT <- factor(data_to_plot[[1]]$TRTACT, levels = rev(levels(data_to_plot[[1]]$TRTACT)))
+#PK data
+gg1 <- ggplot(data = pk_data, 
+               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
+gg1 <- gg1 + xgx_stat_ci(conf_level = .95)
+gg1 <- gg1 + xgx_annotate_status(status)
+gg1 <- gg1 + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                    units_plot    = time_units_plot)
+gg1 <- gg1 + guides(color=guide_legend(""),fill=guide_legend(""))
+gg1 <- gg1 + xgx_scale_y_log10()
+gg1 <- gg1 + labs(y=conc_label)
 
-data_to_plot[[2]] <- my.data[my.data$CMT==5,]
-data_to_plot[[2]]$TRTACT <- factor(data_to_plot[[2]]$TRTACT, levels = rev(levels(data_to_plot[[2]]$TRTACT)))
-data_to_plot[[2]]$Response <- factor(data_to_plot[[2]]$Severity_label, levels = rev(levels(data_to_plot[[2]]$Severity_label)))
+#PD data
+gg2 <- ggplot(data = pd_data, aes(x = factor(DAY), fill = Severity_high2low)) 
+gg2 <- gg2 + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
+gg2 <- gg2 + labs(x=time_label, y=pdresponse_label)
+gg2 <- gg2 + facet_grid(TRTACT_high2low~.)
+gg2 <- gg2 + scale_fill_brewer(palette=6)
+gg2 <- gg2 + guides(color=guide_legend(""),fill=guide_legend(""))
+gg2 <- gg2 + xgx_annotate_status(status)
 
-data_to_plot[[2]]$DAY <- floor(data_to_plot[[2]]$TIME/24 )
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  
-     if(iplot == 1){
-  
-  gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=NOMTIME/24,y=LIDV, color = TRTACT, fill = TRTACT))+theme_bw()
-  gg <- gg + stat_summary(geom="errorbar", 
-                          fun.data=function(y){
-                            data.frame(y=mean(y),
-                                       ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)),
-                                       ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y))
-                          )}, size = 1, width = 0)
-  gg <- gg + stat_summary(geom="point", fun.y=mean)
-  gg <- gg + stat_summary(aes(group = TRTACT), geom="line", 
-                          fun.y=mean)+ scale_x_continuous(breaks = seq(-1,8,1))
-      gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-
-    }else{
-      gg <- ggplot(data = data_to_plot[[iplot]], aes(x = factor(DAY), fill = Response)) + theme_bw()
-gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Responder Rate (%)") + guides(fill=guide_legend("")) #+ theme(legend.position = "bottom")
-gg <- gg + facet_grid(TRTACT~.)
-gg <- gg + scale_fill_brewer(palette=6)
-    }
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg  + xlab("Time (days)")
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 2)
+#put PK and PD plots side-by-side:
+grid.arrange(gg1, gg2, ncol=2)
 ```
 
 ### PK and PD marker over time, faceted by Dose, mean +/- 95% CI by nominal time
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()  
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[2]] <- my.data[my.data$CMT==5&my.data$DOSE>0,]
-data_to_plot[[2]]$Response <- factor(data_to_plot[[2]]$Severity_label, levels = rev(levels(data_to_plot[[2]]$Severity_label)))
-data_to_plot[[2]]$DAY <- floor(data_to_plot[[2]]$TIME/24 )
+#PK data
+gg <- ggplot(data = pk_data, 
+               aes(x=NOMTIME,y=LIDV))
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + labs(y=conc_label)
+gg
 
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  if(iplot == 1){
-    gg <- ggplot(data = data_to_plot[[iplot]], 
-               aes(x=NOMTIME/24,y=LIDV))+theme_bw()
-  gg <- gg + stat_summary(geom="errorbar", 
-                          fun.data=function(y){
-                            data.frame(y=mean(y),
-                                       ymin = mean(y)-qt(0.975,length(y))*sqrt(stats::var(y)/length(y)),
-                                       ymax = mean(y)+qt(0.975,length(y))*sqrt(stats::var(y)/length(y))
-                          )}, size = 1)
-  gg <- gg + stat_summary(geom="point", fun.y=mean, size = 2)
-  gg <- gg + stat_summary(aes(group = TRTACT), geom="line", 
-                          fun.y=mean)
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend("")) + scale_x_continuous(breaks = seq(-1,8,1))
-    gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-    }else{
-      gg <- ggplot(data = data_to_plot[[iplot]], aes(x = factor(DAY), fill = Response)) + theme_bw()
-gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Responder Rate (%)") + guides(fill=guide_legend("")) + theme(legend.position = "bottom")
+#PD data
+gg <- ggplot(data = pd_data %>% subset(DOSE>0,),
+             aes(x=factor(DAY), fill = Severity_high2low))
+gg <- gg + geom_bar(position = "fill")
+gg <- gg + facet_grid(~TRTACT_low2high)
 gg <- gg + scale_fill_brewer(palette=6)
-
-    }
-  
-  gg <- gg  + xlab("Time (days)")
-  gg <- gg + facet_grid(~TRTACT)
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + scale_y_continuous(labels = scales::percent)
+gg <- gg + guides(fill=guide_legend("")) + theme(legend.position = "bottom")
+gg <- gg + labs(x=time_label, y=pdresponse_label)
+gg
 ```
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- list() 
-data_to_plot[[1]] <- my.data[my.data$CMT==2&my.data$DOSE!=0,
-                             c("TIME","NOMTIME","LIDV","ID","DOSE","TRTACT","CENS","PROFDAY")]
-data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
-data_to_plot[[1]]$LIDV <- NULL
-
-data_to_plot[[2]] <- my.data[my.data$CMT==5&my.data$DOSE!=0,
-                             c("TIME","NOMTIME","LIDV","ID","DOSE","Severity_label","TRTACT","CENS","PROFDAY")]
-data_to_plot[[2]]$LIDV <- NULL
-
-data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("TIME","NOMTIME","ID","DOSE","TRTACT","CENS","PROFDAY"))
-
-data_to_plot2$TRTACT <- factor(data_to_plot2$TRTACT, levels = rev(levels(data_to_plot2$TRTACT)))
-
-gg <- ggplot(data = data_to_plot2, aes(y=Concentration,x=NOMTIME/24))+theme_bw()
-gg <- gg + geom_jitter(data = data_to_plot2[data_to_plot2$CENS==0,], 
+gg <- ggplot(data = pkpd_data_wide, aes(y=CONC,x=NOMTIME/24))
+gg <- gg + geom_jitter(data = pkpd_data_wide %>% subset(CENS==0,),
                        aes(color = Severity_label, shape = Severity_label),  width = 0.1, height = 0.0, alpha = 0.75)
-gg <- gg + geom_jitter(data = data_to_plot2[data_to_plot2$CENS==1,], 
+gg <- gg + geom_jitter(data = pkpd_data_wide %>% subset(CENS==1,),
                        aes(color = Severity_label, shape = Severity_label), color = "red", shape=8,  width = 0.1, height = 0.0, alpha = 0.75)
-gg <- gg + geom_boxplot(aes(group = factor(NOMTIME/24)),width = 0.5, fill = NA, outlier.shape=NA) 
-gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
+gg <- gg + geom_boxplot(aes(group = factor(NOMTIME/24)),width = 0.5, fill = NA, outlier.shape=NA)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""), shape=guide_legend(""))
-gg <- gg + xlab("Time (days)") + scale_x_continuous(breaks = seq(0,8))
-gg <- gg + ylab("Trough Concentration (ng/mL)")
+gg <- gg + xlab(time_label) + scale_x_continuous(breaks = seq(0,8))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + ylab(trough_label)
 gg
-
 ```
 
 
@@ -218,110 +187,83 @@ gg
 ### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list() 
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[2]] <- my.data[my.data$CMT==5,]
+#PK data
+gg <- ggplot(data = pk_data,
+             aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low)))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
+gg <- gg + geom_point(data = pk_data[pk_data$CENS==1,], color="red", shape=8,alpha = 0.5)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + labs(y=conc_label)
+gg
 
-set.seed(12345)
-data_to_plot[[2]]$Severity2 <- jitter(data_to_plot[[2]]$Severity, amount=0.1)
-data_to_plot[[2]]$time2 <- jitter(data_to_plot[[2]]$TIME, amount=0.1*24)
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  data_to_plot[[iplot]]$TRTACT <- factor(data_to_plot[[iplot]]$TRTACT, levels = rev(levels(data_to_plot[[iplot]]$TRTACT)))
-  if(iplot == 1){
-    gg <- ggplot(data = data_to_plot[[iplot]], aes(x=TIME/24,y=LIDV,group=ID, color = TRTACT))+theme_bw()
-    }else{
-      gg <- ggplot(data = data_to_plot[[iplot]], aes(x=time2/24,y=Severity2,group=ID, color = TRTACT))+theme_bw()
-    }
-  gg <- gg + geom_line(alpha = 0.5)
-  gg <- gg  + xlab("Time (days)") + scale_x_continuous(breaks = seq(-1,8,1))
-  if(iplot == 1){
-    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==0,], shape=19, alpha = 0.2)
-    gg <- gg + geom_point(data = data_to_plot[[iplot]][data_to_plot[[iplot]]$CENS==1,], shape=8, color = "red", alpha = 0.5)
-    # gg <- gg + scale_shape_manual(values = c(1,8)) 
-    gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-  }else{
-    gg <- gg + geom_point(alpha = 0.2)
-    gg <- gg + ylab("Severity")
-  }
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""),shape=FALSE) 
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+#PD data
+gg <- ggplot(data = pd_data,
+             aes(x=time2, y=Severity2, group=ID, color =factor(TRTACT_high2low)))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
+gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
+gg <- gg + labs(y=pdseverity_label)
+gg
 ```
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
-data_to_plot <- list()  
-data_to_plot[[1]] <- my.data[my.data$CMT==2,]
-data_to_plot[[2]] <- my.data[my.data$CMT==5&my.data$DOSE>0,]
+#PK data
+gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + geom_point(data = pk_data %>% subset(CENS==1,), color="red", shape=8, alpha = 0.5)
+gg <- gg + xgx_scale_y_log10() 
+gg <- gg + labs(y=conc_label)
+gg
 
-set.seed(12345)
-data_to_plot[[2]]$Severity2 <- jitter(data_to_plot[[2]]$Severity, amount=0.1)
-data_to_plot[[2]]$time2 <- jitter(data_to_plot[[2]]$TIME, amount=0.1*24)
-
-ggs <- list()
-for(iplot in 1:length(data_to_plot)){
-  if(iplot == 1){
-    gg <- ggplot(data = data_to_plot[[iplot]], aes(x=TIME/24,y=LIDV,group=ID))+theme_bw()
-  }else{
-    gg <- ggplot(data = data_to_plot[[iplot]], aes(x=time2/24,y=Severity2,group=ID))+theme_bw()
-  }
-  gg <- gg + geom_line(alpha = 0.2)
-  gg <- gg + xlab("Time (days)") + scale_x_continuous(breaks = seq(-1,8,1))
-  gg <- gg + facet_grid(~TRTACT)
-  if(iplot == 1){
-    gg <- gg + geom_point(aes(shape=factor(CENS), color = factor(CENS)), alpha = 0.2)
-    gg <- gg + scale_shape_manual(values = c(19,8)) 
-    gg <- gg + scale_color_manual(values = c(rgb(0,0,0), rgb(1,0,0)))
-    gg <- gg + scale_y_log10() + annotation_logticks(base = 10, sides = "l", color = rgb(0.5,0.5,0.5))
-    gg <- gg + ylab("Concentration (ng/mL)")
-  }else{
-    gg <- gg + geom_point(alpha = 0.2)
-    gg <- gg + ylab("Severity")
-  }
-  gg <- gg + guides(color=FALSE,fill=FALSE,shape=FALSE) 
-  ggs[[iplot]] <- gg
-}
-
-grid.arrange(ggs[[1]], ggs[[2]], ncol = 1)
+#PD data
+gg <- ggplot(data = pd_data %>% subset(DOSE>0,),
+             aes(x=time2, y=Severity2, group=ID))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
+gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
+gg <- gg + labs(y=pdseverity_label)
+gg
 ```
 
 ## Explore Exposure-Response Relationship
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
-data_to_plot <- list() 
-data_to_plot[[1]] <- my.data[my.data$CMT==2&my.data$DOSE!=0&my.data$PROFDAY==5,
-                             c("TIME","LIDV","ID","DOSE","TRTACT","CENS")]
-data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
-data_to_plot[[1]]$LIDV <- NULL
+pkpd_data_wide_d5 <- pkpd_data_wide %>% subset(PROFDAY==5,)
 
-data_to_plot[[2]] <- my.data[my.data$CMT==5&my.data$DOSE!=0&my.data$PROFDAY==5,
-                             c("TIME","LIDV","ID","DOSE","Severity_label","TRTACT","CENS")]
-data_to_plot[[2]]$LIDV <- NULL
-
-data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],
-                       by=c("TIME","ID","DOSE","TRTACT","CENS"))
-
-data_to_plot2$TRTACT <- factor(data_to_plot2$TRTACT, 
-                               levels = rev(levels(data_to_plot2$TRTACT)))
-
-gg <- ggplot(data = data_to_plot2, aes(y=Concentration,x=Severity_label))+theme_bw()
-gg <- gg + geom_jitter(data = data_to_plot2[data_to_plot2$CENS==0,], 
-                       aes(color = TRTACT), shape=19,  width = 0.1, height = 0.0, alpha = 0.5)
-gg <- gg + geom_jitter(data = data_to_plot2[data_to_plot2$CENS==1,], 
+gg <- ggplot(data = pkpd_data_wide_d5, aes(y=CONC,x=Severity_label))
+gg <- gg + geom_jitter(data = pkpd_data_wide_d5 %>% subset(CENS==0,),
+                       aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0.0, alpha = 0.5)
+gg <- gg + geom_jitter(data = pkpd_data_wide_d5 %>% subset(CENS==1,),
                        color = "red", shape=8,  width = 0.1, height = 0.0, alpha = 0.5)
-gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
-gg <- gg + scale_y_log10() 
+gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA)
+gg <- gg + xgx_scale_y_log10()
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + coord_flip() 
-gg <- gg + xlab("Severity") + ylab("Concentration (ng/mL)")
+gg <- gg + labs(x=pdseverity_label, y=conc_label)
+gg <- gg + coord_flip()
+gg <- gg + xgx_annotate_status(status)
 gg
-
 ```
 
 
@@ -340,24 +282,14 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
-data_to_plot <- list() 
-data_to_plot[[1]] <- my.data[my.data$CMT==2&my.data$DOSE!=0,c("TIME","LIDV","ID","DOSE","TRTACT")]
-data_to_plot[[1]]$Concentration <- data_to_plot[[1]]$LIDV
-data_to_plot[[1]]$LIDV <- NULL
+pkpd_data_wide<- pkpd_data_wide[order(pkpd_data_wide$TIME),]
 
-data_to_plot[[2]] <- my.data[my.data$CMT==5&my.data$DOSE!=0,c("TIME","LIDV","ID","DOSE","Severity_label","TRTACT")]
-data_to_plot[[2]]$Response <- factor(data_to_plot[[2]]$Severity_label, levels = rev(levels(data_to_plot[[2]]$Severity_label)))
-data_to_plot[[2]]$LIDV <- NULL
-
-data_to_plot2 <- merge(data_to_plot[[1]],data_to_plot[[2]],by=c("TIME","ID","DOSE","TRTACT"))
-data_to_plot2<- data_to_plot2[order(data_to_plot2$TIME),]
-
-gg <- ggplot(data = data_to_plot2, aes(x=Concentration,y=Response,group = ID, color = TIME))+theme_bw()
+gg <- ggplot(data = pkpd_data_wide, aes(x=CONC,y=Severity_label,group = ID, color = TIME))
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
-gg <- gg + ylab("Severity") + xlab("Concentration (ng/mL)")
-gg <- gg + scale_x_log10() + annotation_logticks(base = 10, sides = "b", color = rgb(0.5,0.5,0.5)) #+ scale_y_log10()
-gg+facet_wrap(~ID+TRTACT, ncol = 5)
-
+gg <- gg + labs(x=conc_label , y=pdseverity_label)
+gg <- gg + xgx_scale_x_log10()
+gg+facet_wrap(~ID+TRTACT_low2high, ncol = 5)
 ```
 
 ## R Session Info
