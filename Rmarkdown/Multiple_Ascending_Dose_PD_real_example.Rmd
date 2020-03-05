@@ -119,26 +119,23 @@ Lets get an overview of the change from baseline intensity score over time follo
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
  
-labelFun <- function(variable,value){     
-  paste0(value," mg")                             
+labelFun <- function(labels){     
+  paste0(labels," mg")                             
 }
-
-ytitle <- ylab(paste0(pd_label,"\nchange from baseline"))
-xtitle <- xlab("Time (days)")
 
 gg <- ggplot(pd_multiple_dosing, 
                 aes(y = CHG, x = PROFDAY, group = NOMTIME)) 
 gg <- gg + geom_boxplot(width = 5)  
 gg <- gg + ggtitle("Multiple dosing")  
-gg <- gg + ytitle  
-gg <- gg + xtitle  
 gg <- gg + geom_hline(yintercept = 0,
                       color = "red", linetype = "dashed")  
-gg <- gg +  scale_x_continuous(breaks = c(-1,7,14))  
-gg <- gg +  theme(axis.text = element_text(size = 13), 
+gg <- gg + scale_x_continuous(breaks = c(-1,7,14))  
+gg <- gg + theme(axis.text = element_text(size = 13), 
         axis.title = element_text(size = 14), 
-        strip.text = element_text(size = 14))  
-gg <- gg +  facet_wrap(~DOSE,nrow = 1, label = labelFun)
+        strip.text = element_text(size = 14)) 
+gg <- gg + ylab(paste0(pd_label,"\nchange from baseline"))
+gg <- gg + xlab("Time (days)")
+gg <- gg + facet_wrap(~DOSE,nrow = 1, label = labelFun)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
 
@@ -150,30 +147,28 @@ gg
 
 ### Dose Response
 
-#### Intensity Score vs Dose, Faceting by Time
+#### Intensity Score vs Dose
 
 For this fast acting drug, an effect in change from baseline intensity score can actually be seen within the first 24 hours. In order to get an idea of the dose response relationship and make sure we are targeting an optimal dose, take a look at the response for a range of doses that were studied in the single ascending dose study. Plotting boxplots of the change from baseline intensity score against dose, you can see that starting at 10 mg, drug ABC123 has a clear effect on intensity score. 
 
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message = FALSE}
  
-labelFun <- function(variable,value){     
-  paste0(value," h")                             
+labelFun <- function(labels){     
+  paste0(labels," h")                             
 }
 
-ytitle <- ylab(paste0(pd_label,"\nchange from baseline"))
-xtitle <- xlab("Dose (mg)")
-
-gg <- ggplot(pd_single_dosing, 
-                aes(y = CHG, x = factor(DOSE), group = NOMTIME))  
+gg <- ggplot(pd_single_dosing %>% subset(NOMTIME == 24), 
+                aes(y = CHG, x = factor(DOSE)))  
 gg <- gg + geom_boxplot(aes(group = factor(DOSE)))  
 gg <- gg + ggtitle("Single dosing")   
-gg <- gg + ytitle + xtitle   
 gg <- gg + geom_hline(yintercept = 0,
              color = "red",linetype = "dashed")   
 gg <- gg + theme(axis.text  = element_text(size = 13),
                  axis.title = element_text(size = 14),
-                 strip.text = element_text(size = 14))   
+                 strip.text = element_text(size = 14))
+gg <- gg + ylab(paste0(pd_label,"\nchange from baseline"))
+gg <- gg + xlab(dose_label)   
 gg <- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -185,8 +180,8 @@ gg
 In the plot above, the doses are uniformly spaced, not proportionally spaced according to the numerical value of the doses. Producing this type of plot allows to clearly determine distinctions between different dose groups. However, it is wise to produce plots of dose vs response with dose on a scale proportional to the numerical value of the doses. This allows to more clearly see the shape of the dose-response relationship. Drug ABC123 has a nice dose-response curve shape that resembles a typical Emax model, appearing to plateau around 7.5 change from baseline in intensity score.
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message = FALSE}
-labelFun <- function(variable,value){     
-  paste0(value," h")                             
+labelFun <- function(labels){     
+  paste0(labels," h")                             
 }
 
 gg <- ggplot(pd_single_dosing %>% subset(NOMTIME == 24,), 
@@ -194,13 +189,14 @@ gg <- ggplot(pd_single_dosing %>% subset(NOMTIME == 24,),
 gg <- gg + xgx_stat_ci(conf_level = 0.975, 
                        geom = c("point", "errorbar"), 
                        alpha = 0.5)   
-gg <- gg +  ggtitle("Single dosing")   
-gg <- gg +  ytitle + xtitle   
-gg <- gg +  geom_hline(yintercept = 0, color = "red", linetype = "dashed")  
-gg <- gg +  theme(axis.text  = element_text(size = 13),
+gg <- gg + geom_hline(yintercept = 0, color = "red", linetype = "dashed")  
+gg <- gg + theme(axis.text  = element_text(size = 13),
                   axis.title = element_text(size = 14),
                   strip.text = element_text(size = 14))  
-gg <- gg +  facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg <- gg + ggtitle("Single dosing")   
+gg <- gg + ylab(paste0(pd_label,"\nchange from baseline"))
+gg <- gg + xlab(dose_label)
+gg <- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
 

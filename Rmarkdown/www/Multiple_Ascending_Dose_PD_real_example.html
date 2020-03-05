@@ -607,17 +607,17 @@ xgx_theme_set()</code></pre>
 
 #ensure dataset has all the necessary columns
   pkpd_data = pkpd_data %&gt;%
-    mutate(ID      = ID,     #ID   column
-           TIME    = TIM2,   #TIME column name, time from first dose administration 
-           NOMTIME = NTIM, #NOMINAL TIME column name
-           PROFDAY = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
-           PROFTIME = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
-           EVID    = EVID   , #EVENT ID, &gt; = 1 is dose, otherwise measurement
-           LIDV    = LIDV,   #DEPENDENT VARIABLE column name
-           CENS    = CENS,   #CENSORING column name
-           CMT     = CMT,    #COMPARTMENT column
-           DOSE    = RNDDOSE,   #DOSE column here (numeric value)
-           TRTACT  = TRTTXT, #DOSE REGIMEN column here (character, with units), 
+    mutate(ID        = ID,     #ID   column
+           TIME      = TIM2,   #TIME column name, time from first dose administration 
+           NOMTIME   = NTIM, #NOMINAL TIME column name
+           PROFDAY   = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
+           PROFTIME  = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
+           EVID      = EVID   , #EVENT ID, &gt; = 1 is dose, otherwise measurement
+           LIDV      = LIDV,   #DEPENDENT VARIABLE column name
+           CENS      = CENS,   #CENSORING column name
+           CMT       = CMT,    #COMPARTMENT column
+           DOSE      = RNDDOSE,   #DOSE column here (numeric value)
+           TRTACT    = TRTTXT, #DOSE REGIMEN column here (character, with units), 
            LIDV_NORM = LIDV/DOSE, 
            LIDV_UNIT = UNIT, 
            DAY_label = paste(&quot;Day&quot;, PROFDAY)
@@ -675,26 +675,23 @@ dirs = list(
 <div id="intensity-score-over-time-faceting-by-dose" class="section level4">
 <h4>Intensity Score over Time, Faceting by Dose</h4>
 <p>Lets get an overview of the change from baseline intensity score over time following multiple dosing. Plotting boxplots of the Change from Baseline Intensity score over time, grouped by different treatments, we can begin to see the behavior of the drug over time and by treatment. Looking at the Placebo and 30 mg dose groups, the change from baseline intensity score does not appear to be different from zero on days 7 or 14. However, with the 30 mg and 50 mg treatment groups, change from baseline intensity score is clearly greater than zero for days 7 and 14. Drug ABC123 appears to start working for 30 mg doses and higher.</p>
-<pre class="r"><code>labelFun &lt;- function(variable,value){     
-  paste0(value,&quot; mg&quot;)                             
+<pre class="r"><code>labelFun &lt;- function(labels){     
+  paste0(labels,&quot; mg&quot;)                             
 }
-
-ytitle &lt;- ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
-xtitle &lt;- xlab(&quot;Time (days)&quot;)
 
 gg &lt;- ggplot(pd_multiple_dosing, 
                 aes(y = CHG, x = PROFDAY, group = NOMTIME)) 
 gg &lt;- gg + geom_boxplot(width = 5)  
 gg &lt;- gg + ggtitle(&quot;Multiple dosing&quot;)  
-gg &lt;- gg + ytitle  
-gg &lt;- gg + xtitle  
 gg &lt;- gg + geom_hline(yintercept = 0,
-             color = &quot;red&quot;,linetype = &quot;dashed&quot;)  
-gg &lt;- gg +  scale_x_continuous(breaks = c(-1,7,14))  
-gg &lt;- gg +  theme(axis.text = element_text(size = 13), 
+                      color = &quot;red&quot;, linetype = &quot;dashed&quot;)  
+gg &lt;- gg + scale_x_continuous(breaks = c(-1,7,14))  
+gg &lt;- gg + theme(axis.text = element_text(size = 13), 
         axis.title = element_text(size = 14), 
-        strip.text = element_text(size = 14))  
-gg &lt;- gg +  facet_wrap(~DOSE,nrow = 1, label = labelFun)
+        strip.text = element_text(size = 14)) 
+gg &lt;- gg + ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
+gg &lt;- gg + xlab(&quot;Time (days)&quot;)
+gg &lt;- gg + facet_wrap(~DOSE,nrow = 1, label = labelFun)
 gg &lt;- gg + xgx_annotate_status()
 gg &lt;- gg + xgx_annotate_filenames(dirs)
 
@@ -704,26 +701,24 @@ gg</code></pre>
 </div>
 <div id="dose-response" class="section level3">
 <h3>Dose Response</h3>
-<div id="intensity-score-vs-dose-faceting-by-time" class="section level4">
-<h4>Intensity Score vs Dose, Faceting by Time</h4>
+<div id="intensity-score-vs-dose" class="section level4">
+<h4>Intensity Score vs Dose</h4>
 <p>For this fast acting drug, an effect in change from baseline intensity score can actually be seen within the first 24 hours. In order to get an idea of the dose response relationship and make sure we are targeting an optimal dose, take a look at the response for a range of doses that were studied in the single ascending dose study. Plotting boxplots of the change from baseline intensity score against dose, you can see that starting at 10 mg, drug ABC123 has a clear effect on intensity score.</p>
-<pre class="r"><code>labelFun &lt;- function(variable,value){     
-  paste0(value,&quot; h&quot;)                             
+<pre class="r"><code>labelFun &lt;- function(labels){     
+  paste0(labels,&quot; h&quot;)                             
 }
 
-ytitle &lt;- ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
-xtitle &lt;- xlab(&quot;Dose (mg)&quot;)
-
-gg &lt;- ggplot(pd_single_dosing, 
-                aes(y = CHG, x = factor(DOSE), group = NOMTIME))  
+gg &lt;- ggplot(pd_single_dosing %&gt;% subset(NOMTIME == 24), 
+                aes(y = CHG, x = factor(DOSE)))  
 gg &lt;- gg + geom_boxplot(aes(group = factor(DOSE)))  
 gg &lt;- gg + ggtitle(&quot;Single dosing&quot;)   
-gg &lt;- gg + ytitle + xtitle   
 gg &lt;- gg + geom_hline(yintercept = 0,
              color = &quot;red&quot;,linetype = &quot;dashed&quot;)   
-gg &lt;- gg + theme(axis.text = element_text(size = 13),
-        axis.title = element_text(size = 14),
-        strip.text = element_text(size = 14))   
+gg &lt;- gg + theme(axis.text  = element_text(size = 13),
+                 axis.title = element_text(size = 14),
+                 strip.text = element_text(size = 14))
+gg &lt;- gg + ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
+gg &lt;- gg + xlab(dose_label)   
 gg &lt;- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
 gg &lt;- gg + xgx_annotate_status()
 gg &lt;- gg + xgx_annotate_filenames(dirs)
@@ -731,8 +726,8 @@ gg &lt;- gg + xgx_annotate_filenames(dirs)
 gg</code></pre>
 <p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 <p>In the plot above, the doses are uniformly spaced, not proportionally spaced according to the numerical value of the doses. Producing this type of plot allows to clearly determine distinctions between different dose groups. However, it is wise to produce plots of dose vs response with dose on a scale proportional to the numerical value of the doses. This allows to more clearly see the shape of the dose-response relationship. Drug ABC123 has a nice dose-response curve shape that resembles a typical Emax model, appearing to plateau around 7.5 change from baseline in intensity score.</p>
-<pre class="r"><code>labelFun &lt;- function(variable,value){     
-  paste0(value,&quot; h&quot;)                             
+<pre class="r"><code>labelFun &lt;- function(labels){     
+  paste0(labels,&quot; h&quot;)                             
 }
 
 gg &lt;- ggplot(pd_single_dosing %&gt;% subset(NOMTIME == 24,), 
@@ -740,13 +735,14 @@ gg &lt;- ggplot(pd_single_dosing %&gt;% subset(NOMTIME == 24,),
 gg &lt;- gg + xgx_stat_ci(conf_level = 0.975, 
                        geom = c(&quot;point&quot;, &quot;errorbar&quot;), 
                        alpha = 0.5)   
-gg &lt;- gg +  ggtitle(&quot;Single dosing&quot;)   
-gg &lt;- gg +  ytitle +  xtitle   
-gg &lt;- gg +  geom_hline(yintercept = 0, color = &quot;red&quot;, linetype = &quot;dashed&quot;)  
-gg &lt;- gg +  theme(axis.text = element_text(size = 13),
-        axis.title = element_text(size = 14),
-        strip.text = element_text(size = 14))  
-gg &lt;- gg +  facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg &lt;- gg + geom_hline(yintercept = 0, color = &quot;red&quot;, linetype = &quot;dashed&quot;)  
+gg &lt;- gg + theme(axis.text  = element_text(size = 13),
+                  axis.title = element_text(size = 14),
+                  strip.text = element_text(size = 14))  
+gg &lt;- gg + ggtitle(&quot;Single dosing&quot;)   
+gg &lt;- gg + ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
+gg &lt;- gg + xlab(dose_label)
+gg &lt;- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
 gg &lt;- gg + xgx_annotate_status()
 gg &lt;- gg + xgx_annotate_filenames(dirs)
 
