@@ -42,17 +42,17 @@ pkpd_data <- read.csv(file = "../Data/mt12345.csv", header = T)
 
 #ensure dataset has all the necessary columns
   pkpd_data = pkpd_data %>%
-    mutate(ID      = ID,     #ID   column
-           TIME    = TIM2,   #TIME column name, time from first dose administration 
-           NOMTIME = NTIM, #NOMINAL TIME column name
-           PROFDAY = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
-           PROFTIME = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
-           EVID    = EVID   , #EVENT ID, > = 1 is dose, otherwise measurement
-           LIDV    = LIDV,   #DEPENDENT VARIABLE column name
-           CENS    = CENS,   #CENSORING column name
-           CMT     = CMT,    #COMPARTMENT column
-           DOSE    = RNDDOSE,   #DOSE column here (numeric value)
-           TRTACT  = TRTTXT, #DOSE REGIMEN column here (character, with units), 
+    mutate(ID        = ID,     #ID   column
+           TIME      = TIM2,   #TIME column name, time from first dose administration 
+           NOMTIME   = NTIM, #NOMINAL TIME column name
+           PROFDAY   = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
+           PROFTIME  = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
+           EVID      = EVID   , #EVENT ID, > = 1 is dose, otherwise measurement
+           LIDV      = LIDV,   #DEPENDENT VARIABLE column name
+           CENS      = CENS,   #CENSORING column name
+           CMT       = CMT,    #COMPARTMENT column
+           DOSE      = RNDDOSE,   #DOSE column here (numeric value)
+           TRTACT    = TRTTXT, #DOSE REGIMEN column here (character, with units), 
            LIDV_NORM = LIDV/DOSE, 
            LIDV_UNIT = UNIT, 
            DAY_label = paste("Day", PROFDAY)
@@ -133,7 +133,7 @@ gg <- gg + ggtitle("Multiple dosing")
 gg <- gg + ytitle  
 gg <- gg + xtitle  
 gg <- gg + geom_hline(yintercept = 0,
-             color = "red",linetype = "dashed")  
+                      color = "red", linetype = "dashed")  
 gg <- gg +  scale_x_continuous(breaks = c(-1,7,14))  
 gg <- gg +  theme(axis.text = element_text(size = 13), 
         axis.title = element_text(size = 14), 
@@ -171,9 +171,9 @@ gg <- gg + ggtitle("Single dosing")
 gg <- gg + ytitle + xtitle   
 gg <- gg + geom_hline(yintercept = 0,
              color = "red",linetype = "dashed")   
-gg <- gg + theme(axis.text = element_text(size = 13),
-        axis.title = element_text(size = 14),
-        strip.text = element_text(size = 14))   
+gg <- gg + theme(axis.text  = element_text(size = 13),
+                 axis.title = element_text(size = 14),
+                 strip.text = element_text(size = 14))   
 gg <- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -195,11 +195,11 @@ gg <- gg + xgx_stat_ci(conf_level = 0.975,
                        geom = c("point", "errorbar"), 
                        alpha = 0.5)   
 gg <- gg +  ggtitle("Single dosing")   
-gg <- gg +  ytitle +  xtitle   
+gg <- gg +  ytitle + xtitle   
 gg <- gg +  geom_hline(yintercept = 0, color = "red", linetype = "dashed")  
-gg <- gg +  theme(axis.text = element_text(size = 13),
-        axis.title = element_text(size = 14),
-        strip.text = element_text(size = 14))  
+gg <- gg +  theme(axis.text  = element_text(size = 13),
+                  axis.title = element_text(size = 14),
+                  strip.text = element_text(size = 14))  
 gg <- gg +  facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
