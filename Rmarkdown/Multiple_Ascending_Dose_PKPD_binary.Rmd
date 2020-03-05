@@ -93,8 +93,8 @@ pkpd_data_wide = pd_data %>%
 NCA = pk_data %>%
   group_by(ID, DOSE) %>%
   filter(!is.na(LIDV)) %>%
-  summarize(AUC_last = caTools::trapz(TIME,LIDV),
-            Cmax     = max(LIDV),
+  summarize(AUC_0_24  = caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= 24], LIDV[NOMTIME > 0 & NOMTIME <= 24]), 
+            Cmax_0_24 = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
             SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates and dosing info
             WEIGHTB  = WEIGHTB[1],
             TRTACT_high2low = TRTACT_high2low[1],

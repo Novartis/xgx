@@ -1,5 +1,6 @@
 ---
 title: "PD, Dose-Response - Time to Event"
+author: "Andy Stein, Anwesha Chaudhury, Alison Margolskee"
 output:
   html_document:
     toc: true
@@ -9,65 +10,86 @@ output:
 
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_time_to_event.Rmd).
 
-## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
+library(broom)
+library(knitr)
+library(tidyr)
 library(survival)
 library(survminer)
-library(xgxr, lib.loc = "../Rlib")
+library(xgxr)
+set.seed(123456)
 ```
 
-# Single Time-to-event (e.g. survival)
-Single time-to-event plots should be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response
+# Explore Dose-Response Relationship
 
-## Create dataset
+## Create a Dataset
+
 ```{r warning=FALSE}
-#we are remapping the ecog score to dose for the purposes of
-#creating a realistic looking Kaplan-Meier plot
+#Use the lung dataset to create a fake dose-response dataset
 km_data <- lung %>%
-  dplyr::rename(dose = ph.ecog) %>%
+  mutate(dose = ph.ecog) %>%
   filter(dose!=3) %>%
-  mutate(dose = paste(dose,"mg")) %>%
-  select(time,dose,status)
+  mutate(dose_label = paste(dose," mg")) %>%
+  select(time, dose, dose_label, status, sex)
 
 #these columns are required for your dataset
 km_data <- km_data %>%
-  mutate(dose   = dose,
+  mutate(dose   = dose,   #dose,
          time   = time,   #time of the event (or censoring)
          event  = status) #status: there are a three options for this column (see ?Surv)
-                          #        a) 0 = censored (alive), 1 = dead (event)
-                          #        b) 1 = censored (alive), 2 = dead (event)
-                          #        c) 0 = right censored, 1 = event at time, 
-                          #           2 = left censored,  3 = interval censored.
-
+#        a) 0 = censored (alive), 1 = dead (event)
+#        b) 1 = censored (alive), 2 = dead (event)
+#        c) 0 = right censored, 1 = event at time, 
+#           2 = left censored,  3 = interval censored.
 ```
 
-## Plot Kaplan Meier with Confidence Intervals
+## Plot Kaplan Meier with Confidence Intervals stratifying by dose
+
+Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response.  To see if there's an effect on exposure vs response, look to see if there is separation between the doses.
+
 ```{r warning=FALSE, message=FALSE}
-km_fit <- survfit(Surv(time) ~ dose, data = km_data, conf.int = 0.95)
+km_fit <- survfit(Surv(time, status) ~ dose_label, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
 gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
 print(gg)
 ```
 
-# Repeated Time-to-event
+## Plot Kaplan Meier faceted by exposure quartile for assessing covariates
 
+This plot can help in assessing the impact of a covariate (sex) on outcome.
 
-## Provide an overview of the data
+```{r warning=FALSE, message=FALSE}
+km_fit_sex <- survfit(Surv(time, status) ~ sex, 
+                       data = km_data, 
+                       conf.int = 0.95)
+gg <- ggsurvplot_facet(km_fit_sex, 
+                       km_data, 
+                       facet.by = c("dose_label"),
+                       conf.int = TRUE,
+                       ggtheme = xgx_theme(),
+                       legend.labs = paste0("SEX=",sort(unique(km_data$sex))))
+gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
+print(gg)
+```
 
-### Mean Event Rate over time
+## Performing Cox regression on the above data. 
+In this data only a few variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.  Look for small p values or large hazard ratios to identify covariates that have a large effect.
+
+```{r warning=FALSE, message=FALSE}
+km_cox <- coxph(Surv(time) ~ dose + sex,
+             data =km_data)
+km_cox_summary <- broom::tidy(km_cox) %>%
+  mutate(HR.chg20pct = (1.2)^estimate,
+         HR.chg20pct.conf.low  = 1.2^conf.low,
+         HR.chg20pct.conf.high = 1.2^conf.high) %>%
+  mutate_at(vars(-term),signif,2)
+kable(km_cox_summary)  
+```
+
+## Mean Event Rate over time
 
 For repeated time to event data, the rate of occurance of the events can be plotted. The observed average rate of occurance would be related to the Hazard rate in a time-to-event model. 
 
@@ -83,7 +105,7 @@ Observe the mean event rate, do you see any patterns? Does the event rate increa
 <img src="SiteResources/Event_Rate.png" width=100%>
 
 
-### Mean Cumulative Function
+## Mean Cumulative Function
 
 The mean cumulative function is another way of looking at repeated time-to-event data. The mean cumulative function is the population average of the cumulative number of events over time, and would be related to the Cumulative Hazard in a time-to-event model. 
 
@@ -94,11 +116,6 @@ Calculate the mean cumulative function by ordering all of the events by increasi
 ```
 
 <img src="SiteResources/Mean_Cumulative_Function.png" width=75%>
-
-
-## Explore Dose-Response Relationship
-
-(coming soon)
 
 ## R Session Info
 ```{r}
