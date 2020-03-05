@@ -91,7 +91,7 @@ NCA = pk_data %>%
 
 #add response data at day 1 and 6 to NCA for additional plots
 NCA <- pd_data[pd_data$PROFDAY%in%c(1,6),] %>%
-                       select(ID,PROFDAY,Response = LIDV,TRTACT_low2high) %>%
+                       select(ID,PROFDAY,Response = LIDV,TRTACT_low2high,TRTACT_high2low) %>%
                        merge(NCA, by = c("ID","PROFDAY"))
 NCA$DAY_label <- paste("Day", NCA$PROFDAY)
 
@@ -218,7 +218,7 @@ Plot PD marker against concentration. Do you see any relationship? Does response
 ```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide[pkpd_data_wide$PROFDAY== 5,], aes(x=CONC,y=RESPONSE))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + geom_point(aes(color = TRTACT_low2high))
+gg <- gg + geom_point(aes(color = TRTACT_high2low))
 gg <- gg + geom_point(data=pkpd_data_wide[pkpd_data_wide$CENS==1,], color="red", shape = 8)
 gg <- gg + labs(x=conc_label , y=pd_label)
 gg <- gg + xgx_scale_x_log10() 
@@ -231,7 +231,7 @@ pkpd_data_wide$DAY_label <- paste("Day", pkpd_data_wide$PROFDAY)
 pkpd_data_wide_day13579 <- pkpd_data_wide[pkpd_data_wide$PROFDAY%in%c(1,3,5,7,9),]
 
 gg <- ggplot(data = pkpd_data_wide_day13579,
-             aes(x=CONC,y=RESPONSE, color = TRTACT_low2high))
+             aes(x=CONC,y=RESPONSE, color = TRTACT_high2low))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point()
 gg <- gg + geom_point(data=pkpd_data_wide_day13579[pkpd_data_wide_day13579$CENS==1,], color="red", shape = 8)
@@ -256,7 +256,7 @@ NCA_AUC = NCA_AUC %>%
 
 gg <- ggplot(data = NCA_AUC, aes(x = VALUE, y = Response))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + geom_point(aes(color = TRTACT_low2high)) + geom_smooth(color="black")
+gg <- gg + geom_point(aes(color = TRTACT_high2low)) + geom_smooth(color="black")
 gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "errorbar")
 gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "point", shape = 0, size = 4)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
