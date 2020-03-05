@@ -153,7 +153,7 @@ gg <- gg + labs(y=conc_label)
 gg
 
 #PD data
-gg <- ggplot(data = pd_data[pd_data$DOSE>0,],
+gg <- ggplot(data = pd_data %>% subset(DOSE>0,),
              aes(x=factor(DAY), fill = Severity_high2low))
 gg <- gg + geom_bar(position = "fill")
 gg <- gg + facet_grid(~TRTACT_low2high)
@@ -167,9 +167,9 @@ gg
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide, aes(y=CONC,x=NOMTIME/24))
-gg <- gg + geom_jitter(data = pkpd_data_wide[pkpd_data_wide$CENS==0,],
+gg <- gg + geom_jitter(data = pkpd_data_wide %>% subset(CENS==0,),
                        aes(color = Severity_label, shape = Severity_label),  width = 0.1, height = 0.0, alpha = 0.75)
-gg <- gg + geom_jitter(data = pkpd_data_wide[pkpd_data_wide$CENS==1,],
+gg <- gg + geom_jitter(data = pkpd_data_wide %>% subset(CENS==1,),
                        aes(color = Severity_label, shape = Severity_label), color = "red", shape=8,  width = 0.1, height = 0.0, alpha = 0.75)
 gg <- gg + geom_boxplot(aes(group = factor(NOMTIME/24)),width = 0.5, fill = NA, outlier.shape=NA)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""), shape=guide_legend(""))
@@ -210,7 +210,7 @@ gg <- gg + geom_point(alpha = 0.5)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
                                   units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
-gg <- gg + geom_point(data = pd_data[pd_data$CENS==1,], color="red", shape=8,alpha = 0.5)
+gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
 gg <- gg + labs(y=pdseverity_label)
 gg
 ```
@@ -227,13 +227,13 @@ gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + facet_grid(~TRTACT_low2high)
-gg <- gg + geom_point(data = pk_data[pk_data$CENS==1,], color="red", shape=8, alpha = 0.5)
+gg <- gg + geom_point(data = pk_data %>% subset(CENS==1,), color="red", shape=8, alpha = 0.5)
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + labs(y=conc_label)
 gg
 
 #PD data
-gg <- ggplot(data = pd_data[pd_data$DOSE>0 ,],
+gg <- ggplot(data = pd_data %>% subset(DOSE>0,),
              aes(x=time2, y=Severity2, group=ID))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + facet_grid(~TRTACT_low2high)
@@ -242,7 +242,7 @@ gg <- gg + geom_point(alpha = 0.5)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
                                   units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
-gg <- gg + geom_point(data = pd_data[pd_data$CENS==1,], color="red", shape=8,alpha = 0.5)
+gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
 gg <- gg + labs(y=pdseverity_label)
 gg
 ```
@@ -250,12 +250,12 @@ gg
 ## Explore Exposure-Response Relationship
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
-pkpd_data_wide_d5 <- pkpd_data_wide[pkpd_data_wide$PROFDAY==5,]
+pkpd_data_wide_d5 <- pkpd_data_wide %>% subset(PROFDAY==5,)
 
 gg <- ggplot(data = pkpd_data_wide_d5, aes(y=CONC,x=Severity_label))
-gg <- gg + geom_jitter(data = pkpd_data_wide_d5[pkpd_data_wide_d5$CENS==0,],
+gg <- gg + geom_jitter(data = pkpd_data_wide_d5 %>% subset(CENS==0,),
                        aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0.0, alpha = 0.5)
-gg <- gg + geom_jitter(data = pkpd_data_wide_d5[pkpd_data_wide_d5$CENS==1,],
+gg <- gg + geom_jitter(data = pkpd_data_wide_d5 %>% subset(CENS==1,),
                        color = "red", shape=8,  width = 0.1, height = 0.0, alpha = 0.5)
 gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA)
 gg <- gg + xgx_scale_y_log10()
