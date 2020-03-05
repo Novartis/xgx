@@ -3,11 +3,9 @@ title: "PK/PD, Exposure-Response - Time to Event"
 author: "Andy Stein, Anwesha Chaudhury"
 output:
   html_document:
+    toc: true
+    toc_float: true
     code_folding: hide
-    toc: yes
-    toc_float: yes
-  pdf_document:
-    toc: yes
 ---
 
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_time_to_event.Rmd).
