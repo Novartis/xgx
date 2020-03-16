@@ -1,5 +1,6 @@
 ---
 title: "PD, Dose-Response - Ordinal"
+author: "Alison Margolskee, Fariba Khanshan"
 output:
   html_document:
     toc: true
@@ -16,75 +17,83 @@ Ordinal data can be thought of as categorical data that has a natural order. For
 ## Setup
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep("usr", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
+library(tidyr)
+library(gridExtra)
+library(xgxr)
 
 #flag for labeling figures as draft
-  draft.flag      = TRUE
+status = "DRAFT"
 
 ## ggplot settings
-theme_set(theme_bw(base_size=12))
-
+xgx_theme_set()
 ```
 
-
-## Define Useful Graphics Functions
-
-```{r}
-
-# annotation of plots with status of code
-AnnotateStatus <- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color="grey") {
-  
-  x.pos <- -Inf
-  if (log.x)
-    x.pos <- 0
-  
-  y.pos <- -Inf
-  if (log.y)
-    y.pos <- 0
-  
-  if(draft.flag) {
-    annotateStatus <- annotate("text",
-                               label="DRAFT",
-                               x=x.pos, y=y.pos,
-                               hjust=-0.1, vjust=-1.0,
-                               cex=fontsize,
-                               col=color, alpha=0.7, fontface="bold")
-  } else {
-    annotateStatus <- NULL
-  }
-  
-  return(annotateStatus)
-}
-
-```
 
 ## Load Dataset
 
 ```{r, warning=FALSE, message=FALSE}
 my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
-my.data$TRTACT <- factor(my.data$TRTACT,levels = c("Placebo",paste(unique(my.data$DOSE[my.data$DOSE!=0]),"mg")))
-
+#ensure dataset has all the necessary columns
+my.data = my.data %>%
+  mutate(ID      = ID,     #ID   column
+         TIME    = TIME,   #TIME column name
+         NOMTIME = NOMTIME,#NOMINAL TIME column name
+         EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+         PROFDAY = PROFDAY,#PROFILE DAY day associated with profile, e.g. day of dose administration
+         LIDV    = LIDV,   #DEPENDENT VARIABLE column name
+         CENS    = CENS,   #CENSORING column name
+         CMT     = CMT,    #COMPARTMENT column
+         DOSE    = DOSE,   #DOSE column here (numeric value)
+         TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+         )
 my.data$Severity <- my.data$LIDV
 my.data[my.data$CMT!=5,]$Severity <- NA
 my.data$Severity_label <- factor(plyr::mapvalues(my.data$Severity,c(1,2,3), c("Mild", "Moderate","Severe")), levels = c("Mild","Moderate","Severe"))
 
+#create a factor for the treatment variable for plotting
+my.data$DAY <- floor(my.data$TIME/24 )
+
+my.data = my.data %>%
+  arrange(DOSE) %>%
+  mutate(TRTACT_low2high      = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low      = factor(TRTACT, levels = rev(unique(TRTACT))),
+         Severity_high2low    = factor(Severity_label, levels = rev(levels(Severity_label))))
+
+#create pd dataset
+pd_data <- my.data %>%
+  filter(CMT==5) %>%
+  mutate(Severity2 = jitter(Severity, amount=0.1),
+         time2     = jitter(TIME, amount=0.1*24)
+         )
+
+pd_data$Response <- factor(pd_data$Severity_label, levels = rev(levels(pd_data$Severity_label)))
+pd_data$DAY_label <- paste("Day", pd_data$PROFDAY)
+pd_data$DAY_label[pd_data$DAY_label=="Day 0"] = "Baseline"
+
+#units and labels
+time_units_dataset = "hours"
+time_units_plot    = "days"
+trtact_label       = "Dose"
+dose_label         = "Dose (mg)"
+time_label         = "Time(Days)"
+conc_label         = "Concentration (ng/ml)"
+trough_label       = "Trough Concentration (ng/mL)"
+pdresponse_label   = "Responder Rate (%)"
+pdseverity_label   = "Severity"
+concnorm_label     = "Normalized Concentration (ng/ml)/mg"
+conc_units         = "ng/ml"
+
+#directories for saving individual graphs
+dirs = list(
+parent_dir= tempdir(),
+rscript_dir  = "./",
+rscript_name = "Example.R",
+results_dir  = "./",
+filename_prefix   = "",
+filename     = "Example.png")
 ```
 
 ## Provide an overview of the data
@@ -92,16 +101,14 @@ my.data$Severity_label <- factor(plyr::mapvalues(my.data$Severity,c(1,2,3), c("M
 ### Percent of subjects by response category over time, faceted by dose
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
-data_to_plot <- my.data[my.data$CMT==5,]
-
-data_to_plot$Response <- factor(data_to_plot$Severity_label, levels = rev(levels(data_to_plot$Severity_label)))
-# data_to_plot$Response <- data_to_plot$Severity_label
-
-gg <- ggplot(data = data_to_plot, aes(x = factor(PROFDAY), fill = Response)) + theme_bw()
+gg <- ggplot(data = pd_data, aes(x = factor(PROFDAY), fill = Response))
 gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Responder Rate (%)") + xlab("Time (days)") + guides(fill=guide_legend(""))
+gg <- gg + labs(x=time_label, y=pdresponse_label)
 gg <- gg + scale_fill_brewer(palette=6)
-gg + facet_grid(.~TRTACT)
+gg <- gg + facet_grid(.~TRTACT_low2high)
+gg <- gg + guides(fill=guide_legend(""))
+gg <- gg + xgx_annotate_status(status)
+gg
 ```
 
 
@@ -112,21 +119,17 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 ### Spaghetti plots of ordinal response over time, faceted by dose
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
- 
-data_to_plot <- my.data[my.data$CMT==5,]
-set.seed(12345)
-data_to_plot$Severity2 <- jitter(data_to_plot$Severity, amount=0.1)
-data_to_plot$DAY2 <- jitter(data_to_plot$PROFDAY, amount=0.1)
-
-gg <- ggplot(data = data_to_plot, 
-               aes(x=DAY2,y=Severity2))+theme_bw()
-  gg <- gg + geom_point( size=2, alpha = 0.3) +  geom_line( aes(group = ID), alpha = 0.3) 
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg  + xlab("Time (days)")
-  gg <- gg + facet_grid(~TRTACT)
-    gg <- gg + ylab("Severity") + scale_y_continuous(breaks=c(1,2,3), labels=c("Mild","Moderate","Severe"))
+gg <- ggplot(data = pd_data, aes(x=time2, y=Severity2, group=ID))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + geom_line(alpha = 0.5) + geom_point(alpha = 0.5)
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(0,8*24,24))
+gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
+gg <- gg + labs(y=pdseverity_label)
+gg <- gg + scale_y_continuous(breaks=c(1,2,3), labels=c("Mild","Moderate","Severe"))
 gg
-
 ```
 
 
@@ -137,18 +140,16 @@ Plot individual profiles in order to inspect them for any irregularities. Inspec
 ### Ordinal response over time, faceted by individual, individual line plots
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
- 
-data_to_plot <- my.data[my.data$CMT==5,]
-
-gg <- ggplot(data = data_to_plot, 
-               aes(x=PROFDAY,y=Severity_label))+theme_bw()
-  gg <- gg + geom_point( size=2) +  geom_line( aes(group = ID)) 
-  gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-  gg <- gg  + xlab("Time (days)")+ scale_x_continuous(breaks = seq(0,max(data_to_plot$PROFDAY)+1,7))
-  gg <- gg + facet_wrap(~ID+TRTACT,ncol = length(unique(data_to_plot$ID))/length(unique(data_to_plot$DOSE)) )
-    gg <- gg + ylab("Severity") #+ scale_y_continuous(labels=scales::percent)
+gg <- ggplot(data = pd_data, aes(x=time2,y=Severity_label))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_point( size=2) +  geom_line( aes(group = ID)) 
+gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(0,7*24,7*24))
+gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
+gg <- gg + facet_wrap(~ID+TRTACT,ncol = length(unique(pd_data$ID))/length(unique(pd_data$DOSE)) )
+gg <- gg + labs(y=pdseverity_label)
 gg
-
 ```
 
 ## Explore covariate effects on PD
@@ -160,84 +161,61 @@ gg
 ### Percent of subjects by response category against dose, faceted by time
 
 ```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label=="Day 0"] = "Baseline"
-data_to_plot <- data_to_plot[data_to_plot$DAY_label%in%c("Day 5"),]
+pd_data_d5 <- pd_data[pd_data$DAY_label%in%c("Day 5"),]
 
-# data_to_plot$DAY_label <- factor(data_to_plot$DAY_label, levels = rev(sort(unique(data_to_plot$DAY_label))))
-
-data_to_plot$Response <- factor(data_to_plot$Severity_label, levels = rev(levels(data_to_plot$Severity_label)))
-
-gg <- ggplot(data = data_to_plot, aes(x = factor(DOSE), fill = Response)) + theme_bw()
+gg <- ggplot(data = pd_data_d5, aes(x = factor(DOSE), fill = Response)) 
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Responder Rate (%)") + xlab("Dose (mg)") + guides(fill=guide_legend(""))
+gg <- gg + labs(x=dose_label, y=pdresponse_label) + guides(fill=guide_legend(""))
 gg <- gg + scale_fill_brewer(palette=6)
-gg + facet_grid(.~DAY_label)
+gg <- gg + facet_grid(.~DAY_label)
+gg
 ```
 
 
 ### Percent of subjects by response category against dose, faceted by day
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
-data_to_plot <- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label=="Day 0"] = "Baseline"
-data_to_plot <- data_to_plot[data_to_plot$DAY_label%in%c("Day 1","Day 3","Day 5"),]
+pd_data_d135 <- pd_data[pd_data$DAY_label%in%c("Day 1","Day 3","Day 5"),]
 
-# data_to_plot$DAY_label <- factor(data_to_plot$DAY_label, levels = rev(sort(unique(data_to_plot$DAY_label))))
-
-data_to_plot$Response <- factor(data_to_plot$Severity_label, levels = rev(levels(data_to_plot$Severity_label)))
-
-gg <- ggplot(data = data_to_plot, aes(x = factor(DOSE), fill = Response)) + theme_bw()
+gg <- ggplot(data = pd_data_d135, aes(x = factor(DOSE), fill = Response)) 
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Responder Rate (%)") + xlab("Dose (mg)") + guides(fill=guide_legend(""))
+gg <- gg + labs(x=dose_label, y=pdresponse_label) + guides(fill=guide_legend(""))
 gg <- gg + scale_fill_brewer(palette=6)
-gg + facet_grid(.~DAY_label)
+gg <- gg + facet_grid(.~DAY_label)
+gg
 ```
 
 ### Ordinal response against dose
 
 ```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label=="Day 0"] = "Baseline"
-data_to_plot <- data_to_plot[data_to_plot$DAY_label%in%c("Day 5"),]
-
-
-data_to_plot$TRTACT <- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg <- ggplot(data = data_to_plot, aes(y=DOSE,x=Severity_label))+theme_bw()
-gg <- gg + geom_jitter(data = data_to_plot, 
-                       aes(color = TRTACT), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+gg <- ggplot(data = pd_data_d5, aes(y=DOSE,x=Severity_label))
+gg <- gg + geom_jitter(data = pd_data_d5, 
+                       aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + coord_flip() 
-gg <- gg + xlab("Severity") + ylab("Dose (mg)")
-gg + facet_grid(.~DAY_label)
-
+gg <- gg + labs(y=dose_label,x=pdseverity_label)
+gg <- gg + facet_grid(.~DAY_label)
+gg
 ```
 
 ### Ordinal response against dose, faceted by day
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
-data_to_plot <- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label=="Day 0"] = "Baseline"
-data_to_plot <- data_to_plot[data_to_plot$DAY_label%in%c("Day 1","Day 3","Day 5"),]
-
-
-data_to_plot$TRTACT <- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg <- ggplot(data = data_to_plot, aes(y=DOSE,x=Severity_label))+theme_bw()
-gg <- gg + geom_jitter(data = data_to_plot, 
+gg <- ggplot(data = pd_data_d135, aes(y=DOSE,x=Severity_label))+theme_bw()
+gg <- gg + geom_jitter(data = pd_data_d135, 
                        aes(color = TRTACT), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + coord_flip() 
 gg <- gg + xlab("Severity") + ylab("Dose (mg)")
-gg + facet_grid(.~DAY_label)
-
+gg <- gg + facet_grid(.~DAY_label)
+gg <- gg + labs(y=dose_label,x=pdseverity_label)
+gg
 ```
 
 
