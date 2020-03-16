@@ -8,25 +8,16 @@ output:
 ---
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
+library(tidyr)
+library(xgxr)
 
-theme_set(theme_bw(base_size=12))
+#flag for labeling figures as draft
+status = "DRAFT"
 
+## ggplot settings
+xgx_theme_set()
 ```
 
 ## Provide an overview of the data
