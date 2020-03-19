@@ -34,10 +34,10 @@ xgx_theme_set()
 ## Load Dataset
 
 ```{r, warning=FALSE, message=FALSE}
-my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
 #ensure dataset has all the necessary columns
-my.data = my.data %>%
+pkpd_data = pkpd_data %>%
   mutate(ID      = ID,     #ID   column
          TIME    = TIME,   #TIME column name
          NOMTIME = NOMTIME,#NOMINAL TIME column name
@@ -48,22 +48,23 @@ my.data = my.data %>%
          CMT     = CMT,    #COMPARTMENT column
          DOSE    = DOSE,   #DOSE column here (numeric value)
          TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+         Severity= LIDV
          )
-my.data$Severity <- my.data$LIDV
-my.data[my.data$CMT!=5,]$Severity <- NA
-my.data$Severity_label <- factor(plyr::mapvalues(my.data$Severity,c(1,2,3), c("Mild", "Moderate","Severe")), levels = c("Mild","Moderate","Severe"))
+
+pkpd_data[pkpd_data$CMT!=5,]$Severity <- NA
+pkpd_data$Severity_label <- factor(plyr::mapvalues(pkpd_data$Severity,c(1,2,3), c("Mild", "Moderate","Severe")), levels = c("Mild","Moderate","Severe"))
 
 #create a factor for the treatment variable for plotting
-my.data$DAY <- floor(my.data$TIME/24 )
+pkpd_data$DAY <- floor(pkpd_data$TIME/24 )
 
-my.data = my.data %>%
+pkpd_data = pkpd_data %>%
   arrange(DOSE) %>%
   mutate(TRTACT_low2high      = factor(TRTACT, levels = unique(TRTACT)),
          TRTACT_high2low      = factor(TRTACT, levels = rev(unique(TRTACT))),
          Severity_high2low    = factor(Severity_label, levels = rev(levels(Severity_label))))
 
 #create pd dataset
-pd_data <- my.data %>%
+pd_data <- pkpd_data %>%
   filter(CMT==5) %>%
   mutate(Severity2 = jitter(Severity, amount=0.1),
          time2     = jitter(TIME, amount=0.1*24)
@@ -161,7 +162,7 @@ gg
 ### Percent of subjects by response category against dose, faceted by time
 
 ```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
-pd_data_d5 <- pd_data[pd_data$DAY_label%in%c("Day 5"),]
+pd_data_d5 <- pd_data %>% subset(DAY_label%in%c("Day 5"),)
 
 gg <- ggplot(data = pd_data_d5, aes(x = factor(DOSE), fill = Response)) 
 gg <- gg + xgx_annotate_status(status)
@@ -176,7 +177,7 @@ gg
 ### Percent of subjects by response category against dose, faceted by day
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
-pd_data_d135 <- pd_data[pd_data$DAY_label%in%c("Day 1","Day 3","Day 5"),]
+pd_data_d135 <- pd_data %>% subset(DAY_label%in%c("Day 1","Day 3","Day 5"),)
 
 gg <- ggplot(data = pd_data_d135, aes(x = factor(DOSE), fill = Response)) 
 gg <- gg + xgx_annotate_status(status)
