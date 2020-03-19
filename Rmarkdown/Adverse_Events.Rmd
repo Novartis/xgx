@@ -34,28 +34,52 @@ The plots presented here are based on merged safety data with a popPK model gene
 
 ```{r, warning=FALSE, message=FALSE}
 auc <- read.csv("../Data/AUC_Safety.csv")
-my.data <- read.csv("../Data/AE_xgx.csv")
-my.data$DOSE_label <- paste(my.data$Dose,"mg")
-my.data <- arrange(my.data, -Dose)
-my.data$DOSE_label <- factor(my.data$DOSE_label,levels = c(paste(unique(my.data$Dose),"mg")))
+ae.data <- read.csv("../Data/AE_xgx.csv")
+ae.data$DOSE_label <- paste(ae.data$Dose,"mg")
+ae.data = ae.data %>%
+  arrange(DOSE_label) %>%
+  mutate(DOSE_label_low2high      = factor(DOSE_label, levels = unique(DOSE_label)),
+         DOSE_label_high2low      = factor(DOSE_label, levels = rev(unique(DOSE_label))))
+
+#ensure dataset has all the necessary columns
+ae.data = ae.data %>%
+  mutate(SUBJID      = SUBJID,           # ID   column
+         DAY         = DAY,              # Day of the AE
+         time        = time,             # time of the AE in (h)
+         Dose        = Dose,             # DOSE column here (numeric value)
+         AUC         = AUC,              # Cumulative AUC at AE day
+         Cmax        = Cmax,             # Cmax at AE day
+         Cmin        = Cmin,             # Cmin at AE day\
+         AUCDAY1     = AUCDAY1,          # AUC at day 1
+         AUCAVE      = AUCAVE,           #	Average AUC up to the AE day
+         AETOXGRS    = AETOXGRS,         #	AE grades (Character)
+         AETOXGRDN   = AETOXGRDN,        #	AE grades (numenric)
+         AE          = AE,               #	Binary YES/NO AE
+         )
+
+auc = auc %>%
+  mutate(SUBJID       = SUBJID, 	      # Subject ID
+         time_hr      =time_hr,         #	Simulation time in (h)
+         AUC_popPK    = AUC_popPK,      # Cumulative AUC from popPK model
+         Cmax_popPK   = Cmax_popPK,     #	Cmax from popPK
+         Cmin_popPK   = Cmin_popPK      #	Cmin from popPK
+         )
 
 # add binary 0 and 1 colun to the dataset
-my.data$AE_binary <- as.numeric(as.character( plyr::mapvalues(my.data$AE,
+ae.data$AE_binary <- as.numeric(as.character( plyr::mapvalues(ae.data$AE,
                                                                c('Yes','No'), 
                                                                c(1, 0)) ))
-auc_my_data <- auc %>%
-  left_join(my.data  ,by="SUBJID")
+
+# AUC dataset for additional plots
+ae.data = ae.data %>%
+  mutate(AUC_bins = cut(AUCAVE, quantile(AUCAVE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
+  group_by(AUC_bins) %>%
+  mutate(AUC_midpoints = median(AUCAVE))
 
 # Function to add number of subjects in each group
 n_fun <- function(x){
   return(data.frame(y = median(x)*0.01, label = paste0("n = ",length(x))))
 }
-
-# AUC dataset for additional plots
-my.data = my.data %>%
-  mutate(AUC_bins = cut(AUCAVE, quantile(AUCAVE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
-  group_by(AUC_bins) %>%
-  mutate(AUC_midpoints = median(AUCAVE))
 
 #units and labels
 time_units_dataset = "hours"
@@ -90,12 +114,12 @@ These plots are looking at the AUC (or Cmax and Ctrough) for patients with the A
 ### AUC vs Dose group by AE 
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
-gg <- ggplot(data= my.data,aes(x=factor(Dose), y=AUCAVE, fill=factor(AE))) 
-gg <- gg + geom_boxplot(data=my.data,aes(x=factor(Dose),y=AUCAVE, fill=factor(AE)),outlier.shape = NA)
+gg <- ggplot(data= ae.data,aes(x=factor(Dose), y=AUCAVE, fill=factor(AE))) 
+gg <- gg + geom_boxplot(data=ae.data,aes(x=factor(Dose),y=AUCAVE, fill=factor(AE)),outlier.shape = NA)
 gg <- gg + geom_point(color="black",binaxis='y', stackdir='center',dotsize=0.5,
                    position=position_jitterdodge(0.27))
 gg <- gg + guides(color=guide_legend(""))
-gg <- gg + stat_summary(data=my.data, fun.data = n_fun, geom = "text",
+gg <- gg + stat_summary(data=ae.data, fun.data = n_fun, geom = "text",
                      fun.y=mean, position = position_dodge(width = 0.75)) 
 gg <- gg + scale_fill_discrete(name="AE occurrence:")
 gg <- gg + ylab("")
@@ -111,9 +135,9 @@ gg
 Plot binary AE occurrence against AUC or Cmax.
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
-gg <- ggplot(data = my.data, aes(y=AUCAVE,x=AE))
-gg <- gg + geom_jitter(data = my.data, 
-                       aes(color = DOSE_label), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+gg <- ggplot(data = ae.data, aes(y=AUCAVE,x=AE))
+gg <- gg + geom_jitter(data = ae.data, 
+                       aes(color = DOSE_label_high2low), shape=19,  width = 0.1, height = 0, alpha = 0.5)
 gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + coord_flip() 
@@ -132,7 +156,7 @@ Here are some questions to ask yourself when looking at Dose-safety plots: Do yo
 
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
-gg1 <- ggplot(data = my.data, aes(x=Dose,y=AE_binary))
+gg1 <- ggplot(data = ae.data, aes(x=Dose,y=AE_binary))
 gg1 <- gg1 + geom_smooth( method = "glm",method.args=list(family=binomial(link = logit)), color = "black")
 gg1 <- gg1 + xgx_stat_ci(conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
 gg1 <- gg1 + xgx_stat_ci(conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
@@ -142,7 +166,7 @@ gg1 <- gg1 + labs(y=aeprob_label,x=dose_label)
 gg1 <- gg1 + xgx_annotate_status(status)
 
 ## Same plot but on a log scale
-gg2 <- gg1 + xgx_scale_x_log10(breaks=unique(my.data$Dose)) 
+gg2 <- gg1 + xgx_scale_x_log10(breaks=unique(ae.data$Dose)) 
 
 #put linear and log scale plots side-by-side:
 grid.arrange(gg1, gg2, ncol=2)
@@ -156,8 +180,8 @@ Plot AE against exposure. Include a logistic regression for binary data to help 
 
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
-gg <- ggplot(data = my.data, aes(x=AUCAVE,y=AE_binary))
-gg <- gg + geom_jitter(aes( color = DOSE_label), width = 0, height = 0.05, alpha = 0.5) 
+gg <- ggplot(data = ae.data, aes(x=AUCAVE,y=AE_binary))
+gg <- gg + geom_jitter(aes( color = DOSE_label_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth( method = "glm",method.args=list(family=binomial(link = logit)), color = "black")
 gg <- gg + xgx_stat_ci(mapping = aes(x = AUC_midpoints, y = AE_binary), 
                        conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
@@ -177,7 +201,7 @@ The plot below shows time vs AUC from a pop PK model at each day. The colored do
 
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- my.data[!is.na(my.data$AETOXGRDN), ]
+data_to_plot <- ae.data %>% subset(!is.na(AETOXGRDN),)
 gg <- ggplot()
 gg <- gg + geom_jitter(data=auc %>% subset(AUC_day<30,), 
                        aes(x=AUC_day, y=AUC_popPK/AUC_day, group=AUC_day),
