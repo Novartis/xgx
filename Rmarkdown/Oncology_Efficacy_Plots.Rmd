@@ -38,17 +38,20 @@ xgx_theme_set()
 
 
 ```{r, warning=FALSE, message=FALSE}
-my.data <- read.csv("../Data/Oncology_Efficacy_Data.csv")
+recist.data <- read.csv("../Data/Oncology_Efficacy_Data.csv")
 dose_record <- read.csv("../Data/Oncology_Efficacy_Dose.csv")
-my.data$DOSE_label <- paste(my.data$DOSE_ABC,"mg")
+recist.data$MONO_DOSE_label <- paste(recist.data$DOSE_ABC,"mg")
+recist.data$COMBO_DOSE_label <- paste(recist.data$DOSE_DEF,"mg")
 
-my.data = my.data %>%
-  arrange(DOSE_label) %>%
-  mutate(DOSE_label_low2high      = factor(DOSE_label, levels = unique(DOSE_label)),
-         DOSE_label_high2low      = factor(DOSE_label, levels = rev(unique(DOSE_label))))
+recist.data = recist.data %>%
+  arrange(MONO_DOSE_label,COMBO_DOSE_label) %>%
+  mutate(MONO_DOSE_label_low2high            = factor(MONO_DOSE_label, levels = unique(MONO_DOSE_label)),
+         MONO_DOSE_label_high2low            = factor(MONO_DOSE_label, levels = rev(unique(MONO_DOSE_label))),
+         COMBO_DOSE_label_low2high           = factor(COMBO_DOSE_label, levels = unique(COMBO_DOSE_label)),
+         COMBO_DOSE_label_high2low           = factor(COMBO_DOSE_label, levels = rev(unique(COMBO_DOSE_label))))
 
 #ensure dataset has all the necessary columns
-my.data = my.data %>%
+recist.data = recist.data %>%
   mutate(IDSHORT      =  IDSHORT,         #ID   column
          BOR          =  BOR,             #Best Overal Response
          BPCHG        =  BPCHG,           #Best Percent Change from Baseline
@@ -75,8 +78,8 @@ dose_record = dose_record %>%
          )
 
 # make single agent and combo datsets
-my.data.monotherapy = my.data %>% filter(COMB=="Single")
-my.data.combo = my.data %>% filter(COMB=="Combo")
+recist.data.monotherapy = recist.data %>% filter(COMB=="Single")
+recist.data.combo = recist.data %>% filter(COMB=="Combo")
 
 # Dose record data preparation for making step function plot
 # in order to show any dose reduction during the study
@@ -112,12 +115,12 @@ dose_label             = "Dose (mg)"
 time_label             = "Time(Days)"
 timemonth_label        = "Time (months)"
 sld_label              = "Percent Change in\nSum of Longest Diameters"
-sadose_label           = "ABC123 Dose (mg)"
-combodose_label        = "DEF456 Dose (mg)"
+mono_dose_label        = "ABC123 Dose (mg)"
+combo_dose_label       = "DEF456 Dose (mg)"
 bpchg_label            = "Best Percent Change \n in Tumor Size (%)"
-saauc_label            = "ABC123 AUC0-24 (ng.h/ml)"
-saaveauc_label         = "Average ABC123 dose (mg) \n up to the first assessment"
-bpchgfirstassess_label = " Percent Change in Tumor Size \n up to the first assessment"
+mono_auc_label         = "ABC123 AUC0-24 (ng.h/ml)"
+mono_aveauc_label      = "Average ABC123 dose (mg) \n up to the first assessment"
+first_pchg_label       = " Percent Change in Tumor Size \n up to the first assessment"
 rr_label               = "Response Rate (%)"
 
 #directories for saving individual graphs
@@ -153,8 +156,8 @@ We recommend stratifying the spaghetti plots of target lesion kinetics by dose s
 
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
-gg <- ggplot(data= my.data.monotherapy,aes(x=TIME, y=psld)) 
-gg <- gg + geom_line(aes(group=IDSHORT, color =factor(DOSE_label_high2low)))
+gg <- ggplot(data= recist.data.monotherapy,aes(x=TIME, y=psld)) 
+gg <- gg + geom_line(aes(group=IDSHORT, color =factor(MONO_DOSE_label_high2low)))
 gg <- gg + geom_point(alpha=.3,colour="black")
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + geom_hline(yintercept = 0.0, linetype="dashed")
@@ -169,11 +172,11 @@ gg
 ### Change from baseline plot, faceted by Dose
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
-gg <- ggplot(data=my.data.monotherapy,aes(x=TIME, y=psld)) 
+gg <- ggplot(data=recist.data.monotherapy,aes(x=TIME, y=psld)) 
 gg <- gg + geom_line(aes(group=IDSHORT))
 gg <- gg + geom_point(alpha=.3,colour="black")
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + facet_grid(~DOSE_label)
+gg <- gg + facet_grid(~MONO_DOSE_label)
 gg <- gg + geom_hline(yintercept = 0.0, linetype="dashed")
 gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot ="month")
@@ -197,7 +200,7 @@ Example 1, longitudinal model won't be informative:
 # "OR" can be substituted with other information, such as non-target, new target lesions
 #  make the OR label for the plot
 
-my.data.label <- my.data %>%
+recist.data.label <- recist.data %>%
   group_by(IDSHORT) %>%
   mutate(label_psld = as.numeric(ifelse(TIME==TIME_OR , psld,""))) %>%
   filter(!(is.na(label_psld) | label_psld==""))
@@ -208,14 +211,14 @@ dose_scale = 1.2
 data_areaStep.monotherapy = data_areaStep.monotherapy %>%
   mutate(dose_shift = DOSE/dose_scale+dose_shift)
 
-dose_unique = c(0,unique(my.data.monotherapy$DOSE_ABC))
+dose_unique = c(0,unique(recist.data.monotherapy$DOSE_ABC))
 
-data_tumor = my.data.monotherapy
+data_tumor = recist.data.monotherapy
 data_dose_step = data_areaStep.monotherapy
 
 gg <- ggplot(data = data_tumor)
 gg <- gg + geom_point(mapping = aes(y= psld, x= TIME))
-gg <- gg + geom_text(data= my.data.label,aes(y= label_psld, x= TIME_OR, label=OR), vjust=-.5)
+gg <- gg + geom_text(data= recist.data.label,aes(y= label_psld, x= TIME_OR, label=OR), vjust=-.5)
 gg <- gg + geom_hline(aes(yintercept = 0),size=0.25,linetype="dashed", colour="red")
 gg <- gg + geom_line(mapping = aes(y= psld, x= TIME))
 gg <- gg + geom_ribbon(data = data_dose_step,
@@ -247,11 +250,11 @@ To visualize dose-response (exposure-response), we recommend plotting the assign
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 gg <- ggplot()
-gg <- gg + geom_point(data=my.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG),color="tomato")
-gg <- gg + scale_x_continuous(breaks=unique(my.data.monotherapy$DOSE_ABC))
+gg <- gg + geom_point(data=recist.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG),color="tomato")
+gg <- gg + scale_x_continuous(breaks=unique(recist.data.monotherapy$DOSE_ABC))
 gg <- gg + geom_hline(yintercept=0,color="grey50", linetype = "dashed")
 gg <- gg + scale_y_continuous(labels=scales::percent)
-gg <- gg + labs(x=sadose_label, y=bpchg_label)
+gg <- gg + labs(x=mono_dose_label, y=bpchg_label)
 gg <- gg + theme(legend.title=element_blank())
 gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
@@ -260,10 +263,10 @@ gg
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 gg <- ggplot()
-gg <- gg + geom_point(data=my.data.monotherapy,aes(x=auc0_24,y=BPCHG), color="tomato")
+gg <- gg + geom_point(data=recist.data.monotherapy,aes(x=auc0_24,y=BPCHG), color="tomato")
 gg <- gg + geom_hline(yintercept=0,color="grey50", linetype = "dashed")
 gg <- gg + scale_y_continuous(labels=scales::percent)
-gg <- gg + labs(x=saauc_label, y=bpchg_label)
+gg <- gg + labs(x=mono_auc_label, y=bpchg_label)
 gg <- gg + theme(legend.title=element_blank())
 gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
@@ -277,16 +280,16 @@ One way to avoid this issue is to plot average dose intensity up to the first as
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 # Do it only for monoteraphy, it can be repeated for combo
 dose_intensity <- dose_intensity[dose_intensity$COMB=="Single",]
-my.data.assessment <-  my.data.monotherapy %>%
+recist.data.assessment <-  recist.data.monotherapy %>%
   merge(dose_intensity  ,by="IDSHORT")
 
 gg <- ggplot()
-gg <- gg + geom_point(data=my.data.assessment %>% subset(TIME==first.assess.time,),
+gg <- gg + geom_point(data=recist.data.assessment %>% subset(TIME==first.assess.time,),
                       aes(x=ave_dose_intensity ,
                           y=psld),color="tomato")
 gg <- gg + scale_x_continuous(breaks=c(20,40, 60, 74,78,90))
 gg <- gg + geom_hline(yintercept=0,color="grey50", linetype = "dashed")
-gg <- gg + labs(x=saaveauc_label, y= bpchgfirstassess_label)
+gg <- gg + labs(x=mono_aveauc_label, y= first_pchg_label)
 gg <- gg + theme(legend.title=element_blank())
 gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
@@ -302,15 +305,14 @@ When two drugs are combined (ABC123 + DEF456), it can be a useful first step to 
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message= FALSE} 
 gg <- ggplot()
-gg <- gg + geom_point(data=my.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG, color="ABC123"))
-gg <- gg + geom_point(data=my.data.combo,aes(x=DOSE_ABC,y=BPCHG, 
-                                          color = factor(DOSE_DEF, labels = c("ABC123 + 400 mg DEF456", "ABC123 + 300 mg DEF456"))))
-gg <- gg + labs(color = "DEF456 (mg) dose")
+gg <- gg + geom_point(data=recist.data.combo,aes(x=DOSE_ABC,y=BPCHG, 
+                                          color = paste0("ABC123 + ", COMBO_DOSE_label_high2low, " DEF456")))
+gg <- gg + geom_point(data=recist.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG, color="ABC123"))
+gg <- gg + labs(color = "DEF456 (mg) dose:")
 gg <- gg + geom_hline(yintercept=0,color="grey50", linetype = "dashed")
-gg <- gg + scale_x_continuous(breaks=unique(my.data.monotherapy$DOSE_ABC))
-gg <- gg + labs(x=sadose_label,y=bpchg_label)
+gg <- gg + scale_x_continuous(breaks=unique(recist.data.monotherapy$DOSE_ABC))
+gg <- gg + labs(x=mono_dose_label,y=bpchg_label)
 gg <- gg + scale_y_continuous(labels=scales::percent)
-gg <- gg + theme(legend.title=element_blank())
 gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
 gg
@@ -318,13 +320,11 @@ gg
 
 
 ```{r, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message= FALSE} 
-gg <- ggplot(data=my.data.combo,aes(x=DOSE_DEF,y=BPCHG))
-gg <- gg + geom_point(aes( color= factor(DOSE_ABC,labels=c("+ 60 mg ABC123",
-                                                           "+ 40 mg ABC123",
-                                                           "+ 20 mg ABC123"))))
+gg <- ggplot(data=recist.data.combo,aes(x=DOSE_DEF,y=BPCHG))
+gg <- gg + geom_point(aes( color= paste0("+ ", MONO_DOSE_label_low2high, " ABC123")))
 gg <- gg + geom_hline(yintercept=0,color="grey50", linetype = "dashed")
-gg <- gg + scale_x_continuous(breaks=unique(my.data.combo$DOSE_DEF))
-gg <- gg + labs(x=combodose_label,y=bpchg_label)
+gg <- gg + scale_x_continuous(breaks=unique(recist.data.combo$DOSE_DEF))
+gg <- gg + labs(x=combo_dose_label,y=bpchg_label)
 gg <- gg + scale_y_continuous(labels=scales::percent)
 gg <- gg + theme(legend.title=element_blank())
 gg <- gg + theme(text = element_text(size=15))
@@ -337,14 +337,14 @@ gg
 For most of the oncology clinical trials, the standard primary and secondary endpoints are Overall Survival (OS), Progression Free Survival (PFS), duration without progression (PD) or death, and Overall Response Rate (ORR). Dose vs ORR at each dose can be informative.
 
 ```{r, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE}
-gg <- ggplot(data = my.data.combo, aes(x=DOSE_ABC,y=PR_rate))
+gg <- ggplot(data = recist.data.combo, aes(x=DOSE_ABC,y=PR_rate))
 gg <- gg + xgx_stat_ci(mapping = aes(x = DOSE_ABC, y = binary_BOR ,group=DOSE_ABC), 
                        conf_level = 0.95, distribution = "binomial", geom = c("point"), size = 4, color="tomato")
 gg <- gg + xgx_stat_ci(mapping = aes(x = DOSE_ABC, y = binary_BOR , group=DOSE_ABC), 
                        conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
-gg <- gg + scale_x_continuous(breaks=unique(my.data[my.data$COMB=="Combo",]$DOSE_ABC))
+gg <- gg + scale_x_continuous(breaks=unique(recist.data[recist.data$COMB=="Combo",]$DOSE_ABC))
 gg <- gg + scale_y_continuous(labels=scales::percent)
-gg <- gg + labs(x= sadose_label, y= rr_label)  
+gg <- gg + labs(x= mono_dose_label, y= rr_label)  
 gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
 gg
@@ -354,22 +354,22 @@ gg
 ### Best Overall Response (BOR) plot for combo therapy
 
 ```{r, cache = TRUE, fig.width = 14, fig.height = 7, warning = FALSE, message= FALSE}
-gg <-  ggplot(data=my.data.combo,aes(x=DOSE_ABC ,y=DOSE_DEF,fill=PR_rate))
+gg <-  ggplot(data=recist.data.combo,aes(x=DOSE_ABC ,y=DOSE_DEF,fill=PR_rate))
 gg <- gg + scale_fill_gradient(low="orange", high="green")
-gg <- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=20,y=30,yend=30), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=20,xend=20,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=40,y=30,yend=30), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=40,xend=40,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=60,y=30,yend=30), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=60,xend=60,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=-Inf,xend=40,y=40,yend=40), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_segment(data=my.data.combo, aes(x=40,xend=40,y=-Inf,yend=40), color=rgb(0.5,0.5,0.5))
-gg <- gg + geom_label(data=unique(my.data.combo[,c("DOSE_DEF","DOSE_ABC","PR_rate","n","count_cr_pr")]),
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=-Inf,xend=20,y=30,yend=30), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=20,xend=20,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=-Inf,xend=40,y=30,yend=30), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=40,xend=40,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=-Inf,xend=60,y=30,yend=30), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=60,xend=60,y=-Inf,yend=30), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=-Inf,xend=40,y=40,yend=40), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_segment(data=recist.data.combo, aes(x=40,xend=40,y=-Inf,yend=40), color=rgb(0.5,0.5,0.5))
+gg <- gg + geom_label(data=unique(recist.data.combo[,c("DOSE_DEF","DOSE_ABC","PR_rate","n","count_cr_pr")]),
                       aes(x=DOSE_ABC ,y=DOSE_DEF*1.00,fontface=2, label=paste0(round(PR_rate,2)*100,
                                                                                "% ORR \nn=",n,"\nn(CR|PR)=",count_cr_pr)))
 gg <- gg + scale_x_continuous(breaks=c(20, 40, 60)) 
 gg <- gg + scale_y_continuous(breaks=c(30, 40)) 
-gg <- gg + labs(x=sadose_label , y= combodose_label)
+gg <- gg + labs(x=mono_dose_label , y= combo_dose_label)
 gg <- gg + theme(legend.title = element_blank(), 
                  plot.title=element_text(hjust=0.5),
                  text = element_text(size=20),
