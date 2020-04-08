@@ -7,8 +7,10 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Alison Margolskee, Kostas Biliouris" />
 
 
 <title>PD - Multiple Ascending Dose - Realistic Data</title>
@@ -85,9 +87,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -101,13 +101,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -123,7 +128,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -143,6 +147,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -164,55 +205,68 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -261,8 +315,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -271,6 +323,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -364,7 +426,7 @@ div.tocify {
       <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
     </li>
     <li>
-      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints (RECIST)</a>
     </li>
     <li>
       <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using realistic data</a>
@@ -418,7 +480,7 @@ div.tocify {
       <a href="Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx">Fundamental PD Principles Introduction</a>
     </li>
     <li>
-      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncernainty Assessment - Pedigree Table</a>
+      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncertainty Assessment - Pedigree Table</a>
     </li>
   </ul>
 </li>
@@ -511,6 +573,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">PD - Multiple Ascending Dose - Realistic Data</h1>
+<h4 class="author">Alison Margolskee, Kostas Biliouris</h4>
 
 </div>
 
@@ -526,183 +589,177 @@ div.tocify {
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
-<pre class="r"><code># remove reference to home directory in libPaths
-.libPaths(grep(&quot;home&quot;, .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep(&quot;usr&quot;, .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c(&quot;localLib&quot;, .libPaths()))
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
+<pre class="r"><code># library(rmarkdown)
 library(ggplot2)
 library(dplyr)
-library(RxODE)
 library(caTools)
+library(xgxr)
 
-theme_set(theme_bw(base_size=12))</code></pre>
+#flag for labeling figures as draft
+status = &quot;DRAFT&quot;
+
+## ggplot settings
+xgx_theme_set()</code></pre>
 </div>
 <div id="loading-dataset" class="section level2">
 <h2>Loading dataset</h2>
-<pre class="r"><code>data_all&lt;- read.csv(file=&quot;../Data/mt12345.csv&quot;, header=T)
-##Remove data from Part 3 and placebo
-data_all&lt;-data_all[data_all$ID&lt;1109|data_all$ID&gt;1117,]
+<pre class="r"><code>pkpd_data &lt;- read.csv(file = &quot;../Data/mt12345.csv&quot;, header = T)
 
-##Remove negative times
-data_all&lt;-data_all[data_all$NTIM&gt;=0,]
+#ensure dataset has all the necessary columns
+  pkpd_data = pkpd_data %&gt;%
+    mutate(ID        = ID,     #ID   column
+           TIME      = TIM2,   #TIME column name, time from first dose administration 
+           NOMTIME   = NTIM, #NOMINAL TIME column name
+           PROFDAY   = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
+           PROFTIME  = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
+           EVID      = EVID   , #EVENT ID, &gt; = 1 is dose, otherwise measurement
+           LIDV      = LIDV,   #DEPENDENT VARIABLE column name
+           CENS      = CENS,   #CENSORING column name
+           CMT       = CMT,    #COMPARTMENT column
+           DOSE      = RNDDOSE,   #DOSE column here (numeric value)
+           TRTACT    = TRTTXT, #DOSE REGIMEN column here (character, with units), 
+           LIDV_NORM = LIDV/DOSE, 
+           LIDV_UNIT = UNIT, 
+           DAY_label = paste(&quot;Day&quot;, PROFDAY)
+    )
 
-##Remove duplicates
-data_all&lt;-data_all[!duplicated(data_all),]
+# data cleaning
+pkpd_data &lt;- pkpd_data %&gt;% 
+  subset(ID &lt; 1109 | ID &gt; 1117,) %&gt;% #Remove data from Part 3 and placebo
+  # subset(NOMTIME&gt; = 0,) %&gt;% # Remove negative times
+  unique() %&gt;%
+  group_by(ID) %&gt;%
+  mutate(MAD = ifelse(sum(EVID) &gt; 1, 1, 0)) %&gt;% # Identify multiple dose subjects
+  ungroup()
 
-##Find multiple_dosing IDs 
-IDs&lt;-unique(data_all$ID)
-multiple_dosing_IDs&lt;-NULL
-single_dosing_IDs&lt;-NULL
-k&lt;-0
-l&lt;-0
-for (i in IDs){
-  if (length(which(data_all$EVID[data_all$ID==i]==1))&gt;1){
-    k&lt;-k+1
-    multiple_dosing_IDs[k]&lt;-i
-  }else{l&lt;-l+1
-        single_dosing_IDs[l]&lt;-i}
-}
+pk_data &lt;- pkpd_data %&gt;% subset(CMT == 2)
 
-##Take info for generating the dosing times
-data_dosing&lt;-NULL
-data_dosing$ID&lt;-data_all$ID[data_all$EVID==1&amp;data_all$RNDDOSE!=0]
-data_dosing$NTIM&lt;-data_all$NTIM[data_all$EVID==1&amp;data_all$RNDDOSE!=0]
-data_dosing$DV&lt;-12000
-data_dosing$DOSE&lt;-data_all$DOSE[data_all$EVID==1&amp;data_all$RNDDOSE!=0]
-data_dosing&lt;-as.data.frame(data_dosing)
+pd_data &lt;- pkpd_data %&gt;% 
+  subset(CMT == 13) %&gt;% 
+  subset(CENS == 0) %&gt;%
+  group_by(ID) %&gt;%
+  mutate(CHG = LIDV - LIDV[NOMTIME == 0]) ##create column with change from baseline
 
-data_all$DAY = data_all$NTIM/24</code></pre>
+# Separate the SAD and MAD datasets for plotting
+pd_single_dosing &lt;- pd_data %&gt;% 
+  subset(MAD == 0)
+pd_multiple_dosing &lt;- pd_data %&gt;% 
+  subset(MAD == 1 &amp; DOSE != 100) ##remove dose = 100mg as there is only zero time for that.
+
+#units and labels
+  time_units_dataset = &quot;hours&quot;
+  time_units_plot    = &quot;days&quot;
+  trtact_label       = &quot;Dose&quot;
+  dose_units         = unique((pkpd_data %&gt;% filter(CMT == 1) )$LIDV_UNIT) %&gt;% as.character()
+  dose_label         = paste0(&quot;Dose (&quot;, dose_units, &quot;)&quot;)
+  conc_units         = unique(pk_data$LIDV_UNIT) %&gt;% as.character()
+  conc_label         = paste0(&quot;Concentration (&quot;, conc_units, &quot;)&quot;)
+  concnorm_label     = paste0(&quot;Normalized Concentration (&quot;, conc_units, &quot;)/&quot;, dose_units)
+  AUC_units          = paste0(&quot;h.&quot;, conc_units)
+  pd_label           = &quot;Intensity Score&quot;
+                              
+#directories for saving individual graphs
+dirs = list(
+  parent_dir = &quot;Parent_Directory&quot;, 
+  rscript_dir  = &quot;./&quot;, 
+  rscript_name = &quot;Example.R&quot;, 
+  results_dir  = &quot;./&quot;, 
+  filename_prefix   = &quot;&quot;, 
+  filename     = &quot;Example.png&quot;)</code></pre>
 </div>
 <div id="intensity-score-a-composite-score" class="section level2">
 <h2>Intensity Score (a Composite Score)</h2>
 <p>Intensity Score is a composite score ranging from 0 to 28, coming from the sum of 7 categories each with possible values from 0 to 4. The hypothesis for drug ABC123 is that it will have a positive relationship with Intensity Score. If the drug is working, higher doses should result in higher Intensity Score.</p>
-<div id="processing-data" class="section level3">
-<h3>Processing Data</h3>
-<pre class="r"><code>data_to_plot &lt;- data_all  
-
-##Define and name the compartment
-cmt_number&lt;-13
-cmt_name&lt;-&quot;Intensity Score&quot;
-units&lt;-&#39;&#39;
-
-##create column with change from baseline
-data_to_plot$LIDV2&lt;-data_to_plot$LIDV
-for (i in 1:nrow(data_to_plot)){
-  if (data_to_plot$CMT[i]==13){
-    data_to_plot$LIDV2[i]&lt;-data_to_plot$LIDV2[i]-
-                             (data_to_plot$LIDV[data_to_plot$ID==data_to_plot$ID[i]&amp;data_to_plot$NTIM==0&amp;data_to_plot$CMT==13])}
-  
-}
-
-##Find multiple_dosing IDs
-data_to_plot_single_dosing&lt;-data_to_plot
-data_to_plot_multiple_dosing&lt;-data_to_plot
-for (i in 1:k){data_to_plot_single_dosing  &lt;-data_to_plot_single_dosing[data_to_plot_single_dosing$ID!=multiple_dosing_IDs[i],]}
-for (i in 1:l){data_to_plot_multiple_dosing&lt;-data_to_plot_multiple_dosing[data_to_plot_multiple_dosing$ID!=  single_dosing_IDs[i],]}
-
-##Take info for generating the dosing times
-data_dosing_single_dosing&lt;-data_dosing
-data_dosing_multiple_dosing&lt;-data_dosing
-for (i in 1:k){data_dosing_single_dosing&lt;-data_dosing_single_dosing[data_dosing_single_dosing$ID!=multiple_dosing_IDs[i],]}
-for (i in 1:l){data_dosing_multiple_dosing&lt;-data_dosing_multiple_dosing[data_dosing_multiple_dosing$ID!=single_dosing_IDs[i],]}
-
-
-data_to_plot                &lt;- data_to_plot  [data_to_plot$CENS==0&amp;data_to_plot$CMT==cmt_number,]
-data_to_plot_single_dosing  &lt;- data_to_plot_single_dosing  [data_to_plot_single_dosing$CENS==0&amp;data_to_plot_single_dosing$CMT==cmt_number,]
-data_to_plot_multiple_dosing&lt;- data_to_plot_multiple_dosing[data_to_plot_multiple_dosing$CENS==0&amp;data_to_plot_multiple_dosing$CMT==cmt_number,]
-##remove dose=100mg as there is only zero time for that.
-data_to_plot_multiple_dosing&lt;-data_to_plot_multiple_dosing[data_to_plot_multiple_dosing$DOSE!=100,]</code></pre>
-</div>
 <div id="response-over-time" class="section level3">
 <h3>Response over Time</h3>
 <div id="intensity-score-over-time-faceting-by-dose" class="section level4">
 <h4>Intensity Score over Time, Faceting by Dose</h4>
 <p>Lets get an overview of the change from baseline intensity score over time following multiple dosing. Plotting boxplots of the Change from Baseline Intensity score over time, grouped by different treatments, we can begin to see the behavior of the drug over time and by treatment. Looking at the Placebo and 30 mg dose groups, the change from baseline intensity score does not appear to be different from zero on days 7 or 14. However, with the 30 mg and 50 mg treatment groups, change from baseline intensity score is clearly greater than zero for days 7 and 14. Drug ABC123 appears to start working for 30 mg doses and higher.</p>
-<pre class="r"><code>labelFun &lt;- function(variable,value){     
-  paste0(value,&quot; mg&quot;)                             
+<pre class="r"><code>labelFun &lt;- function(labels){     
+  paste0(labels,&quot; mg&quot;)                             
 }
 
-ytitle&lt;-ylab(paste0(cmt_name,&quot; &quot;,units,&quot;\n change from baseline&quot;))
-xtitle&lt;-xlab(&quot;Time (days)&quot;)
+gg &lt;- ggplot(pd_multiple_dosing, 
+                aes(y = CHG, x = PROFDAY, group = NOMTIME)) 
+gg &lt;- gg + geom_boxplot(width = 5)  
+gg &lt;- gg + ggtitle(&quot;Multiple dosing&quot;)  
+gg &lt;- gg + geom_hline(yintercept = 0,
+                      color = &quot;red&quot;, linetype = &quot;dashed&quot;)  
+gg &lt;- gg + scale_x_continuous(breaks = c(-1,7,14))  
+gg &lt;- gg + theme(axis.text = element_text(size = 13), 
+        axis.title = element_text(size = 14), 
+        strip.text = element_text(size = 14)) 
+gg &lt;- gg + ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
+gg &lt;- gg + xlab(&quot;Time (days)&quot;)
+gg &lt;- gg + facet_wrap(~DOSE,nrow = 1, label = labelFun)
+gg &lt;- gg + xgx_annotate_status()
+gg &lt;- gg + xgx_annotate_filenames(dirs)
 
-plot2&lt;-ggplot(data_to_plot_multiple_dosing, aes(y=LIDV2, x= DAY, group=NTIM)) + 
-  geom_boxplot(width = 5)+
-  ggtitle(&quot;Multiple dosing&quot;)+ 
-  theme_bw() +
-  ytitle+
-  xtitle+
-  geom_hline(yintercept=0,color=&quot;red&quot;,linetype=&quot;dashed&quot;)+
-  scale_x_continuous(breaks = c(-1,7,14))+
-  theme(axis.text=element_text(size=13),axis.title=element_text(size=14),strip.text=element_text(size=14))+
-  facet_wrap(~DOSE,nrow=1,label=labelFun)
-
-plot2</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
 </div>
 </div>
 <div id="dose-response" class="section level3">
 <h3>Dose Response</h3>
-<div id="intensity-score-vs-dose-faceting-by-time" class="section level4">
-<h4>Intensity Score vs Dose, Faceting by Time</h4>
+<div id="intensity-score-vs-dose" class="section level4">
+<h4>Intensity Score vs Dose</h4>
 <p>For this fast acting drug, an effect in change from baseline intensity score can actually be seen within the first 24 hours. In order to get an idea of the dose response relationship and make sure we are targeting an optimal dose, take a look at the response for a range of doses that were studied in the single ascending dose study. Plotting boxplots of the change from baseline intensity score against dose, you can see that starting at 10 mg, drug ABC123 has a clear effect on intensity score.</p>
-<pre class="r"><code>labelFun &lt;- function(variable,value){     
-  paste0(value,&quot; h&quot;)                             
+<pre class="r"><code>labelFun &lt;- function(labels){     
+  paste0(labels,&quot; h&quot;)                             
 }
 
-ytitle&lt;-ylab(paste0(cmt_name,&quot; &quot;,units,&quot;\n change from baseline&quot;))
-xtitle&lt;-xlab(&quot;Dose (mg)&quot;)
+gg &lt;- ggplot(pd_single_dosing %&gt;% subset(NOMTIME == 24), 
+                aes(y = CHG, x = factor(DOSE)))  
+gg &lt;- gg + geom_boxplot(aes(group = factor(DOSE)))  
+gg &lt;- gg + ggtitle(&quot;Single dosing&quot;)   
+gg &lt;- gg + geom_hline(yintercept = 0,
+             color = &quot;red&quot;,linetype = &quot;dashed&quot;)   
+gg &lt;- gg + theme(axis.text  = element_text(size = 13),
+                 axis.title = element_text(size = 14),
+                 strip.text = element_text(size = 14))
+gg &lt;- gg + ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
+gg &lt;- gg + xlab(dose_label)   
+gg &lt;- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg &lt;- gg + xgx_annotate_status()
+gg &lt;- gg + xgx_annotate_filenames(dirs)
 
-plot1&lt;-ggplot(data_to_plot_single_dosing, aes(y=LIDV2, x= factor(DOSE), group=NTIM)) + 
-  geom_boxplot(aes(group = factor(DOSE)))+
-  ggtitle(&quot;Single dosing&quot;)+ 
-  theme_bw() +
-  ytitle+
-  xtitle+
-  geom_hline(yintercept=0,color=&quot;red&quot;,linetype=&quot;dashed&quot;)+
-  theme(axis.text=element_text(size=13),axis.title=element_text(size=14),strip.text=element_text(size=14))+
-  facet_wrap(~NTIM,nrow=1,label=labelFun)
-
-plot1 </code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 <p>In the plot above, the doses are uniformly spaced, not proportionally spaced according to the numerical value of the doses. Producing this type of plot allows to clearly determine distinctions between different dose groups. However, it is wise to produce plots of dose vs response with dose on a scale proportional to the numerical value of the doses. This allows to more clearly see the shape of the dose-response relationship. Drug ABC123 has a nice dose-response curve shape that resembles a typical Emax model, appearing to plateau around 7.5 change from baseline in intensity score.</p>
-<pre class="r"><code>labelFun &lt;- function(variable,value){     
-  paste0(value,&quot; h&quot;)                             
+<pre class="r"><code>labelFun &lt;- function(labels){     
+  paste0(labels,&quot; h&quot;)                             
 }
 
-plot1b&lt;-ggplot(data_to_plot_single_dosing[data_to_plot_single_dosing$NTIM==24,], aes(y=LIDV2, x= DOSE, group=NTIM)) + 
-  stat_summary(aes(group = factor(DOSE)), geom = &quot;point&quot;, fun.y = median, alpha = 0.5)+
-  stat_summary(aes(group = factor(DOSE)), geom = &quot;errorbar&quot;,fun.data = function(y){data.frame(ymin = quantile(y,0.025), ymax = quantile(y, 0.975))}, alpha = 0.5)+
-  ggtitle(&quot;Single dosing&quot;)+ 
-  theme_bw() +
-  ytitle+
-  xtitle+
-  geom_hline(yintercept=0,color=&quot;red&quot;,linetype=&quot;dashed&quot;)+
-  #scale_x_log10(breaks = unique(data_to_plot_single_dosing$DOSE))+
-  theme(axis.text=element_text(size=13),axis.title=element_text(size=14),strip.text=element_text(size=14))+
-  facet_wrap(~NTIM,nrow=1,label=labelFun)
+gg &lt;- ggplot(pd_single_dosing %&gt;% subset(NOMTIME == 24,), 
+               aes(y = CHG, x = DOSE, group = NOMTIME))   
+gg &lt;- gg + xgx_stat_ci(conf_level = 0.975, 
+                       geom = c(&quot;point&quot;, &quot;errorbar&quot;), 
+                       alpha = 0.5)   
+gg &lt;- gg + geom_hline(yintercept = 0, color = &quot;red&quot;, linetype = &quot;dashed&quot;)  
+gg &lt;- gg + theme(axis.text  = element_text(size = 13),
+                  axis.title = element_text(size = 14),
+                  strip.text = element_text(size = 14))  
+gg &lt;- gg + ggtitle(&quot;Single dosing&quot;)   
+gg &lt;- gg + ylab(paste0(pd_label,&quot;\nchange from baseline&quot;))
+gg &lt;- gg + xlab(dose_label)
+gg &lt;- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg &lt;- gg + xgx_annotate_status()
+gg &lt;- gg + xgx_annotate_filenames(dirs)
 
-plot1b </code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+gg </code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_real_example_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
 </div>
 </div>
 </div>
 <div id="r-session-info" class="section level2">
 <h2>R Session Info</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.4.3 (2017-11-30)
+<pre><code>## R version 3.6.1 (2019-07-05)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+## Running under: OpenShift Enterprise
 ## 
 ## Matrix products: default
-## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -717,33 +774,43 @@ plot1b </code></pre>
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] reshape_0.8.7   lubridate_1.7.1 xgxr_1.0.2      survminer_0.4.1
-##  [5] ggpubr_0.1.6    magrittr_1.5    survival_2.41-3 DT_0.2         
-##  [9] RxODE_0.6-1     bindrcpp_0.2    haven_1.1.0     readr_1.1.1    
-## [13] readxl_1.0.0    xtable_1.8-2    tidyr_0.7.2     caTools_1.17.1 
-## [17] zoo_1.8-0       dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
+##  [1] stringr_1.4.0    survminer_0.4.6  ggpubr_0.2.3     magrittr_1.5    
+##  [5] survival_3.1-7   knitr_1.25       broom_0.5.3      DT_0.9          
+##  [9] caTools_1.17.1.2 RxODE_0.9.1-8    xgxr_1.0.7       zoo_1.8-6       
+## [13] gridExtra_2.3    tidyr_1.0.0      dplyr_0.8.3      ggplot2_3.2.1   
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.14        lattice_0.20-35     png_0.1-7          
-##  [4] assertthat_0.2.0    rprojroot_1.3-1     digest_0.6.13      
-##  [7] psych_1.7.8         R6_2.2.2            cellranger_1.1.0   
-## [10] plyr_1.8.4          backports_1.1.2     evaluate_0.10.1    
-## [13] pillar_1.0.1        rlang_0.1.6         lazyeval_0.2.1     
-## [16] data.table_1.10.4-3 Matrix_1.2-12       rmarkdown_1.8      
-## [19] labeling_0.3        splines_3.4.3       dparser_0.1.8      
-## [22] pander_0.6.1        stringr_1.2.0       foreign_0.8-69     
-## [25] htmlwidgets_0.9     munsell_0.4.3       broom_0.4.3        
-## [28] compiler_3.4.3      pkgconfig_2.0.1     mnormt_1.5-5       
-## [31] htmltools_0.3.6     tidyselect_0.2.3    tibble_1.4.1       
-## [34] km.ci_0.5-2         binom_1.1-1         codetools_0.2-15   
-## [37] bitops_1.0-6        jsonlite_1.5        nlme_3.1-131       
-## [40] gtable_0.2.0        KMsurv_0.1-5        scales_0.5.0       
-## [43] stringi_1.1.3       reshape2_1.4.3      rex_1.1.2          
-## [46] survMisc_0.5.4      RColorBrewer_1.1-2  tools_3.4.3        
-## [49] cmprsk_2.2-7        forcats_0.2.0       glue_1.2.0         
-## [52] markdown_0.8        purrr_0.2.4         hms_0.4.0          
-## [55] parallel_3.4.3      yaml_2.1.16         colorspace_1.3-2   
-## [58] memoise_1.1.0       knitr_1.18          bindr_0.1</code></pre>
+##  [1] nlme_3.1-142       matrixStats_0.55.0 bitops_1.0-6      
+##  [4] lubridate_1.7.4    RColorBrewer_1.1-2 rstan_2.19.2      
+##  [7] tools_3.6.1        backports_1.1.5    utf8_1.1.4        
+## [10] R6_2.4.0           lazyeval_0.2.2     colorspace_1.4-1  
+## [13] lotri_0.1.1        withr_2.1.2        tidyselect_0.2.5  
+## [16] prettyunits_1.0.2  processx_3.4.1     compiler_3.6.1    
+## [19] cli_1.1.0          binom_1.1-1        labeling_0.3      
+## [22] scales_1.0.0       survMisc_0.5.5     callr_3.3.2       
+## [25] mvnfast_0.2.5      digest_0.6.22      StanHeaders_2.19.0
+## [28] rmarkdown_1.16     PreciseSums_0.3    pkgconfig_2.0.3   
+## [31] htmltools_0.4.0    fastmap_1.0.1      highr_0.8         
+## [34] htmlwidgets_1.5.1  rlang_0.4.1        shiny_1.4.0       
+## [37] farver_1.1.0       generics_0.0.2     jsonlite_1.6      
+## [40] crosstalk_1.0.0    inline_0.3.15      loo_2.1.0         
+## [43] Matrix_1.2-17      fansi_0.4.0        Rcpp_1.0.3        
+## [46] munsell_0.5.0      lifecycle_0.1.0    stringi_1.4.3     
+## [49] yaml_2.2.0         MASS_7.3-51.4      pkgbuild_1.0.6    
+## [52] plyr_1.8.4         parallel_3.6.1     promises_1.1.0    
+## [55] crayon_1.3.4       lattice_0.20-38    splines_3.6.1     
+## [58] pander_0.6.3       sys_3.3            zeallot_0.1.0     
+## [61] ps_1.3.0           pillar_1.4.2       markdown_1.1      
+## [64] ggsignif_0.6.0     reshape2_1.4.3     codetools_0.2-16  
+## [67] stats4_3.6.1       glue_1.3.1         packrat_0.5.0     
+## [70] evaluate_0.14      dparser_0.1.8      data.table_1.12.6 
+## [73] png_0.1-7          vctrs_0.2.0        tweenr_1.0.1      
+## [76] httpuv_1.5.2       gtable_0.3.0       purrr_0.3.3       
+## [79] polyclip_1.10-0    km.ci_0.5-2        assertthat_0.2.1  
+## [82] xfun_0.10          ggforce_0.3.1      mime_0.7          
+## [85] xtable_1.8-4       later_1.0.0        rsconnect_0.8.15  
+## [88] tibble_2.1.3       memoise_1.1.0      KMsurv_0.1-5      
+## [91] units_0.6-5        ellipsis_0.3.0</code></pre>
 </div>
 
 
@@ -764,6 +831,54 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

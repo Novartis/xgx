@@ -17,7 +17,7 @@ Links to example plots are provided as well as brief justification for why each 
   * Both linear and log scale should be used for exploring PK.  
     * Log scale helps to identify number of compartments, the linearity of elimination, and it allows for visualizing all PK on a single plot.
     * Linear scale focuses the attention on Cmax, which may be important if there is a narrow therapeutic window and if safety is Cmax driven.
-  * [Assess PK linearity](Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_vs_dose) by looking for trends in the plot of dose vs dose normalized PK metric (e.g. AUC or Ctrough).
+  * [Assess PK linearity](Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_and_cmax_vs_dose) by looking for trends in the plot of dose vs dose normalized PK metric (e.g. AUC or Ctrough).
     * Assessing linearity of PK is important for understanding how dose adjustments will impact the response.
   * Also **see section below on [Assessing Variability](#assessing_variability_(pk_and_pd))** for details on explained vs. unexplained variability, and within and between subject variability, and how to explore each.
 
@@ -33,7 +33,7 @@ Links to example plots are provided as well as brief justification for why each 
   * Decide on whether to plot linear vs log scale.
     * Log scale works well for PD markers that can change over several orders of magnitude.
     * Linear scale is preferred when the PD measure can be both positive or negative, or when there is less than 2 orders of magnitude change between the minimum and maximum value.
-  * Assess trends with dose by plotting PD/efficacy/safety against dose, (e.g. [Mean (95% CI) of continuous PD vs dose](Multiple_Ascending_Dose_PD_continuous.html#explore_covariate_effects_on_pd), [Response rate (95% CI) of binary endpoint vs dose](Multiple_Ascending_Dose_PD_binary.html#responder_rate_(95%_ci)_by_dose,_for_endpoint_of_interest))
+  * Assess trends with dose by plotting PD/efficacy/safety against dose, (e.g. [Mean (95% CI) of continuous PD vs dose](Multiple_Ascending_Dose_PD_continuous.html#explore_dose-response_relationship), [Response rate (95% CI) of binary endpoint vs dose](Multiple_Ascending_Dose_PD_binary.html#responder_rate_(95%_ci)_by_dose,_for_endpoint_of_interest))
     * Do you see a relationship between dose and response?
     * Is a plateau observed at higher doses?
     * What would you guess the ED50 to be? ED90? (you can check your expectations against your future model)
@@ -56,7 +56,7 @@ Links to example plots are provided as well as brief justification for why each 
     * Is the observed relationship between PK and PD direct (straight line in hysteresis path) or indirect (looping behavior in the hysteresis path)?
   
 # Assessing Variability (PK and PD)
-  * Assess size of PK and/or PD variability by using [spaghetti plots](http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_dots_and_lines_grouped_by_individual) or [confidence intervals](Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci).  How big a separation in doses is needed to observe a separation of exposure?    
+  * Assess size of PK and/or PD variability by using [spaghetti plots](Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_dots_and_lines_grouped_by_individual) or [confidence intervals](Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci).  How big a separation in doses is needed to observe a separation of exposure?    
   * [Assess sources of between subject PK variability](Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk) by stratifying by covariates
   * [Assess sources of within subject variability](Multiple_Ascending_Dose_PK.html#concentration_over_time,_faceted_by_individual,_individual_line_plots_overlaid_on_gray_spaghetti_plots_for_that_dose_group) using individual plots
 

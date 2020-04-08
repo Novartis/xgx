@@ -1,5 +1,6 @@
 ---
 title: "PK - Multiple Ascending Dose - Using Novartis dzz file"
+author: "Andy Stein"
 output:
   html_document:
     toc: true

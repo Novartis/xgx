@@ -1,0 +1,3 @@
+#RxODE Makevars
+PKG_CFLAGS=-O2  -I"/CHBS/apps/EB/software/R-bundle-Novartis/0.1-gomkl-2019a-R-3.6.1/RxODE/include"
+PKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)

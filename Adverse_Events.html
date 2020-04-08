@@ -7,8 +7,10 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Fariba Khanshan" />
 
 
 <title>Safety Plots</title>
@@ -85,9 +87,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -101,13 +101,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -123,7 +128,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -143,6 +147,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -164,55 +205,68 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -261,8 +315,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -271,6 +323,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -364,7 +426,7 @@ div.tocify {
       <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
     </li>
     <li>
-      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints (RECIST)</a>
     </li>
     <li>
       <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using realistic data</a>
@@ -418,7 +480,7 @@ div.tocify {
       <a href="Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx">Fundamental PD Principles Introduction</a>
     </li>
     <li>
-      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncernainty Assessment - Pedigree Table</a>
+      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncertainty Assessment - Pedigree Table</a>
     </li>
   </ul>
 </li>
@@ -511,6 +573,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Safety Plots</h1>
+<h4 class="author">Fariba Khanshan</h4>
 
 </div>
 
@@ -521,56 +584,124 @@ div.tocify {
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
+<pre class="r"><code>library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(gridExtra)
+library(zoo)
+library(xgxr)
+
+#flag for labeling figures as draft
+status = &quot;DRAFT&quot;
+
+## ggplot settings
+xgx_theme_set()</code></pre>
 </div>
 <div id="load-dataset" class="section level2">
 <h2>Load Dataset</h2>
 <p>The plots presented here are based on merged safety data with a popPK model generated parameters data (<a href="Data/AE_xgx.csv">download dataset</a>), as well as a dataset containing model-generated AUCs (<a href="Data/AUC_Safety.csv">download dataset</a>). Data specifications can be accessed on <a href="Datasets.html">Datasets</a> and Rmarkdown template to generate this page can be found on <a href="Rmarkdown/Adverse_Events.Rmd">Rmarkdown-Template</a>.</p>
 <pre class="r"><code>auc &lt;- read.csv(&quot;../Data/AUC_Safety.csv&quot;)
-my.data &lt;- read.csv(&quot;../Data/AE_xgx.csv&quot;)
-my.data$DOSE_label &lt;- paste(my.data$Dose,&quot;mg&quot;)
-my.data &lt;- arrange(my.data, -Dose)
-my.data$DOSE_label &lt;- factor(my.data$DOSE_label,levels = c(paste(unique(my.data$Dose),&quot;mg&quot;)))
+ae.data &lt;- read.csv(&quot;../Data/AE_xgx.csv&quot;)
+ae.data$DOSE_label &lt;- paste(ae.data$Dose,&quot;mg&quot;)
+ae.data = ae.data %&gt;%
+  arrange(DOSE_label) %&gt;%
+  mutate(DOSE_label_low2high      = factor(DOSE_label, levels = unique(DOSE_label)),
+         DOSE_label_high2low      = factor(DOSE_label, levels = rev(unique(DOSE_label))))
+
+#ensure dataset has all the necessary columns
+ae.data = ae.data %&gt;%
+  mutate(SUBJID      = SUBJID,           # ID   column
+         DAY         = DAY,              # Day of the AE
+         time        = time,             # time of the AE in (h)
+         Dose        = Dose,             # DOSE column here (numeric value)
+         AUC         = AUC,              # Cumulative AUC at AE day
+         Cmax        = Cmax,             # Cmax at AE day
+         Cmin        = Cmin,             # Cmin at AE day\
+         AUCDAY1     = AUCDAY1,          # AUC at day 1
+         AUCAVE      = AUCAVE,           #  Average AUC up to the AE day
+         AETOXGRS    = AETOXGRS,         #  AE grades (Character)
+         AETOXGRDN   = AETOXGRDN,        #  AE grades (numenric)
+         AE          = AE,               #  Binary YES/NO AE
+         )
+
+auc = auc %&gt;%
+  mutate(SUBJID       = SUBJID,           # Subject ID
+         time_hr      =time_hr,         #   Simulation time in (h)
+         AUC_popPK    = AUC_popPK,      # Cumulative AUC from popPK model
+         Cmax_popPK   = Cmax_popPK,     #   Cmax from popPK
+         Cmin_popPK   = Cmin_popPK      #   Cmin from popPK
+         )
+
 # add binary 0 and 1 colun to the dataset
-my.data$AE_binary &lt;- as.numeric(as.character( plyr::mapvalues(my.data$AE,
+ae.data$AE_binary &lt;- as.numeric(as.character( plyr::mapvalues(ae.data$AE,
                                                                c(&#39;Yes&#39;,&#39;No&#39;), 
                                                                c(1, 0)) ))
-auc_my_data &lt;- auc %&gt;%
-  left_join(my.data  ,by=&quot;SUBJID&quot;)
+
+# AUC dataset for additional plots
+ae.data = ae.data %&gt;%
+  mutate(AUC_bins = cut(AUCAVE, quantile(AUCAVE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %&gt;%
+  group_by(AUC_bins) %&gt;%
+  mutate(AUC_midpoints = median(AUCAVE))
 
 # Function to add number of subjects in each group
 n_fun &lt;- function(x){
   return(data.frame(y = median(x)*0.01, label = paste0(&quot;n = &quot;,length(x))))
-}</code></pre>
+}
+
+#units and labels
+time_units_dataset = &quot;hours&quot;
+time_units_plot    = &quot;days&quot;
+trtact_label       = &quot;Dose&quot;
+dose_label         = &quot;Dose (mg)&quot;
+time_label         = &quot;Time(Days)&quot;
+timemonth_label    = &quot;Time (months)&quot;
+conc_label         = &quot;Concentration (ng/ml)&quot;
+trough_label       = &quot;Trough Concentration (ng/mL)&quot;
+conc_units         = &quot;ng/ml&quot;
+auctau_label       = &quot;AUCtau (ng.h/ml)&quot;
+ae_label           = &quot;AE&quot;
+aeprob_label       = &quot;Probability of AE (%)&quot;
+sld_label          = &quot;Percent Change in\nSum of Longest Diameters&quot;
+
+#directories for saving individual graphs
+dirs = list(
+parent_dir= tempdir(),
+rscript_dir  = &quot;./&quot;,
+rscript_name = &quot;Example.R&quot;,
+results_dir  = &quot;./&quot;,
+filename_prefix   = &quot;&quot;,
+filename     = &quot;Example.png&quot;)</code></pre>
 </div>
 <div id="exposure-safety-plots" class="section level2">
 <h2>Exposure-safety plots</h2>
 <p>These plots are looking at the AUC (or Cmax and Ctrough) for patients with the AE and for those who don’t have the AE at each dose group. The number of the patients at each dose level is also included in the plots. With these type of plots we are looking to see if there is a correlation (or absence a correlation) between exposure and AE.</p>
 <div id="auc-vs-dose-group-by-ae" class="section level3">
 <h3>AUC vs Dose group by AE</h3>
-<pre class="r"><code>gg &lt;- ggplot(data= my.data,aes(x=factor(Dose), y=AUCAVE, fill=factor(AE))) +theme_bw()
-gg &lt;- gg + geom_boxplot(data=my.data,aes(x=factor(Dose),y=AUCAVE, fill=factor(AE)),outlier.shape = NA)
+<pre class="r"><code>gg &lt;- ggplot(data= ae.data,aes(x=factor(Dose), y=AUCAVE, fill=factor(AE))) 
+gg &lt;- gg + geom_boxplot(data=ae.data,aes(x=factor(Dose),y=AUCAVE, fill=factor(AE)),outlier.shape = NA)
 gg &lt;- gg + geom_point(color=&quot;black&quot;,binaxis=&#39;y&#39;, stackdir=&#39;center&#39;,dotsize=0.5,
                    position=position_jitterdodge(0.27))
 gg &lt;- gg + guides(color=guide_legend(&quot;&quot;))
-gg &lt;- gg + stat_summary(data=my.data, fun.data = n_fun, geom = &quot;text&quot;,
+gg &lt;- gg + stat_summary(data=ae.data, fun.data = n_fun, geom = &quot;text&quot;,
                      fun.y=mean, position = position_dodge(width = 0.75)) 
 gg &lt;- gg + scale_fill_discrete(name=&quot;AE occurrence:&quot;)
-gg &lt;- gg + ylab(&quot;AUCtau (ng.h/ml)&quot;)
-gg &lt;- gg + xlab(&quot;Dose (mg)&quot;)
-gg &lt;- gg + theme(text = element_text(size=15))
+gg &lt;- gg + ylab(&quot;&quot;)
+gg &lt;- gg + labs(y=auctau_label,x=dose_label)
+gg &lt;- gg + xgx_annotate_status(status)
 gg</code></pre>
 <p><img src="Adverse_Events_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
 </div>
 <div id="explore-ae-vs-auc" class="section level3">
 <h3>Explore AE vs AUC</h3>
 <p>Plot binary AE occurrence against AUC or Cmax.</p>
-<pre class="r"><code>gg &lt;- ggplot(data = my.data, aes(y=AUCAVE,x=AE))+theme_bw()
-gg &lt;- gg + geom_jitter(data = my.data, 
-                       aes(color = DOSE_label), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+<pre class="r"><code>gg &lt;- ggplot(data = ae.data, aes(y=AUCAVE,x=AE))
+gg &lt;- gg + geom_jitter(data = ae.data, 
+                       aes(color = DOSE_label_high2low), shape=19,  width = 0.1, height = 0, alpha = 0.5)
 gg &lt;- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
 gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
 gg &lt;- gg + coord_flip() 
-gg &lt;- gg + xlab(&quot;AE&quot;) + ylab(&quot;AUCtau (ng.h/ml)&quot;)
+gg &lt;- gg + labs(y=auctau_label,x=ae_label)
+gg &lt;- gg + xgx_annotate_status(status)
 gg</code></pre>
 <p><img src="Adverse_Events_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
 </div>
@@ -579,48 +710,35 @@ gg</code></pre>
 <h2>Probability of AE for each dose group</h2>
 <p>Plot binary AE occurrence against dose. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th &amp; 95th percentiles. For binary response data, plot the percent responders along with binomial confidence intervals.</p>
 <p>Here are some questions to ask yourself when looking at Dose-safety plots: Do you see any relationship? Does AE increase (decrease) with increasing dose?</p>
-<pre class="r"><code>gg &lt;- ggplot(data = my.data, aes(x=Dose,y=AE_binary))+theme_bw()
-gg &lt;- gg + stat_summary(geom=&quot;errorbar&quot;, 
-                          fun.data = function(y){
-                              data.frame(ymin = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$lower,
-                                         ymax = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$upper)
-                            }, alpha = 0.5, size = 1, width= 0.2)
-gg &lt;- gg + stat_summary(geom=&quot;point&quot;, fun.y=mean, shape = 0)
-gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
-gg &lt;- gg + scale_y_continuous(labels=scales::percent) + ylab(&quot;Probability of AE (%)&quot;)
-gg &lt;- gg + xlab(&quot;Dose (mg)&quot;) 
-gg &lt;- gg + geom_smooth( method = &quot;glm&quot;,method.args=list(family=binomial(link = logit)), color = &quot;black&quot;)
-
-pp1 &lt;- gg
+<pre class="r"><code>gg1 &lt;- ggplot(data = ae.data, aes(x=Dose,y=AE_binary))
+gg1 &lt;- gg1 + geom_smooth( method = &quot;glm&quot;,method.args=list(family=binomial(link = logit)), color = &quot;black&quot;)
+gg1 &lt;- gg1 + xgx_stat_ci(conf_level = 0.95, distribution = &quot;binomial&quot;, geom = c(&quot;point&quot;), shape = 0, size = 4)
+gg1 &lt;- gg1 + xgx_stat_ci(conf_level = 0.95, distribution = &quot;binomial&quot;, geom = c(&quot;errorbar&quot;), size = 0.5)
+gg1 &lt;- gg1 + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
+gg1 &lt;- gg1 + scale_y_continuous(labels=scales::percent) 
+gg1 &lt;- gg1 + labs(y=aeprob_label,x=dose_label)
+gg1 &lt;- gg1 + xgx_annotate_status(status)
 
 ## Same plot but on a log scale
-pp2 &lt;- gg + scale_x_log10(breaks=unique(my.data$Dose)) 
+gg2 &lt;- gg1 + xgx_scale_x_log10(breaks=unique(ae.data$Dose)) 
 
-grid.arrange(pp1,pp2,nrow=1)</code></pre>
+#put linear and log scale plots side-by-side:
+grid.arrange(gg1, gg2, ncol=2)</code></pre>
 <p><img src="Adverse_Events_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
 <div id="probability-of-ae-by-auc" class="section level3">
 <h3>Probability of AE by AUC</h3>
 <p>Plot AE against exposure. Include a logistic regression for binary data to help determine the shape of the exposuresafety relationship. Summary information such as mean and 95% confidence intervals by quartiles of exposure can also be plotted. Exposure and Cmax metric that you use in these pltots could be either be raw concentrations, or NCA or model-derived exposure metrics (e.g. Cmin, Cmax, AUC), and may depend on the level of data that you have available.</p>
-<pre class="r"><code>data_to_plot &lt;- my.data
-
-data_to_plot$AUC_bins &lt;- cut(data_to_plot$AUCAVE, quantile(data_to_plot$AUCAVE, na.rm=TRUE), na.rm=TRUE)
-data_to_plot &lt;- data_to_plot[!is.na(data_to_plot$AUC_bins), ]
-data_to_plot &lt;- data_to_plot %&gt;%
-  group_by(AUC_bins) %&gt;%
-  mutate(AUC_midpoints = median(AUCAVE))
-
-gg &lt;- ggplot(data = data_to_plot, aes(x=AUCAVE,y=AE_binary))+theme_bw()
-gg &lt;- gg + geom_jitter(aes( color = DOSE_label), width = 0, height = 0.05, alpha = 0.5) 
+<pre class="r"><code>gg &lt;- ggplot(data = ae.data, aes(x=AUCAVE,y=AE_binary))
+gg &lt;- gg + geom_jitter(aes( color = DOSE_label_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg &lt;- gg + geom_smooth( method = &quot;glm&quot;,method.args=list(family=binomial(link = logit)), color = &quot;black&quot;)
-gg &lt;- gg + stat_summary(aes(x=AUC_midpoints, y=AE_binary),geom = &quot;errorbar&quot;,
-                            fun.data = function(y){
-                              data.frame(ymin = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$lower,
-                                         ymax = binom::binom.exact(sum(y), length(y), conf.level = 0.95)$upper)
-                            })
-gg &lt;- gg + stat_summary(aes(x=AUC_midpoints, y=AE_binary),shape=0,size=5, geom=&quot;point&quot;, fun.y = mean)
+gg &lt;- gg + xgx_stat_ci(mapping = aes(x = AUC_midpoints, y = AE_binary), 
+                       conf_level = 0.95, distribution = &quot;binomial&quot;, geom = c(&quot;point&quot;), shape = 0, size = 4)
+gg &lt;- gg + xgx_stat_ci(mapping = aes(x = AUC_midpoints, y = AE_binary), 
+                       conf_level = 0.95, distribution = &quot;binomial&quot;, geom = c(&quot;errorbar&quot;), size = 0.5)
 gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
-gg &lt;- gg + ylab(&quot;AE&quot;)  + scale_y_continuous(breaks=c(0,1)) + coord_cartesian(ylim=c(-0.2,1.2))
-gg &lt;- gg + xlab(&quot;AUCtau (ng.h/mL)&quot;)
+gg &lt;- gg + scale_y_continuous(breaks=c(0,1)) + coord_cartesian(ylim=c(-0.2,1.2))
+gg &lt;- gg + labs(x=auctau_label,y=ae_label)
+gg &lt;- gg + xgx_annotate_status(status)
 gg</code></pre>
 <p><img src="Adverse_Events_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
 </div>
@@ -628,23 +746,23 @@ gg</code></pre>
 <div id="boxplots-of-exposure-over-time-with-ae-highlighted" class="section level2">
 <h2>Boxplots of Exposure over time, with AE highlighted</h2>
 <p>The plot below shows time vs AUC from a pop PK model at each day. The colored dots corresponding to adverse events. It is not strictly an exploratory plot. But once you have a PopPK model, it is simple to generate this plot. Just plot the time vs the predicted AUC and color the time points red on days that an adverse event occurred.</p>
-<pre class="r"><code>data_to_plot &lt;- my.data[!is.na(my.data$AETOXGRDN), ]
-gg &lt;- ggplot()+theme_bw()
-gg &lt;- gg + geom_jitter(data=auc[auc$AUC_day&lt;30,], 
+<pre class="r"><code>data_to_plot &lt;- ae.data %&gt;% subset(!is.na(AETOXGRDN),)
+gg &lt;- ggplot()
+gg &lt;- gg + geom_jitter(data=auc %&gt;% subset(AUC_day&lt;30,), 
                        aes(x=AUC_day, y=AUC_popPK/AUC_day, group=AUC_day),
                        color=&quot;grey&quot;, alpha = 0.5, 
                        position=position_jitter(width=.1, height=0))
-gg &lt;- gg + geom_boxplot(data=auc[auc$AUC_day&lt;30,], 
+gg &lt;- gg + geom_boxplot(data=auc %&gt;% subset(AUC_day&lt;30,), 
                         aes(x=AUC_day, y=AUC_popPK/AUC_day, group=AUC_day),
                         outlier.shape = NA, fill = NA)
-gg &lt;- gg + geom_point(data=data_to_plot[data_to_plot$DAY&lt;30,], 
+gg &lt;- gg + geom_point(data=data_to_plot %&gt;% subset(DAY&lt;30,), 
                       aes(x=DAY, y=AUC/DAY, color=factor(AETOXGRS)),size=2)
 gg &lt;- gg + scale_color_manual(breaks = c(&quot;GR1&quot;, &quot;GR2&quot;, &quot;GR3&quot;),
                         values=c(rgb(1,0.5,0.5), rgb(0.75,0.25,0.25), rgb(0.5,0,0)))
 gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
 gg &lt;- gg + scale_x_continuous(breaks = seq(0, 30, by = 3))
-gg &lt;- gg + ylab(&quot;AUCtau (ng.day/ml)&quot;)
-gg &lt;- gg + xlab(&quot;Time (day)&quot;)
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + labs(x=time_label,y=auctau_label)
 gg</code></pre>
 <p><img src="Adverse_Events_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 </div>
@@ -742,6 +860,7 @@ data_areaStep.monotherapy = data_areaStep.monotherapy %&gt;%
 
 dose.unique = c(0,unique(efficacy_data.monotherapy$DOSE_ABC))
 
+
 gg &lt;- ggplot(data = efficacy_data.monotherapy)
 gg &lt;- gg + geom_point(mapping = aes(y= psld, x= TIME))
 gg &lt;- gg + geom_text(data= efficacy_data.label,aes(y= label_psld, x= TIME_OR, label=OR), vjust=-.5)
@@ -759,23 +878,22 @@ gg &lt;- gg + geom_vline(data= efficacy_AE_label,
 gg &lt;- gg + facet_wrap(~IDSHORT, ncol=6)
 gg &lt;- gg + scale_y_continuous(
   sec.axis = sec_axis(~(.-dose.shift)*dose.scale, name = &quot;Dose(mg)&quot;, breaks = dose.unique))
-gg &lt;- gg + labs(y = &quot;Percent Change in\nSum of Longest Diameters&quot;,
-                x = &quot;Time (months)&quot;,
-                colour = &quot;Parameter&quot;)
-gg &lt;- gg + scale_x_units(units.input = &quot;day&quot;,units.output=&quot;month&quot;,t.start = 0,t.end = 15, increment = 3)
+gg &lt;- gg + labs(y = sld_label, x= timemonth_label)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = &quot;day&quot;, units_plot =&quot;month&quot;)
 gg &lt;- gg + theme(text = element_text(size=15))
+gg &lt;- gg + xgx_annotate_status(status)
 gg</code></pre>
 <p><img src="Adverse_Events_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
 </div>
 <div id="r-session-info" class="section level2">
 <h2>R Session Info</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.4.3 (2017-11-30)
+<pre><code>## R version 3.6.1 (2019-07-05)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+## Running under: OpenShift Enterprise
 ## 
 ## Matrix products: default
-## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -790,33 +908,43 @@ gg</code></pre>
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] reshape_0.8.7   lubridate_1.7.1 xgxr_1.0.2      survminer_0.4.1
-##  [5] ggpubr_0.1.6    magrittr_1.5    survival_2.41-3 DT_0.2         
-##  [9] RxODE_0.6-1     bindrcpp_0.2    haven_1.1.0     readr_1.1.1    
-## [13] readxl_1.0.0    xtable_1.8-2    tidyr_0.7.2     caTools_1.17.1 
-## [17] zoo_1.8-0       dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
+##  [1] stringr_1.4.0    survminer_0.4.6  ggpubr_0.2.3     magrittr_1.5    
+##  [5] survival_3.1-7   knitr_1.25       broom_0.5.3      DT_0.9          
+##  [9] caTools_1.17.1.2 RxODE_0.9.1-8    xgxr_1.0.7       zoo_1.8-6       
+## [13] gridExtra_2.3    tidyr_1.0.0      dplyr_0.8.3      ggplot2_3.2.1   
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.14        lattice_0.20-35     png_0.1-7          
-##  [4] assertthat_0.2.0    rprojroot_1.3-1     digest_0.6.13      
-##  [7] psych_1.7.8         R6_2.2.2            cellranger_1.1.0   
-## [10] plyr_1.8.4          backports_1.1.2     evaluate_0.10.1    
-## [13] pillar_1.0.1        rlang_0.1.6         lazyeval_0.2.1     
-## [16] data.table_1.10.4-3 Matrix_1.2-12       rmarkdown_1.8      
-## [19] labeling_0.3        splines_3.4.3       dparser_0.1.8      
-## [22] pander_0.6.1        stringr_1.2.0       foreign_0.8-69     
-## [25] htmlwidgets_0.9     munsell_0.4.3       broom_0.4.3        
-## [28] compiler_3.4.3      pkgconfig_2.0.1     mnormt_1.5-5       
-## [31] htmltools_0.3.6     tidyselect_0.2.3    tibble_1.4.1       
-## [34] km.ci_0.5-2         binom_1.1-1         codetools_0.2-15   
-## [37] bitops_1.0-6        jsonlite_1.5        nlme_3.1-131       
-## [40] gtable_0.2.0        KMsurv_0.1-5        scales_0.5.0       
-## [43] stringi_1.1.3       reshape2_1.4.3      rex_1.1.2          
-## [46] survMisc_0.5.4      RColorBrewer_1.1-2  tools_3.4.3        
-## [49] cmprsk_2.2-7        forcats_0.2.0       glue_1.2.0         
-## [52] markdown_0.8        purrr_0.2.4         hms_0.4.0          
-## [55] parallel_3.4.3      yaml_2.1.16         colorspace_1.3-2   
-## [58] memoise_1.1.0       knitr_1.18          bindr_0.1</code></pre>
+##  [1] nlme_3.1-142       matrixStats_0.55.0 bitops_1.0-6      
+##  [4] lubridate_1.7.4    RColorBrewer_1.1-2 rstan_2.19.2      
+##  [7] tools_3.6.1        backports_1.1.5    utf8_1.1.4        
+## [10] R6_2.4.0           lazyeval_0.2.2     colorspace_1.4-1  
+## [13] lotri_0.1.1        withr_2.1.2        tidyselect_0.2.5  
+## [16] prettyunits_1.0.2  processx_3.4.1     compiler_3.6.1    
+## [19] cli_1.1.0          binom_1.1-1        labeling_0.3      
+## [22] scales_1.0.0       survMisc_0.5.5     callr_3.3.2       
+## [25] mvnfast_0.2.5      digest_0.6.22      StanHeaders_2.19.0
+## [28] rmarkdown_1.16     PreciseSums_0.3    pkgconfig_2.0.3   
+## [31] htmltools_0.4.0    fastmap_1.0.1      highr_0.8         
+## [34] htmlwidgets_1.5.1  rlang_0.4.1        shiny_1.4.0       
+## [37] farver_1.1.0       generics_0.0.2     jsonlite_1.6      
+## [40] crosstalk_1.0.0    inline_0.3.15      loo_2.1.0         
+## [43] Matrix_1.2-17      fansi_0.4.0        Rcpp_1.0.3        
+## [46] munsell_0.5.0      lifecycle_0.1.0    stringi_1.4.3     
+## [49] yaml_2.2.0         MASS_7.3-51.4      pkgbuild_1.0.6    
+## [52] plyr_1.8.4         parallel_3.6.1     promises_1.1.0    
+## [55] crayon_1.3.4       lattice_0.20-38    splines_3.6.1     
+## [58] pander_0.6.3       sys_3.3            zeallot_0.1.0     
+## [61] ps_1.3.0           pillar_1.4.2       markdown_1.1      
+## [64] ggsignif_0.6.0     reshape2_1.4.3     codetools_0.2-16  
+## [67] stats4_3.6.1       glue_1.3.1         packrat_0.5.0     
+## [70] evaluate_0.14      dparser_0.1.8      data.table_1.12.6 
+## [73] png_0.1-7          vctrs_0.2.0        tweenr_1.0.1      
+## [76] httpuv_1.5.2       gtable_0.3.0       purrr_0.3.3       
+## [79] polyclip_1.10-0    km.ci_0.5-2        assertthat_0.2.1  
+## [82] xfun_0.10          ggforce_0.3.1      mime_0.7          
+## [85] xtable_1.8-4       later_1.0.0        rsconnect_0.8.15  
+## [88] tibble_2.1.3       memoise_1.1.0      KMsurv_0.1-5      
+## [91] units_0.6-5        ellipsis_0.3.0</code></pre>
 </div>
 
 
@@ -837,6 +965,54 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

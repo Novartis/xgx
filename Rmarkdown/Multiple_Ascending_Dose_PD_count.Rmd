@@ -176,7 +176,9 @@ gg <- gg + geom_line(aes(group = ID))
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + facet_wrap(~ID + TRTACT_low2high, ncol = ncol)
-gg <- gg + xgx_annotate_status(status)
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
+                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
+gg <- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 

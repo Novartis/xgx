@@ -143,7 +143,6 @@ For multiple dose studies, zoom in on key visits for a clearer picture of the pr
 
 ```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 data_to_plot <- pk_data %>% subset(PROFDAY %in% c(1, 6))
-data_to_plot$DAY_label <- paste("Day", data_to_plot$PROFDAY)
 
 gg %+% 
   data_to_plot %+% 
@@ -377,6 +376,8 @@ gg <- gg + facet_wrap(~ID + TRTACT_low2high,
                 ncol = 10 )
 gg <- gg + xgx_annotate_status(status, fontsize = 4, color = rgb(0.5, 0.5, 1))
 gg <- gg + xgx_annotate_filenames(dirs)
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
+      panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
 print(gg)
@@ -417,7 +418,7 @@ print(gg %+% aes(y = LIDV_NORM) + ylab(concnorm_label) + aes(color = WEIGHTB>70)
 
 ### Dose Normalized NCA parameters, stratified by categorical covariate
 
-```{r}
+```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = NCA %>% subset(PARAM %in% c("AUC_tau", "Cmax_tau")), 
              aes(x = SEX, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = SEX))
@@ -433,7 +434,7 @@ print(gg)
 
 ### Dose Normalized NCA parameters vs continuous covariate
 
-```{r}
+```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = NCA %>% subset(PARAM %in% c("AUC_tau", "Cmax_tau")), 
              aes(x = WEIGHTB, y = VALUE_NORM))
 gg <- gg + geom_point()

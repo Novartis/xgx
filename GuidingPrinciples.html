@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -84,9 +85,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -100,13 +99,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -122,7 +126,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -142,6 +145,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -163,47 +203,65 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -252,8 +310,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -262,6 +318,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -355,7 +421,7 @@ div.tocify {
       <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
     </li>
     <li>
-      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints (RECIST)</a>
     </li>
     <li>
       <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using realistic data</a>
@@ -409,7 +475,7 @@ div.tocify {
       <a href="Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx">Fundamental PD Principles Introduction</a>
     </li>
     <li>
-      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncernainty Assessment - Pedigree Table</a>
+      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncertainty Assessment - Pedigree Table</a>
     </li>
   </ul>
 </li>
@@ -516,7 +582,7 @@ Links to example plots are provided as well as brief justification for why each 
 <li>Log scale helps to identify number of compartments, the linearity of elimination, and it allows for visualizing all PK on a single plot.</li>
 <li>Linear scale focuses the attention on Cmax, which may be important if there is a narrow therapeutic window and if safety is Cmax driven.</li>
 </ul></li>
-<li><a href="Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_vs_dose">Assess PK linearity</a> by looking for trends in the plot of dose vs dose normalized PK metric (e.g. AUC or Ctrough).
+<li><a href="Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_and_cmax_vs_dose">Assess PK linearity</a> by looking for trends in the plot of dose vs dose normalized PK metric (e.g. AUC or Ctrough).
 <ul>
 <li>Assessing linearity of PK is important for understanding how dose adjustments will impact the response.</li>
 </ul></li>
@@ -542,7 +608,7 @@ Links to example plots are provided as well as brief justification for why each 
 <li>Log scale works well for PD markers that can change over several orders of magnitude.</li>
 <li>Linear scale is preferred when the PD measure can be both positive or negative, or when there is less than 2 orders of magnitude change between the minimum and maximum value.</li>
 </ul></li>
-<li>Assess trends with dose by plotting PD/efficacy/safety against dose, (e.g. <a href="Multiple_Ascending_Dose_PD_continuous.html#explore_covariate_effects_on_pd">Mean (95% CI) of continuous PD vs dose</a>, <a href="Multiple_Ascending_Dose_PD_binary.html#responder_rate_(95%_ci)_by_dose,_for_endpoint_of_interest">Response rate (95% CI) of binary endpoint vs dose</a>)
+<li>Assess trends with dose by plotting PD/efficacy/safety against dose, (e.g. <a href="Multiple_Ascending_Dose_PD_continuous.html#explore_dose-response_relationship">Mean (95% CI) of continuous PD vs dose</a>, <a href="Multiple_Ascending_Dose_PD_binary.html#responder_rate_(95%_ci)_by_dose,_for_endpoint_of_interest">Response rate (95% CI) of binary endpoint vs dose</a>)
 <ul>
 <li>Do you see a relationship between dose and response?</li>
 <li>Is a plateau observed at higher doses?</li>
@@ -581,7 +647,7 @@ Links to example plots are provided as well as brief justification for why each 
 <div id="assessing-variability-pk-and-pd" class="section level1">
 <h1>Assessing Variability (PK and PD)</h1>
 <ul>
-<li>Assess size of PK and/or PD variability by using <a href="http://exploratory-graphics-xgx.statwb-dev.eu.novartis.net/Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_dots_and_lines_grouped_by_individual">spaghetti plots</a> or <a href="Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci">confidence intervals</a>. How big a separation in doses is needed to observe a separation of exposure?<br />
+<li>Assess size of PK and/or PD variability by using <a href="Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_dots_and_lines_grouped_by_individual">spaghetti plots</a> or <a href="Single_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci">confidence intervals</a>. How big a separation in doses is needed to observe a separation of exposure?<br />
 </li>
 <li><a href="Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk">Assess sources of between subject PK variability</a> by stratifying by covariates</li>
 <li><a href="Multiple_Ascending_Dose_PK.html#concentration_over_time,_faceted_by_individual,_individual_line_plots_overlaid_on_gray_spaghetti_plots_for_that_dose_group">Assess sources of within subject variability</a> using individual plots</li>
@@ -636,6 +702,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
