@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -84,9 +85,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -100,13 +99,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -122,7 +126,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -142,6 +145,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -163,47 +203,65 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -252,8 +310,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -262,6 +318,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -355,7 +421,7 @@ div.tocify {
       <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
     </li>
     <li>
-      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints (RECIST)</a>
     </li>
     <li>
       <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using realistic data</a>
@@ -504,7 +570,7 @@ div.tocify {
 <p>Visit the <a href="GuidingPrinciples.html">Guiding Principles</a> page to get an overview of the general principles to follow when exploring PK/PD data.</p>
 <p>This website is composed of Rmarkdown documents, which could be used as templates for generating exploratory plots. The Rmarkdown documents can be accessed on <a href="https://github.com/Novartis/xgx/tree/master/Rmarkdown">GitHub</a>.</p>
 <p>Many of the codes on this website use functions that we have found to be helpful while exploring PK/PD data. We compiled these helpful functions into the xgxr R-package, which is available on <a href="https://cran.r-project.org/web/packages/xgxr/index.html">CRAN</a>, and <a href="https://github.com/Novartis/xgxr">GitHub</a>.</p>
-<p>This website displays suggested plots to pursue when exploring different PK/PD datasets, with a focus on exploring the Dose-Exposure-Response relationship. This site is a collection of exploratory plots and code, and could serve as a checklist of graphs someone might create for certain projects. </p>
+<p>This website displays suggested plots to pursue when exploring different PK/PD datasets, with a focus on exploring the Dose-Exposure-Response relationship. This site is a collection of exploratory plots and code, and could serve as a checklist of graphs someone might create for certain projects.</p>
 <p>Some suggestions may be repetitive, so use your judgment to choose the best plot for your purpose and dataset. These plots are for exploratory benefit, and are not all expected to be included in a final report.</p>
 <p>Use the navigation menus at the top of the page, or click on an icon below to find the topic for your specific needs.</p>
 <p>The graphs on this website were created with <a href="https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf">Good Graphics Principles</a> in mind. Also check out the <a href="https://opensource.nibr.com/xgx/Resources/Presentation_Checklist_v2.03.pdf">Presentation Checklist</a> for useful tips on creating presentations of your results.</p>
@@ -572,7 +638,7 @@ div.tocify {
 </li>
 <li><a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
 </li>
-<li><a href="Oncology_Efficacy_Plots.html"> Oncology Efficacy Endpoints </a>
+<li><a href="Oncology_Efficacy_Plots.html"> Oncology Efficacy Endpoints (RECIST)</a>
 </li>
 <li><a href="Multiple_Ascending_Dose_PD_real_example.html"> PD/Efficacy Example using realistic data </a>
 </li>
@@ -654,7 +720,7 @@ div.tocify {
 <h3>Contributors</h3>
 <p>The following people contributed example graphs and code or provided useful feedback on the contents and development of this website.</p>
 <ul>
-<li>Anwesha Chauhury</li>
+<li>Anwesha Chaudhury</li>
 <li>Xinrui Zhang</li>
 <li>Siyan Xu</li>
 <li>Kostas Biliouris</li>
@@ -692,6 +758,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

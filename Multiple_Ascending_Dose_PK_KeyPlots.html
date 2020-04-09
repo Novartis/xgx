@@ -7,8 +7,10 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Andy Stein" />
 
 
 <title>PK - Multiple Ascending Dose - Using Novartis dzz file</title>
@@ -85,9 +87,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -101,13 +101,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -123,7 +128,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -143,6 +147,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -164,55 +205,68 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -261,8 +315,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -271,6 +323,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -364,7 +426,7 @@ div.tocify {
       <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
     </li>
     <li>
-      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints (RECIST)</a>
     </li>
     <li>
       <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using realistic data</a>
@@ -418,7 +480,7 @@ div.tocify {
       <a href="Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx">Fundamental PD Principles Introduction</a>
     </li>
     <li>
-      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncernainty Assessment - Pedigree Table</a>
+      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncertainty Assessment - Pedigree Table</a>
     </li>
   </ul>
 </li>
@@ -511,13 +573,14 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">PK - Multiple Ascending Dose - Using Novartis dzz file</h1>
+<h4 class="author">Andy Stein</h4>
 
 </div>
 
 
 <div id="overview" class="section level3">
 <h3>Overview</h3>
-<p>This document contains PK exploratory graphs and also the R code that generates these graphs, starting from the <code>dzz</code> and <code>PPtmp</code> files that are stored here:</p>
+<p>This document contains PK exploratory graphs and also the R code that generates these graphs, starting from the <code>dzz</code> and <code>PPtmp</code> files that are stored at the links below. For detailed thougths on how to interpret these graphs, please consult the other xGx PK pages for <a href="Single_Ascending_Dose_PK.html">Single Ascending Dose</a> and <a href="Multiple_Ascending_Dose_PK.html">Multiple Ascending Dose</a></p>
 <ul>
 <li><a href="Data/dzz_PKConc.csv">dzz blinded dataset of drug concentrations</a></li>
 <li><a href="Data/PPtmp_NCA.csv">PPtmp blinded dataset of NCA parameters</a></li>
@@ -526,92 +589,66 @@ div.tocify {
 </div>
 <div id="setup" class="section level3">
 <h3>Setup</h3>
-<pre class="r"><code>#clear variables and plots
-  rm(list=ls()) #clear all variables except Task00.start.time
-  
-#set seed
-  set.seed(123456)
-
-#user name  
-  user = Sys.getenv(&quot;USER&quot;)
-  
-## Ensure that no library from the user home will be loaded such that
-## we run with the production packages only
- .libPaths(grep(&quot;home&quot;, .libPaths(), value=TRUE, invert=TRUE))
- .libPaths(grep(&quot;usr&quot;, .libPaths(), value=TRUE, invert=TRUE))
- 
-# add localLib to libPaths for locally installed packages
-.libPaths(c(&quot;localLib&quot;, .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-  
-#add key packages
+<pre class="r"><code>#add key packages
   library(ggplot2)
-  library(grid)
-  library(gridExtra)
   library(tidyr)
   library(dplyr)
-  library(lubridate)
-
-#ggplot settings
-  theme_set(theme_bw(base_size=12))
+  library(stringr)
+  library(xgxr)#, lib.loc = &quot;../Rlib&quot;)
   
-#xgx functions
-  source(&quot;../R/xgx_packages_functions.R&quot;)</code></pre>
+  
+#flag for labeling figures as draft
+  status = &quot;DRAFT&quot;
+
+# ggplot settings
+  xgx_theme_set()
+  
+# directories for saving individual graphs
+dirs = list(
+  parent_dir= &quot;Parent_Directory&quot;,
+  rscript_dir  = &quot;./&quot;,
+  rscript_name = &quot;Example.R&quot;,
+  results_dir  = &quot;./&quot;,
+  filename_prefix   = &quot;&quot;,
+  filename     = &quot;Example.png&quot;)</code></pre>
 <div id="load-in-data-from-dzz-concentrations-and-format-for-plotting" class="section level4">
 <h4>Load in data from dzz (concentrations) and format for plotting</h4>
-<pre class="r"><code>LOQassay = 1
-drug1 = &quot;ABC123&quot;
-drug2 = &quot;DEF456&quot;
-  
-#load data located here:
-d = read.csv(&quot;../Data/dzz_PKConc.csv&quot;,stringsAsFactors = FALSE)
+<pre class="r"><code>#load data located here:
+data_in = read.csv(&quot;../Data/dzz_PKConc.csv&quot;,stringsAsFactors = FALSE)
 
 #create columns with dosing regimen information, based on ARM
-d = d %&gt;%
-  mutate(DOSSTR          = stringr::str_replace(ARM,&quot;Phase Ib? &quot;,&quot;&quot;),
-         DRG1STR         = stringr::str_replace(DOSSTR,paste0(drug1,&quot; &quot;),&quot;&quot;),
-         DRG1STR         = stringr::str_extract(DRG1STR,&quot;^\\d* *mg Q\\dW&quot;),
-         DRG1DOS0        = as.numeric(stringr::str_extract(DRG1STR,&quot;\\d*&quot;)),
-         DRG1REG          = stringr::str_extract(DRG1STR,&quot;Q\\dW&quot;),
-         DRG2STR          = stringr::str_extract(DOSSTR,paste0(drug2,&quot; \\d* *mg Q\\dW&quot;)),
-         DRG2STR          = stringr::str_replace(DRG2STR,paste0(drug2,&quot; &quot;),&quot;&quot;),
-         DRG2DOS0         = as.numeric(stringr::str_extract(DRG2STR,&quot;\\d*&quot;)),
-         DRG2REG          = stringr::str_extract(DRG2STR,&quot;Q\\dW&quot;),
-         Comed           = ifelse(is.na(DRG2DOS0),&quot;monotherapy&quot;,&quot;combination&quot;),
-         DRG1.DRG2       = paste(DRG1DOS0,Comed))
-
-#create columns with time and normalized PK
-d = d %&gt;%
-  filter(PCDTC!=&quot;&quot;) %&gt;%
-  group_by(SUBJID) %&gt;%
-  mutate(CYCLE      = as.numeric(substr(VISIT,7,8)),
-         NOMTIMEH   = (CYCLE-1)*28*24+TMTPT,
-         DATE       = ymd_hms(PCDTC),
-         DATE0      = ymd_hms(first(PCDTC)),
-         TIMEH      = (DATE-DATE0)/3600,
-         RESN       = as.numeric(RESN),
-         CENS       = RESN&lt;LOQassay,
-         RESN       = ifelse(CENS,LOQassay,RESN),
-         RESNorm    = RESN/DRG1DOS0) %&gt;%
-  ungroup() %&gt;%
-  filter(NOMTIMEH&gt;0)
+LOQassay = 1
+drug_name = &quot;ABC123&quot;
 
 #create simplified column names for plotting
-d = d %&gt;%
-  arrange(DRG1DOS0,desc(DRG1REG)) %&gt;%
-  mutate(ID = SUBJID,
-         DOSElabel = factor(DRG1STR,levels=rev(unique(DRG1STR))), #for proper ordering
-         DOSE0 = DRG1DOS0,
-         DOSE0label = paste(DOSE0,&quot;mg&quot;),
-         DOSE0label = factor(DOSE0label,levels=rev(unique(DOSE0label))),
-         REG = DRG1REG,
-         NOMTIME = NOMTIMEH,
-         TIME = TIMEH,
-         CONC=RESN,
-         CONCnorm = RESNorm)</code></pre>
+data = data_in %&gt;%
+  mutate(TRTACT          = str_replace(ARM,&quot;Phase Ib? &quot;,&quot;&quot;),
+        TRTACT           = str_replace(TRTACT,paste0(drug_name,&quot; &quot;),&quot;&quot;),
+        TRTACT           = str_extract(TRTACT ,&quot;^\\d* *mg Q\\dW&quot;),
+        DOSE             = as.numeric(str_extract(TRTACT,&quot;\\d*&quot;)),
+        REGIMEN          = str_extract(TRTACT,&quot;Q\\dW&quot;)) %&gt;%
+  arrange(DOSE, desc(REGIMEN), lubridate::ymd_hms(PCDTC)) %&gt;%
+  mutate(TRTACT_high2low = factor(TRTACT,levels = rev(unique(TRTACT))),
+         TRTACT_low2high = factor(TRTACT,levels =     unique(TRTACT)),
+         DOSE_mg         = paste(DOSE,&quot;mg&quot;),
+         DOSE_high2low   = factor(DOSE_mg, levels = rev(unique(DOSE_mg))),
+         DOSE_low2high   = factor(DOSE_mg, levels =     unique(DOSE_mg)),
+         ID              = SUBJID,
+         CYCLE           = as.numeric(substr(VISIT,7,8))) %&gt;%
+  group_by(ID) %&gt;%
+  mutate(TIME            = as.numeric((lubridate::ymd_hms(PCDTC) - 
+                                       lubridate::ymd_hms(first(PCDTC)))/3600),
+         TIMEUNIT        = &quot;hours&quot;,
+         DAY_OF_CYCLE    = TMTPT,
+         NOMTIME         = (CYCLE-1)*28*24+DAY_OF_CYCLE,
+         LIDV            = as.numeric(RESN),
+         CENS            = LIDV &lt; LOQassay,
+         LIDV            = ifelse(CENS, LOQassay, LIDV),
+         LIDVNORM        = RESN/DOSE,
+         LIDV_UNIT       = &quot;ng/ml&quot;) %&gt;%
+  select(-TRTACT) %&gt;%
+  ungroup() %&gt;%
+  filter(NOMTIME &gt; 0, TIME &gt; 0, !is.na(TIME), !is.na(LIDV))</code></pre>
 </div>
 <div id="load-in-data-from-pptmp-nca-and-format-for-plotting" class="section level4">
 <h4>Load in data from PPtmp (NCA) and format for plotting</h4>
@@ -619,146 +656,155 @@ d = d %&gt;%
 
 #create columns with dosing regimen information, based on ARM
 nca = nca %&gt;%
-  mutate(DOSSTR          = stringr::str_replace(ARM,&quot;Phase Ib? &quot;,&quot;&quot;),
-         DRG1STR         = stringr::str_replace(DOSSTR,paste0(drug1,&quot; &quot;),&quot;&quot;),
-         DRG1STR         = stringr::str_extract(DRG1STR,&quot;^\\d* *mg Q\\dW&quot;),
-         DRG1DOS0        = as.numeric(stringr::str_extract(DRG1STR,&quot;\\d*&quot;)),
-         DRG1REG          = stringr::str_extract(DRG1STR,&quot;Q\\dW&quot;),
-         DRG2STR          = stringr::str_extract(DOSSTR,paste0(drug2,&quot; \\d* *mg Q\\dW&quot;)),
-         DRG2STR          = stringr::str_replace(DRG2STR,paste0(drug2,&quot; &quot;),&quot;&quot;),
-         DRG2DOS0         = as.numeric(stringr::str_extract(DRG2STR,&quot;\\d*&quot;)),
-         DRG2REG          = stringr::str_extract(DRG2STR,&quot;Q\\dW&quot;),
-         Comed           = ifelse(is.na(DRG2DOS0),&quot;monotherapy&quot;,&quot;combination&quot;),
-         DRG1.DRG2       = paste(DRG1DOS0,Comed),
-         PPORRESNnorm    = PPORRESN/DRG1DOS0)
-
-#create simplified column names  
-nca = nca %&gt;%
-  arrange(DRG1DOS0,desc(DRG1REG)) %&gt;%
-  mutate(ID = SUBJID,
-         DOSElabel = factor(DRG1STR,levels=unique(DRG1STR)), #for proper ordering
-         DOSE0 = DRG1DOS0,
-         REG = DRG1REG)  </code></pre>
+  mutate(ID              = SUBJID,
+         TRTACT          = str_replace(ARM,&quot;Phase Ib? &quot;,&quot;&quot;),
+         TRTACT          = str_replace(TRTACT,paste0(drug_name,&quot; &quot;),&quot;&quot;),
+         TRTACT          = str_extract(TRTACT,&quot;^\\d* *mg Q\\dW&quot;),
+         DOSE            = as.numeric(str_extract(TRTACT,&quot;\\d*&quot;)),
+         REGIMEN         = str_extract(TRTACT,&quot;Q\\dW&quot;),
+         PPORRESNnorm    = PPORRESN/DOSE) %&gt;%
+  arrange(DOSE,desc(REGIMEN)) %&gt;%
+  mutate(TRTACT_high2low = factor(TRTACT,levels=rev(unique(TRTACT))),
+         TRTACT_low2high = factor(TRTACT,levels=unique(TRTACT))) </code></pre>
 </div>
+</div>
+<div id="specify-units" class="section level2">
+<h2>Specify units</h2>
+<pre class="r"><code>#units and labels
+  time_units_dataset = &quot;hours&quot;
+  time_units_plot    = &quot;day&quot;
+  trtact_label       = &quot;Dose&quot;
+  dose_label         = &quot;Dose (mg)&quot;
+  conc_label         = &quot;Concentration (ng/ml)&quot;  
+  concnorm_label     = &quot;Normalized Concentration (ng/ml)/mg&quot;
+  conc_units         = &quot;ng/ml&quot;
+  AUC_units          = &quot;h.ng/ml&quot;</code></pre>
 </div>
 <div id="provide-an-overview-of-the-data" class="section level2">
 <h2>Provide an overview of the data</h2>
+<p>Summarize the data in a way that is easy to visualize the general trend of PK over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th &amp; 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.</p>
+<p>When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?</p>
 <div id="concentration-over-time-faceted-by-regimen-colored-by-dose" class="section level3">
 <h3>Concentration over time, faceted by regimen, colored by dose</h3>
-<pre class="r"><code>gg = ggplot(data = d, aes(x = NOMTIME, y = CONC, color = DOSE0label, group=DOSE0label))
-gg = gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.1, size = .5, 
-                        fun.data = function(y){
-                          y = stats::na.omit(y)
-                          data.frame(
-                          y = median(y),
-                          ymin = quantile(y,.05),
-                          ymax = quantile(y,.95)
-                          )},alpha=.5) +  
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean,alpha=.5) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean,alpha=.5) 
-gg = gg + scale.y.log10()  + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg = gg + scale_x_units(units.input = &quot;h&quot;,units.output=&quot;m&quot;,t.end = 6,increment=1) 
-gg = gg + ylab(&quot;Conc (ug/ml)&quot;)
-gg = gg + labs(color=&quot;Dose (mg)&quot;)
-gg = gg + facet_grid(~REG)
+<pre class="r"><code>gg &lt;- ggplot(data = data, aes(x = NOMTIME, y = LIDV, color = DOSE_high2low, group=DOSE_high2low))
+gg &lt;- gg + facet_grid(~REGIMEN)
+gg &lt;- gg + xgx_scale_y_log10() 
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg &lt;- gg + labs(y=conc_label, color = trtact_label)
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+gg1&lt;- gg
+gg &lt;- gg + xgx_stat_ci(conf_level = 0.95, geom = list(&quot;point&quot;,&quot;line&quot;,&quot;errorbar&quot;), alpha = 0.5, position = position_dodge(width = 24*5))
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-2-1.png" width="768" /></p>
+<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
 </div>
 <div id="concentration-over-time-faceted-by-regimen-and-cycle-number-colored-by-dose" class="section level3">
 <h3>Concentration over time, faceted by regimen and cycle number, colored by dose</h3>
-<pre class="r"><code>gg = gg
-gg = gg %+% filter(d,CYCLE %in% c(1,3))
-gg = gg + aes(x=TMTPT,y=CONC)
-gg = gg + facet_grid(CYCLE~REG,labeller=label_both,switch=&quot;y&quot;)
-gg = gg + scale_x_units(units.input = &quot;h&quot;,units.output=&quot;d&quot;,t.end = 28,increment=7) 
-gg = gg + ylab(&quot;Conc (ug/ml)&quot;)
-gg = gg + ggtitle(&quot;PK by Cycle&quot;)
+<pre class="r"><code>gg &lt;- gg1
+gg &lt;- gg + xgx_stat_ci(conf_level = 0.95, geom = list(&quot;point&quot;,&quot;line&quot;,&quot;errorbar&quot;), alpha = 0.5, position = position_dodge(width = 24))
+gg &lt;- gg %+% filter(data, CYCLE %in% c(1,3))
+gg &lt;- gg + aes(x = DAY_OF_CYCLE, y = LIDV)
+gg &lt;- gg + labs(x = &quot;Day&quot;)
+gg &lt;- gg + facet_grid(CYCLE~REGIMEN, labeller = label_both, switch = &quot;y&quot;)
 print(gg)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
 </div>
 </div>
 <div id="assess-the-dose-linearity-of-exposure" class="section level2">
 <h2>Assess the dose linearity of exposure</h2>
 <div id="dose-normalized-concentration" class="section level3">
 <h3>Dose normalized concentration</h3>
-<pre class="r"><code>gg = ggplot(data = d, aes(x = NOMTIME, y = CONCnorm, color = DOSE0label, group=DOSE0label))
-gg = gg + stat_summary(geom = &quot;errorbar&quot;, width = 0.1, size = .5, 
-                        fun.data = function(y){
-                          y = stats::na.omit(y)
-                          data.frame(
-                          y = median(y),
-                          ymin = quantile(y,.05),
-                          ymax = quantile(y,.95)
-                          )},alpha=.5) +  
-  stat_summary(geom = &quot;point&quot;, size = 2, fun.y = mean,alpha=.5) + 
-  stat_summary(geom = &quot;line&quot;, size = 1, fun.y = mean,alpha=.5) 
-gg = gg + scale.y.log10()  + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg = gg + scale_x_units(units.input = &quot;h&quot;,units.output=&quot;m&quot;,t.end = 6,increment=1) 
-gg = gg + labs(color=&quot;Dose (mg)&quot;)
-gg = gg + facet_grid(~REG)
-gg = gg + ylab(&quot;Normalized Conc (ug/ml/mg)&quot;)
-gg = gg + ggtitle(&quot;Normalized Concentration&quot;)
+<pre class="r"><code>gg &lt;- ggplot(data = data, aes(x = NOMTIME, y = LIDVNORM, color = DOSE_high2low, group=DOSE_high2low))
+gg &lt;- gg + xgx_stat_ci(conf_level = 0.95, geom = list(&quot;point&quot;,&quot;line&quot;,&quot;errorbar&quot;), alpha = 0.5, position = position_dodge(width = 24*5))
+gg &lt;- gg + facet_grid(~REGIMEN)
+gg &lt;- gg + xgx_scale_y_log10() 
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg &lt;- gg + labs(y=conc_label, color = trtact_label)
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
 </div>
 <div id="noncompartmental-analysis" class="section level3">
 <h3>Noncompartmental Analysis</h3>
+<p>Observe the dose normalized AUC over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to CENS observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?</p>
 <pre class="r"><code>nca.filter = nca %&gt;% 
   filter(WNLPARM %in% c(&quot;AUCINF_obs&quot;,&quot;AUClast&quot;,&quot;AUCtau&quot;,&quot;Cmax&quot;))
-g = ggplot(nca.filter,aes(x=DOSE0,y=PPORRESNnorm,group=DOSE0))
-g = g + geom_boxplot(outlier.shape=NA)
-g = g + geom_smooth(aes(group=NULL),show.legend = FALSE,se=FALSE)
-g = g + geom_jitter(width=0,alpha=.3)
-g = g + facet_grid(WNLPARM~REG,scales=&quot;free_y&quot;,switch=&quot;y&quot;)
-g = g + scale.y.log10(.5)  + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-g = g + scale_x_log10(breaks=unique(d$DOSE0))
-g = g + labs(x=&quot;First Dose (mg)&quot;,
+gg &lt;- ggplot(nca.filter,aes(x=DOSE,y=PPORRESNnorm,group=DOSE))
+gg &lt;- gg + geom_boxplot(outlier.shape=NA)
+gg &lt;- gg + geom_smooth(aes(group=NULL),show.legend = FALSE,se=FALSE)
+gg &lt;- gg + geom_jitter(width=0,alpha=.3)
+gg &lt;- gg + facet_grid(WNLPARM~REGIMEN,scales=&quot;free_y&quot;,switch=&quot;y&quot;)
+gg &lt;- gg + xgx_scale_y_log10()
+gg &lt;- gg + xgx_scale_x_log10(breaks=unique(data$DOSE))
+gg &lt;- gg + labs(x=&quot;First Dose (mg)&quot;,
              y=&quot;Normalized value (ug/ml/mg or ug/ml*d/mg)&quot;)
-g = g + ggtitle(&quot;Normalized NCA&quot;)
-print(g)</code></pre>
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
+print(gg)</code></pre>
 <p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/NCA-1.png" width="576" /></p>
 </div>
 </div>
 <div id="explore-variability" class="section level2">
 <h2>Explore variability</h2>
+<p>Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?</p>
 <div id="spaghetti-grouped-by-dose" class="section level3">
 <h3>Spaghetti, grouped by dose</h3>
-<pre class="r"><code>gg = ggplot(data = d, aes(x=TIME, y=CONC, group=ID))
-gg = gg + geom_line(mapping=aes(group=ID),alpha = 0.5) 
-gg = gg + geom_point(alpha = 0.5)
-gg = gg + scale.y.log10()  + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg = gg + scale_x_units(units.input = &quot;h&quot;,units.output=&quot;m&quot;,t.end = 6,increment=1) 
-gg = gg + ylab(&quot;Conc (ug/ml)&quot;)
-gg = gg + theme(legend.position=&quot;none&quot;)   
-gg = gg + facet_grid(REG~DOSE0,switch=&quot;y&quot;)
+<pre class="r"><code>gg &lt;- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
+gg &lt;- gg + geom_line(mapping=aes(group=ID), alpha = 0.5) 
+gg &lt;- gg + geom_point(alpha = 0.5)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg &lt;- gg + xgx_scale_y_log10() 
+gg &lt;- gg + labs(y=conc_label, color = trtact_label)
+gg &lt;- gg + theme(legend.position=&quot;none&quot;)   
+gg &lt;- gg + facet_grid(REGIMEN~DOSE_low2high,switch=&quot;y&quot;)
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
+<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
 </div>
 </div>
 <div id="explore-irregularities-in-profiles" class="section level2">
 <h2>Explore irregularities in profiles</h2>
+<p>Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)?</p>
 <div id="individual-profiles" class="section level3">
 <h3>Individual profiles</h3>
-<pre class="r"><code>gg = ggplot(data = d, aes(x=TIME, y=CONC, group=ID))
-gg = gg + geom_line() 
-gg = gg + geom_point()
-gg = gg + scale.y.log10()  + annotation_logticks(base = 10, sides = &quot;l&quot;, color = rgb(0.5,0.5,0.5))
-gg = gg + scale_x_units(units.input = &quot;h&quot;,units.output=&quot;m&quot;,t.end = 6,increment=1) 
-gg = gg + ylab(&quot;Conc (ug/ml)&quot;)
-gg = gg + theme(legend.position=&quot;none&quot;)   
-gg = gg + facet_wrap(~DOSElabel+ID)
+<pre class="r"><code>gg &lt;- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
+gg &lt;- gg + geom_line() 
+gg &lt;- gg + geom_point()
+gg &lt;- gg + facet_wrap(~TRTACT_low2high + ID)
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg &lt;- gg + xgx_scale_y_log10() 
+gg &lt;- gg + labs(y=conc_label, color = trtact_label)
+gg &lt;- gg + theme(legend.position=&quot;none&quot;)   
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + xgx_annotate_filenames(dirs)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+#xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<p><img src="Multiple_Ascending_Dose_PK_KeyPlots_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
 </div>
 <div id="r-session-info" class="section level3">
 <h3>R Session Info</h3>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.4.3 (2017-11-30)
+<pre><code>## R version 3.6.1 (2019-07-05)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+## Running under: OpenShift Enterprise
 ## 
 ## Matrix products: default
-## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -773,33 +819,43 @@ print(gg)</code></pre>
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] reshape_0.8.7   lubridate_1.7.1 xgxr_1.0.2      survminer_0.4.1
-##  [5] ggpubr_0.1.6    magrittr_1.5    survival_2.41-3 DT_0.2         
-##  [9] RxODE_0.6-1     bindrcpp_0.2    haven_1.1.0     readr_1.1.1    
-## [13] readxl_1.0.0    xtable_1.8-2    tidyr_0.7.2     caTools_1.17.1 
-## [17] zoo_1.8-0       dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
+##  [1] stringr_1.4.0    survminer_0.4.6  ggpubr_0.2.3     magrittr_1.5    
+##  [5] survival_3.1-7   knitr_1.25       broom_0.5.3      DT_0.9          
+##  [9] caTools_1.17.1.2 RxODE_0.9.1-8    xgxr_1.0.7       zoo_1.8-6       
+## [13] gridExtra_2.3    tidyr_1.0.0      dplyr_0.8.3      ggplot2_3.2.1   
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.14        lattice_0.20-35     png_0.1-7          
-##  [4] assertthat_0.2.0    rprojroot_1.3-1     digest_0.6.13      
-##  [7] psych_1.7.8         R6_2.2.2            cellranger_1.1.0   
-## [10] plyr_1.8.4          backports_1.1.2     evaluate_0.10.1    
-## [13] pillar_1.0.1        rlang_0.1.6         lazyeval_0.2.1     
-## [16] data.table_1.10.4-3 Matrix_1.2-12       rmarkdown_1.8      
-## [19] labeling_0.3        splines_3.4.3       dparser_0.1.8      
-## [22] pander_0.6.1        stringr_1.2.0       foreign_0.8-69     
-## [25] htmlwidgets_0.9     munsell_0.4.3       broom_0.4.3        
-## [28] compiler_3.4.3      pkgconfig_2.0.1     mnormt_1.5-5       
-## [31] htmltools_0.3.6     tidyselect_0.2.3    tibble_1.4.1       
-## [34] km.ci_0.5-2         binom_1.1-1         codetools_0.2-15   
-## [37] bitops_1.0-6        jsonlite_1.5        nlme_3.1-131       
-## [40] gtable_0.2.0        KMsurv_0.1-5        scales_0.5.0       
-## [43] stringi_1.1.3       reshape2_1.4.3      rex_1.1.2          
-## [46] survMisc_0.5.4      RColorBrewer_1.1-2  tools_3.4.3        
-## [49] cmprsk_2.2-7        forcats_0.2.0       glue_1.2.0         
-## [52] markdown_0.8        purrr_0.2.4         hms_0.4.0          
-## [55] parallel_3.4.3      yaml_2.1.16         colorspace_1.3-2   
-## [58] memoise_1.1.0       knitr_1.18          bindr_0.1</code></pre>
+##  [1] nlme_3.1-142       matrixStats_0.55.0 bitops_1.0-6      
+##  [4] lubridate_1.7.4    RColorBrewer_1.1-2 rstan_2.19.2      
+##  [7] tools_3.6.1        backports_1.1.5    utf8_1.1.4        
+## [10] R6_2.4.0           lazyeval_0.2.2     colorspace_1.4-1  
+## [13] lotri_0.1.1        withr_2.1.2        tidyselect_0.2.5  
+## [16] prettyunits_1.0.2  processx_3.4.1     compiler_3.6.1    
+## [19] cli_1.1.0          binom_1.1-1        labeling_0.3      
+## [22] scales_1.0.0       survMisc_0.5.5     callr_3.3.2       
+## [25] mvnfast_0.2.5      digest_0.6.22      StanHeaders_2.19.0
+## [28] rmarkdown_1.16     PreciseSums_0.3    pkgconfig_2.0.3   
+## [31] htmltools_0.4.0    fastmap_1.0.1      highr_0.8         
+## [34] htmlwidgets_1.5.1  rlang_0.4.1        shiny_1.4.0       
+## [37] farver_1.1.0       generics_0.0.2     jsonlite_1.6      
+## [40] crosstalk_1.0.0    inline_0.3.15      loo_2.1.0         
+## [43] Matrix_1.2-17      fansi_0.4.0        Rcpp_1.0.3        
+## [46] munsell_0.5.0      lifecycle_0.1.0    stringi_1.4.3     
+## [49] yaml_2.2.0         MASS_7.3-51.4      pkgbuild_1.0.6    
+## [52] plyr_1.8.4         parallel_3.6.1     promises_1.1.0    
+## [55] crayon_1.3.4       lattice_0.20-38    splines_3.6.1     
+## [58] pander_0.6.3       sys_3.3            zeallot_0.1.0     
+## [61] ps_1.3.0           pillar_1.4.2       markdown_1.1      
+## [64] ggsignif_0.6.0     reshape2_1.4.3     codetools_0.2-16  
+## [67] stats4_3.6.1       glue_1.3.1         packrat_0.5.0     
+## [70] evaluate_0.14      dparser_0.1.8      data.table_1.12.6 
+## [73] png_0.1-7          vctrs_0.2.0        tweenr_1.0.1      
+## [76] httpuv_1.5.2       gtable_0.3.0       purrr_0.3.3       
+## [79] polyclip_1.10-0    km.ci_0.5-2        assertthat_0.2.1  
+## [82] xfun_0.10          ggforce_0.3.1      mime_0.7          
+## [85] xtable_1.8-4       later_1.0.0        rsconnect_0.8.15  
+## [88] tibble_2.1.3       memoise_1.1.0      KMsurv_0.1-5      
+## [91] units_0.6-5        ellipsis_0.3.0</code></pre>
 </div>
 </div>
 
@@ -821,6 +877,54 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

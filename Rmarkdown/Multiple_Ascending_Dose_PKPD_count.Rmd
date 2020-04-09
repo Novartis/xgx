@@ -267,6 +267,8 @@ gg <- gg + geom_path(arrow = arrow(length=unit(0.15,"cm")))
 gg <- gg + xgx_scale_x_log10() + xgx_scale_y_log10()
 gg <- gg + ylab(pd_label) + xlab(conc_label)
 gg <- gg + facet_wrap(~ID + TRTACT_high2low, ncol = 5)
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
+                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 

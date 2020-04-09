@@ -149,7 +149,7 @@ Questions to ask:
  * Does the effect appear to increase (decrease) with increasing dose? 
  * Do you detect a saturation of the effect?
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
   gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
   gg <- gg + xgx_stat_ci()
@@ -180,7 +180,7 @@ Questions to ask:
 
 If coloring by dose makes a messy plot, you can try faceting by dose instead. Here we show the same data, but faceted by dose. 
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
   gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV))
   gg <- gg + xgx_stat_ci()
@@ -233,7 +233,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 When plotting individual binomial data, it is often helpful to stagger the dots and use transparency, so that it is easier to detect individual dots.
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 

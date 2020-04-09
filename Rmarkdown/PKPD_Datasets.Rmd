@@ -220,7 +220,12 @@ for(idose in 1:length(DOSE)){
   temp$time <- cumsum(c(temp$NT[1] + 0.1*rnorm(1), abs(temp$NT[2:length(temp$NT)]-temp$NT[1:length(temp$NT)-1] + 0.1*rnorm(length(temp$NT)-1))))
   temp$time <- temp$time - temp$time[temp$NT==0] # center at first dose
   
-  ev.all[[idose]]$add.dosing(dose = DOSE[idose], start.time = temp$time[temp$label=="DOSING"])
+  if(DOSE[idose] > 0){
+      ev.all[[idose]]$add.dosing(dose = DOSE[idose], start.time = temp$time[temp$label=="DOSING"])
+  }else{
+      ev.all[[idose]]$add.dosing(dose = 1e-12, start.time = temp$time[temp$label=="DOSING"])
+  }
+
   ev.all[[idose]]$add.sampling(temp$time[temp$label=="SAMPLING"])
   
 }

@@ -7,8 +7,10 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Alison Margolskee, Fariba Khanshan" />
 
 
 <title>PD, Dose-Response - Ordinal</title>
@@ -85,9 +87,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -101,13 +101,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -123,7 +128,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -143,6 +147,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -164,55 +205,68 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -261,8 +315,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -271,6 +323,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -364,7 +426,7 @@ div.tocify {
       <a href="Multiple_Ascending_Dose_PD_time_to_event.html">Time to Event</a>
     </li>
     <li>
-      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints</a>
+      <a href="Oncology_Efficacy_Plots.html">Oncology Efficacy Endpoints (RECIST)</a>
     </li>
     <li>
       <a href="Multiple_Ascending_Dose_PD_real_example.html">PD/Efficacy Example using realistic data</a>
@@ -418,7 +480,7 @@ div.tocify {
       <a href="Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx">Fundamental PD Principles Introduction</a>
     </li>
     <li>
-      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncernainty Assessment - Pedigree Table</a>
+      <a href="Resources/Uncertainty_Assessment_Pedigree_Table.pdf">Uncertainty Assessment - Pedigree Table</a>
     </li>
   </ul>
 </li>
@@ -511,6 +573,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">PD, Dose-Response - Ordinal</h1>
+<h4 class="author">Alison Margolskee, Fariba Khanshan</h4>
 
 </div>
 
@@ -522,82 +585,95 @@ div.tocify {
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
-<pre class="r"><code># remove reference to home directory in libPaths
-.libPaths(grep(&quot;home&quot;, .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep(&quot;usr&quot;, .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c(&quot;localLib&quot;, .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
-library(ggplot2)
+<pre class="r"><code>library(ggplot2)
 library(dplyr)
-library(RxODE)
-library(caTools)
+library(tidyr)
+library(gridExtra)
+library(xgxr)
 
 #flag for labeling figures as draft
-  draft.flag      = TRUE
+status = &quot;DRAFT&quot;
 
 ## ggplot settings
-theme_set(theme_bw(base_size=12))</code></pre>
-</div>
-<div id="define-useful-graphics-functions" class="section level2">
-<h2>Define Useful Graphics Functions</h2>
-<pre class="r"><code># annotation of plots with status of code
-AnnotateStatus &lt;- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color=&quot;grey&quot;) {
-  
-  x.pos &lt;- -Inf
-  if (log.x)
-    x.pos &lt;- 0
-  
-  y.pos &lt;- -Inf
-  if (log.y)
-    y.pos &lt;- 0
-  
-  if(draft.flag) {
-    annotateStatus &lt;- annotate(&quot;text&quot;,
-                               label=&quot;DRAFT&quot;,
-                               x=x.pos, y=y.pos,
-                               hjust=-0.1, vjust=-1.0,
-                               cex=fontsize,
-                               col=color, alpha=0.7, fontface=&quot;bold&quot;)
-  } else {
-    annotateStatus &lt;- NULL
-  }
-  
-  return(annotateStatus)
-}</code></pre>
+xgx_theme_set()</code></pre>
 </div>
 <div id="load-dataset" class="section level2">
 <h2>Load Dataset</h2>
-<pre class="r"><code>my.data &lt;- read.csv(&quot;../Data/Multiple_Ascending_Dose_Dataset2.csv&quot;)
+<pre class="r"><code>pkpd_data &lt;- read.csv(&quot;../Data/Multiple_Ascending_Dose_Dataset2.csv&quot;)
 
-my.data$TRTACT &lt;- factor(my.data$TRTACT,levels = c(&quot;Placebo&quot;,paste(unique(my.data$DOSE[my.data$DOSE!=0]),&quot;mg&quot;)))
+#ensure dataset has all the necessary columns
+pkpd_data = pkpd_data %&gt;%
+  mutate(ID      = ID,     #ID   column
+         TIME    = TIME,   #TIME column name
+         NOMTIME = NOMTIME,#NOMINAL TIME column name
+         EVID    = EVID   ,#EVENT ID, &gt;=1 is dose, otherwise measurement
+         PROFDAY = PROFDAY,#PROFILE DAY day associated with profile, e.g. day of dose administration
+         LIDV    = LIDV,   #DEPENDENT VARIABLE column name
+         CENS    = CENS,   #CENSORING column name
+         CMT     = CMT,    #COMPARTMENT column
+         DOSE    = DOSE,   #DOSE column here (numeric value)
+         TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
+         Severity= LIDV
+         )
 
-my.data$Severity &lt;- my.data$LIDV
-my.data[my.data$CMT!=5,]$Severity &lt;- NA
-my.data$Severity_label &lt;- factor(plyr::mapvalues(my.data$Severity,c(1,2,3), c(&quot;Mild&quot;, &quot;Moderate&quot;,&quot;Severe&quot;)), levels = c(&quot;Mild&quot;,&quot;Moderate&quot;,&quot;Severe&quot;))</code></pre>
+pkpd_data[pkpd_data$CMT!=5,]$Severity &lt;- NA
+pkpd_data$Severity_label &lt;- factor(plyr::mapvalues(pkpd_data$Severity,c(1,2,3), c(&quot;Mild&quot;, &quot;Moderate&quot;,&quot;Severe&quot;)), levels = c(&quot;Mild&quot;,&quot;Moderate&quot;,&quot;Severe&quot;))
+
+#create a factor for the treatment variable for plotting
+pkpd_data$DAY &lt;- floor(pkpd_data$TIME/24 )
+
+pkpd_data = pkpd_data %&gt;%
+  arrange(DOSE) %&gt;%
+  mutate(TRTACT_low2high      = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low      = factor(TRTACT, levels = rev(unique(TRTACT))),
+         Severity_high2low    = factor(Severity_label, levels = rev(levels(Severity_label))))
+
+#create pd dataset
+pd_data &lt;- pkpd_data %&gt;%
+  filter(CMT==5) %&gt;%
+  mutate(Severity2 = jitter(Severity, amount=0.1),
+         time2     = jitter(TIME, amount=0.1*24)
+         )
+
+pd_data$Response &lt;- factor(pd_data$Severity_label, levels = rev(levels(pd_data$Severity_label)))
+pd_data$DAY_label &lt;- paste(&quot;Day&quot;, pd_data$PROFDAY)
+pd_data$DAY_label[pd_data$DAY_label==&quot;Day 0&quot;] = &quot;Baseline&quot;
+
+#units and labels
+time_units_dataset = &quot;hours&quot;
+time_units_plot    = &quot;days&quot;
+trtact_label       = &quot;Dose&quot;
+dose_label         = &quot;Dose (mg)&quot;
+time_label         = &quot;Time(Days)&quot;
+conc_label         = &quot;Concentration (ng/ml)&quot;
+trough_label       = &quot;Trough Concentration (ng/mL)&quot;
+pdresponse_label   = &quot;Responder Rate (%)&quot;
+pdseverity_label   = &quot;Severity&quot;
+concnorm_label     = &quot;Normalized Concentration (ng/ml)/mg&quot;
+conc_units         = &quot;ng/ml&quot;
+
+#directories for saving individual graphs
+dirs = list(
+parent_dir= tempdir(),
+rscript_dir  = &quot;./&quot;,
+rscript_name = &quot;Example.R&quot;,
+results_dir  = &quot;./&quot;,
+filename_prefix   = &quot;&quot;,
+filename     = &quot;Example.png&quot;)</code></pre>
 </div>
 <div id="provide-an-overview-of-the-data" class="section level2">
 <h2>Provide an overview of the data</h2>
 <div id="percent-of-subjects-by-response-category-over-time-faceted-by-dose" class="section level3">
 <h3>Percent of subjects by response category over time, faceted by dose</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-
-data_to_plot$Response &lt;- factor(data_to_plot$Severity_label, levels = rev(levels(data_to_plot$Severity_label)))
-# data_to_plot$Response &lt;- data_to_plot$Severity_label
-
-gg &lt;- ggplot(data = data_to_plot, aes(x = factor(PROFDAY), fill = Response)) + theme_bw()
+<pre class="r"><code>gg &lt;- ggplot(data = pd_data, aes(x = factor(PROFDAY), fill = Response))
 gg &lt;- gg + geom_bar(position = &quot;fill&quot;) + scale_y_continuous(labels = scales::percent)
-gg &lt;- gg + ylab(&quot;Responder Rate (%)&quot;) + xlab(&quot;Time (days)&quot;) + guides(fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + labs(x=time_label, y=pdresponse_label)
 gg &lt;- gg + scale_fill_brewer(palette=6)
-gg + facet_grid(.~TRTACT)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
+gg &lt;- gg + facet_grid(.~TRTACT_low2high)
+gg &lt;- gg + guides(fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + xgx_annotate_status(status)
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
 </div>
 </div>
 <div id="explore-variability" class="section level2">
@@ -605,20 +681,17 @@ gg + facet_grid(.~TRTACT)</code></pre>
 <p>Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations?</p>
 <div id="spaghetti-plots-of-ordinal-response-over-time-faceted-by-dose" class="section level3">
 <h3>Spaghetti plots of ordinal response over time, faceted by dose</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-set.seed(12345)
-data_to_plot$Severity2 &lt;- jitter(data_to_plot$Severity, amount=0.1)
-data_to_plot$DAY2 &lt;- jitter(data_to_plot$PROFDAY, amount=0.1)
-
-gg &lt;- ggplot(data = data_to_plot, 
-               aes(x=DAY2,y=Severity2))+theme_bw()
-  gg &lt;- gg + geom_point( size=2, alpha = 0.3) +  geom_line( aes(group = ID), alpha = 0.3) 
-  gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
-  gg &lt;- gg  + xlab(&quot;Time (days)&quot;)
-  gg &lt;- gg + facet_grid(~TRTACT)
-    gg &lt;- gg + ylab(&quot;Severity&quot;) + scale_y_continuous(breaks=c(1,2,3), labels=c(&quot;Mild&quot;,&quot;Moderate&quot;,&quot;Severe&quot;))
+<pre class="r"><code>gg &lt;- ggplot(data = pd_data, aes(x=time2, y=Severity2, group=ID))
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + facet_grid(~TRTACT_low2high)
+gg &lt;- gg + geom_line(alpha = 0.5) + geom_point(alpha = 0.5)
+gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(0,8*24,24))
+gg &lt;- gg + labs(y=pdseverity_label)
+gg &lt;- gg + scale_y_continuous(breaks=c(1,2,3), labels=c(&quot;Mild&quot;,&quot;Moderate&quot;,&quot;Severe&quot;))
 gg</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 </div>
 </div>
 <div id="explore-irregularities-in-profiles" class="section level2">
@@ -626,17 +699,16 @@ gg</code></pre>
 <p>Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions.</p>
 <div id="ordinal-response-over-time-faceted-by-individual-individual-line-plots" class="section level3">
 <h3>Ordinal response over time, faceted by individual, individual line plots</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-
-gg &lt;- ggplot(data = data_to_plot, 
-               aes(x=PROFDAY,y=Severity_label))+theme_bw()
-  gg &lt;- gg + geom_point( size=2) +  geom_line( aes(group = ID)) 
-  gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
-  gg &lt;- gg  + xlab(&quot;Time (days)&quot;)+ scale_x_continuous(breaks = seq(0,max(data_to_plot$PROFDAY)+1,7))
-  gg &lt;- gg + facet_wrap(~ID+TRTACT,ncol = length(unique(data_to_plot$ID))/length(unique(data_to_plot$DOSE)) )
-    gg &lt;- gg + ylab(&quot;Severity&quot;) #+ scale_y_continuous(labels=scales::percent)
+<pre class="r"><code>gg &lt;- ggplot(data = pd_data, aes(x=time2,y=Severity_label))
+gg &lt;- gg + xgx_annotate_status(status)
+gg &lt;- gg + geom_point( size=2) +  geom_line( aes(group = ID)) 
+gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
+                                  units_plot    = time_units_plot, breaks = seq(0,7*24,7*24))
+gg &lt;- gg + facet_wrap(~ID+TRTACT,ncol = length(unique(pd_data$ID))/length(unique(pd_data$DOSE)) )
+gg &lt;- gg + labs(y=pdseverity_label)
 gg</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
 </div>
 </div>
 <div id="explore-covariate-effects-on-pd" class="section level2">
@@ -647,90 +719,69 @@ gg</code></pre>
 <h2>Explore Dose-Response Relationship</h2>
 <div id="percent-of-subjects-by-response-category-against-dose-faceted-by-time" class="section level3">
 <h3>Percent of subjects by response category against dose, faceted by time</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label &lt;- paste(&quot;Day&quot;, data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label==&quot;Day 0&quot;] = &quot;Baseline&quot;
-data_to_plot &lt;- data_to_plot[data_to_plot$DAY_label%in%c(&quot;Day 5&quot;),]
+<pre class="r"><code>pd_data_d5 &lt;- pd_data %&gt;% subset(DAY_label%in%c(&quot;Day 5&quot;),)
 
-# data_to_plot$DAY_label &lt;- factor(data_to_plot$DAY_label, levels = rev(sort(unique(data_to_plot$DAY_label))))
-
-data_to_plot$Response &lt;- factor(data_to_plot$Severity_label, levels = rev(levels(data_to_plot$Severity_label)))
-
-gg &lt;- ggplot(data = data_to_plot, aes(x = factor(DOSE), fill = Response)) + theme_bw()
+gg &lt;- ggplot(data = pd_data_d5, aes(x = factor(DOSE), fill = Response)) 
+gg &lt;- gg + xgx_annotate_status(status)
 gg &lt;- gg + geom_bar(position = &quot;fill&quot;) + scale_y_continuous(labels = scales::percent)
-gg &lt;- gg + ylab(&quot;Responder Rate (%)&quot;) + xlab(&quot;Dose (mg)&quot;) + guides(fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + labs(x=dose_label, y=pdresponse_label) + guides(fill=guide_legend(&quot;&quot;))
 gg &lt;- gg + scale_fill_brewer(palette=6)
-gg + facet_grid(.~DAY_label)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-7-1.png" width="480" /></p>
+gg &lt;- gg + facet_grid(.~DAY_label)
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-6-1.png" width="480" /></p>
 </div>
 <div id="percent-of-subjects-by-response-category-against-dose-faceted-by-day" class="section level3">
 <h3>Percent of subjects by response category against dose, faceted by day</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label &lt;- paste(&quot;Day&quot;, data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label==&quot;Day 0&quot;] = &quot;Baseline&quot;
-data_to_plot &lt;- data_to_plot[data_to_plot$DAY_label%in%c(&quot;Day 1&quot;,&quot;Day 3&quot;,&quot;Day 5&quot;),]
+<pre class="r"><code>pd_data_d135 &lt;- pd_data %&gt;% subset(DAY_label%in%c(&quot;Day 1&quot;,&quot;Day 3&quot;,&quot;Day 5&quot;),)
 
-# data_to_plot$DAY_label &lt;- factor(data_to_plot$DAY_label, levels = rev(sort(unique(data_to_plot$DAY_label))))
-
-data_to_plot$Response &lt;- factor(data_to_plot$Severity_label, levels = rev(levels(data_to_plot$Severity_label)))
-
-gg &lt;- ggplot(data = data_to_plot, aes(x = factor(DOSE), fill = Response)) + theme_bw()
+gg &lt;- ggplot(data = pd_data_d135, aes(x = factor(DOSE), fill = Response)) 
+gg &lt;- gg + xgx_annotate_status(status)
 gg &lt;- gg + geom_bar(position = &quot;fill&quot;) + scale_y_continuous(labels = scales::percent)
-gg &lt;- gg + ylab(&quot;Responder Rate (%)&quot;) + xlab(&quot;Dose (mg)&quot;) + guides(fill=guide_legend(&quot;&quot;))
+gg &lt;- gg + labs(x=dose_label, y=pdresponse_label) + guides(fill=guide_legend(&quot;&quot;))
 gg &lt;- gg + scale_fill_brewer(palette=6)
-gg + facet_grid(.~DAY_label)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-8-1.png" width="768" /></p>
+gg &lt;- gg + facet_grid(.~DAY_label)
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 </div>
 <div id="ordinal-response-against-dose" class="section level3">
 <h3>Ordinal response against dose</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label &lt;- paste(&quot;Day&quot;, data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label==&quot;Day 0&quot;] = &quot;Baseline&quot;
-data_to_plot &lt;- data_to_plot[data_to_plot$DAY_label%in%c(&quot;Day 5&quot;),]
-
-
-data_to_plot$TRTACT &lt;- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg &lt;- ggplot(data = data_to_plot, aes(y=DOSE,x=Severity_label))+theme_bw()
-gg &lt;- gg + geom_jitter(data = data_to_plot, 
-                       aes(color = TRTACT), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+<pre class="r"><code>gg &lt;- ggplot(data = pd_data_d5, aes(y=DOSE,x=Severity_label))
+gg &lt;- gg + geom_jitter(data = pd_data_d5, 
+                       aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+gg &lt;- gg + xgx_annotate_status(status)
 gg &lt;- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
 gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
 gg &lt;- gg + coord_flip() 
-gg &lt;- gg + xlab(&quot;Severity&quot;) + ylab(&quot;Dose (mg)&quot;)
-gg + facet_grid(.~DAY_label)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-9-1.png" width="480" /></p>
+gg &lt;- gg + labs(y=dose_label,x=pdseverity_label)
+gg &lt;- gg + facet_grid(.~DAY_label)
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-8-1.png" width="480" /></p>
 </div>
 <div id="ordinal-response-against-dose-faceted-by-day" class="section level3">
 <h3>Ordinal response against dose, faceted by day</h3>
-<pre class="r"><code>data_to_plot &lt;- my.data[my.data$CMT==5,]
-data_to_plot$DAY_label &lt;- paste(&quot;Day&quot;, data_to_plot$PROFDAY)
-data_to_plot$DAY_label[data_to_plot$DAY_label==&quot;Day 0&quot;] = &quot;Baseline&quot;
-data_to_plot &lt;- data_to_plot[data_to_plot$DAY_label%in%c(&quot;Day 1&quot;,&quot;Day 3&quot;,&quot;Day 5&quot;),]
-
-
-data_to_plot$TRTACT &lt;- factor(data_to_plot$TRTACT, levels = rev(levels(data_to_plot$TRTACT)))
-
-gg &lt;- ggplot(data = data_to_plot, aes(y=DOSE,x=Severity_label))+theme_bw()
-gg &lt;- gg + geom_jitter(data = data_to_plot, 
+<pre class="r"><code>gg &lt;- ggplot(data = pd_data_d135, aes(y=DOSE,x=Severity_label))+theme_bw()
+gg &lt;- gg + geom_jitter(data = pd_data_d135, 
                        aes(color = TRTACT), shape=19,  width = 0.1, height = 0, alpha = 0.5)
+gg &lt;- gg + xgx_annotate_status(status)
 gg &lt;- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape=NA) 
 gg &lt;- gg + guides(color=guide_legend(&quot;&quot;),fill=guide_legend(&quot;&quot;))
 gg &lt;- gg + coord_flip() 
 gg &lt;- gg + xlab(&quot;Severity&quot;) + ylab(&quot;Dose (mg)&quot;)
-gg + facet_grid(.~DAY_label)</code></pre>
-<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
+gg &lt;- gg + facet_grid(.~DAY_label)
+gg &lt;- gg + labs(y=dose_label,x=pdseverity_label)
+gg</code></pre>
+<p><img src="Multiple_Ascending_Dose_PD_ordinal_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
 </div>
 </div>
 <div id="r-session-info" class="section level2">
 <h2>R Session Info</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.4.3 (2017-11-30)
+<pre><code>## R version 3.6.1 (2019-07-05)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Red Hat Enterprise Linux Server 7.4 (Maipo)
+## Running under: OpenShift Enterprise
 ## 
 ## Matrix products: default
-## BLAS/LAPACK: /CHBS/apps/intel/17.4.196/compilers_and_libraries_2017.4.196/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
+## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -745,33 +796,43 @@ gg + facet_grid(.~DAY_label)</code></pre>
 ## [8] base     
 ## 
 ## other attached packages:
-##  [1] reshape_0.8.7   lubridate_1.7.1 xgxr_1.0.2      survminer_0.4.1
-##  [5] ggpubr_0.1.6    magrittr_1.5    survival_2.41-3 DT_0.2         
-##  [9] RxODE_0.6-1     bindrcpp_0.2    haven_1.1.0     readr_1.1.1    
-## [13] readxl_1.0.0    xtable_1.8-2    tidyr_0.7.2     caTools_1.17.1 
-## [17] zoo_1.8-0       dplyr_0.7.4     ggplot2_2.2.1   gridExtra_2.3  
+##  [1] stringr_1.4.0    survminer_0.4.6  ggpubr_0.2.3     magrittr_1.5    
+##  [5] survival_3.1-7   knitr_1.25       broom_0.5.3      DT_0.9          
+##  [9] caTools_1.17.1.2 RxODE_0.9.1-8    xgxr_1.0.7       zoo_1.8-6       
+## [13] gridExtra_2.3    tidyr_1.0.0      dplyr_0.8.3      ggplot2_3.2.1   
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.14        lattice_0.20-35     png_0.1-7          
-##  [4] assertthat_0.2.0    rprojroot_1.3-1     digest_0.6.13      
-##  [7] psych_1.7.8         R6_2.2.2            cellranger_1.1.0   
-## [10] plyr_1.8.4          backports_1.1.2     evaluate_0.10.1    
-## [13] pillar_1.0.1        rlang_0.1.6         lazyeval_0.2.1     
-## [16] data.table_1.10.4-3 Matrix_1.2-12       rmarkdown_1.8      
-## [19] labeling_0.3        splines_3.4.3       dparser_0.1.8      
-## [22] pander_0.6.1        stringr_1.2.0       foreign_0.8-69     
-## [25] htmlwidgets_0.9     munsell_0.4.3       broom_0.4.3        
-## [28] compiler_3.4.3      pkgconfig_2.0.1     mnormt_1.5-5       
-## [31] htmltools_0.3.6     tidyselect_0.2.3    tibble_1.4.1       
-## [34] km.ci_0.5-2         binom_1.1-1         codetools_0.2-15   
-## [37] bitops_1.0-6        jsonlite_1.5        nlme_3.1-131       
-## [40] gtable_0.2.0        KMsurv_0.1-5        scales_0.5.0       
-## [43] stringi_1.1.3       reshape2_1.4.3      rex_1.1.2          
-## [46] survMisc_0.5.4      RColorBrewer_1.1-2  tools_3.4.3        
-## [49] cmprsk_2.2-7        forcats_0.2.0       glue_1.2.0         
-## [52] markdown_0.8        purrr_0.2.4         hms_0.4.0          
-## [55] parallel_3.4.3      yaml_2.1.16         colorspace_1.3-2   
-## [58] memoise_1.1.0       knitr_1.18          bindr_0.1</code></pre>
+##  [1] nlme_3.1-142       matrixStats_0.55.0 bitops_1.0-6      
+##  [4] lubridate_1.7.4    RColorBrewer_1.1-2 rstan_2.19.2      
+##  [7] tools_3.6.1        backports_1.1.5    utf8_1.1.4        
+## [10] R6_2.4.0           lazyeval_0.2.2     colorspace_1.4-1  
+## [13] lotri_0.1.1        withr_2.1.2        tidyselect_0.2.5  
+## [16] prettyunits_1.0.2  processx_3.4.1     compiler_3.6.1    
+## [19] cli_1.1.0          binom_1.1-1        labeling_0.3      
+## [22] scales_1.0.0       survMisc_0.5.5     callr_3.3.2       
+## [25] mvnfast_0.2.5      digest_0.6.22      StanHeaders_2.19.0
+## [28] rmarkdown_1.16     PreciseSums_0.3    pkgconfig_2.0.3   
+## [31] htmltools_0.4.0    fastmap_1.0.1      highr_0.8         
+## [34] htmlwidgets_1.5.1  rlang_0.4.1        shiny_1.4.0       
+## [37] farver_1.1.0       generics_0.0.2     jsonlite_1.6      
+## [40] crosstalk_1.0.0    inline_0.3.15      loo_2.1.0         
+## [43] Matrix_1.2-17      fansi_0.4.0        Rcpp_1.0.3        
+## [46] munsell_0.5.0      lifecycle_0.1.0    stringi_1.4.3     
+## [49] yaml_2.2.0         MASS_7.3-51.4      pkgbuild_1.0.6    
+## [52] plyr_1.8.4         parallel_3.6.1     promises_1.1.0    
+## [55] crayon_1.3.4       lattice_0.20-38    splines_3.6.1     
+## [58] pander_0.6.3       sys_3.3            zeallot_0.1.0     
+## [61] ps_1.3.0           pillar_1.4.2       markdown_1.1      
+## [64] ggsignif_0.6.0     reshape2_1.4.3     codetools_0.2-16  
+## [67] stats4_3.6.1       glue_1.3.1         packrat_0.5.0     
+## [70] evaluate_0.14      dparser_0.1.8      data.table_1.12.6 
+## [73] png_0.1-7          vctrs_0.2.0        tweenr_1.0.1      
+## [76] httpuv_1.5.2       gtable_0.3.0       purrr_0.3.3       
+## [79] polyclip_1.10-0    km.ci_0.5-2        assertthat_0.2.1  
+## [82] xfun_0.10          ggforce_0.3.1      mime_0.7          
+## [85] xtable_1.8-4       later_1.0.0        rsconnect_0.8.15  
+## [88] tibble_2.1.3       memoise_1.1.0      KMsurv_0.1-5      
+## [91] units_0.6-5        ellipsis_0.3.0</code></pre>
 </div>
 
 
@@ -792,6 +853,54 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

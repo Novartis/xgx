@@ -127,7 +127,6 @@ gg <- gg + geom_line(alpha = 0.5) + geom_point(alpha = 0.5)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
                                   units_plot    = time_units_plot, breaks = seq(0,8*24,24))
-gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
 gg <- gg + labs(y=pdseverity_label)
 gg <- gg + scale_y_continuous(breaks=c(1,2,3), labels=c("Mild","Moderate","Severe"))
 gg
@@ -147,7 +146,6 @@ gg <- gg + geom_point( size=2) +  geom_line( aes(group = ID))
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
                                   units_plot    = time_units_plot, breaks = seq(0,7*24,7*24))
-gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
 gg <- gg + facet_wrap(~ID+TRTACT,ncol = length(unique(pd_data$ID))/length(unique(pd_data$DOSE)) )
 gg <- gg + labs(y=pdseverity_label)
 gg

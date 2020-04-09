@@ -139,7 +139,7 @@ grid.arrange(gg1, gg2, ncol=2)
 
 ### PK and PD marker over time, faceted by Dose, mean +/- 95% CI by nominal time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, 
                aes(x=NOMTIME,y=LIDV))
@@ -186,7 +186,7 @@ gg
 
 ### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data,
              aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low)))
@@ -210,14 +210,13 @@ gg <- gg + geom_point(alpha = 0.5)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
                                   units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
-gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
 gg <- gg + labs(y=pdseverity_label)
 gg
 ```
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))
 gg <- gg + xgx_annotate_status(status)
@@ -242,7 +241,6 @@ gg <- gg + geom_point(alpha = 0.5)
 gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
                                   units_plot    = time_units_plot, breaks = seq(-24,8*24,24))
-gg <- gg + geom_point(data = pd_data %>% subset(CENS==1,), color="red", shape=8,alpha = 0.5)
 gg <- gg + labs(y=pdseverity_label)
 gg
 ```
@@ -289,6 +287,8 @@ gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
 gg <- gg + labs(x=conc_label , y=pdseverity_label)
 gg <- gg + xgx_scale_x_log10()
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
+                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
 gg+facet_wrap(~ID+TRTACT_low2high, ncol = 5)
 ```
 
