@@ -58,7 +58,7 @@ navbar:
       href: Adverse_Events.html
   - text: Resources
     menu:
-      - text: PKPD Exploratory Graphics (xGx) Cheat Sheet
+      - text: PKPD Cheat Sheet
         href: Resources/PKPD_Exploratory_Graphics_(xGx)_Cheat_Sheet.pdf
       - text: Graphics Principles Cheat Sheet
         href: Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf
