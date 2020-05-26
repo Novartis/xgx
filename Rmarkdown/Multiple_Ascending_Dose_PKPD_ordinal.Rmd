@@ -49,9 +49,6 @@ my.data = my.data %>%
          DOSE    = DOSE,   #DOSE column here (numeric value)
          TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
          )
-my.data$Severity <- my.data$LIDV
-my.data[my.data$CMT!=5,]$Severity <- NA
-my.data$Severity_label <- factor(plyr::mapvalues(my.data$Severity,c(1,2,3), c("Mild", "Moderate","Severe")), levels = c("Mild","Moderate","Severe"))
 
 #create a factor for the treatment variable for plotting
 my.data$DAY <- floor(my.data$TIME/24 )
@@ -59,8 +56,7 @@ my.data$DAY <- floor(my.data$TIME/24 )
 my.data = my.data %>%
   arrange(DOSE) %>%
   mutate(TRTACT_low2high      = factor(TRTACT, levels = unique(TRTACT)),
-         TRTACT_high2low      = factor(TRTACT, levels = rev(unique(TRTACT))),
-         Severity_high2low    = factor(Severity_label, levels = rev(levels(Severity_label))))
+         TRTACT_high2low      = factor(TRTACT, levels = rev(unique(TRTACT))))
 
 #create pk and pd datasets
 pk_data <- my.data %>%
@@ -68,18 +64,24 @@ pk_data <- my.data %>%
 
 pd_data <- my.data %>%
   filter(CMT==5) %>%
-  mutate(Severity2 = jitter(Severity, amount=0.1),
-         time2     = jitter(TIME, amount=0.1*24)
+  mutate(
+    Severity = LIDV,
+    Severity_label = factor(case_when(Severity == 1 ~ "Mild",
+                                      Severity == 2 ~ "Moderate",
+                                      Severity == 3 ~ "Severe"), 
+                            levels = c("Mild","Moderate","Severe")),
+    Severity_high2low    = factor(Severity_label, levels = rev(levels(Severity_label))),
+    Severity2 = jitter(Severity, amount=0.1),
+    time2     = jitter(TIME, amount=0.1*24)
          )
 #create wide pkpd dataset for plotting PK vs PD
 pkpd_data_wide <- pd_data %>%
-  select(ID, NOMTIME, RESPONSE = LIDV) %>%
+  select(ID, NOMTIME, Severity, Severity_label, Severity_high2low) %>%
   right_join(pk_data) %>%
   rename(CONC = LIDV)%>%
-  filter(!is.na(RESPONSE))%>%
+  filter(!is.na(Severity))%>%
   filter(!is.na(CONC))
-pkpd_data_wide$Severity_label <- factor(plyr::mapvalues(pkpd_data_wide$RESPONSE,c(1,2,3), c("Mild", "Moderate","Severe")), levels =
-                                          c("Mild","Moderate","Severe"))
+
 #units and labels
 time_units_dataset = "hours"
 time_units_plot    = "days"
