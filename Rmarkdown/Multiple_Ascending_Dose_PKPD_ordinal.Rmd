@@ -266,6 +266,44 @@ gg <- gg + xgx_annotate_status(status)
 gg
 ```
 
+## Ordinal Regression
+```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+# Data Subset for Ordinal Regression and Plot
+X <- pkpd_data_wide_d5[,c("CONC", "Severity_label", "TRTACT_high2low")]
+
+# Ordinal Values
+X <- X %>% mutate(Severity_label = factor(Severity_label,
+                                          levels = c("Mild","Moderate","Severe"),
+                                          ordered = TRUE))
+
+# Ordinal Regression Model
+model <-  brms::brm(formula = Severity_label ~ log(CONC),
+                     family = brms::cumulative("logit", threshold="flexible"),
+                     data = X,
+                     refresh = 0)
+
+# Bootstrap with fitted_draws for CI
+pframe <- data.frame(CONC = 10^(seq(-1, 0.845, .2)))
+predictions <- tidybayes::fitted_draws(model = model,
+                                        newdata = pframe,
+                                        category ="Response",
+                                        value = "Value") %>%
+            ungroup() %>%
+            select(CONC, Response, Value)
+
+# Plot
+gg <- ggplot(predictions,
+              aes(x = CONC, y = Value,
+                  color = Response, fill = Response))
+gg <- gg + xgx_geom_pi(percent_level = 0.975)
+gg <- gg + xgx_scale_x_log10()
+gg <- gg + labs(x = conc_label,
+                y = "Class Probability")
+gg <- gg + xgx_annotate_status(status)
+gg
+```
+
+
 
 ### Explore covariate effects on Exposure-Response Relationship
 
