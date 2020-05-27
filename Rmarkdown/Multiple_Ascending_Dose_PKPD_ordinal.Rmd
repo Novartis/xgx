@@ -267,22 +267,32 @@ gg
 ```
 
 ## Ordinal Regression
+
+While in many cases PKPD NLME models ask questions which are best answered using continuous features, often ordinal features arise within the data. These ordinal responses may be modeled using either classification models, or (more appropriately) ordinal regression.
+
+Here, we use `brms` (Bayesian Regression Models using 'Stan') to construct the ordinal model, add several posterior draws, and plot the probability of each group given the concentration.
+
+If you are interested in assessing the performance of the model, additional metrics can be made with `caret::confusionMatrix()`, as described in the code.  More information can be found [here](https://www.rdocumentation.org/packages/caret/versions/6.0-86/topics/confusionMatrix), [on confusion matrices](https://en.wikipedia.org/wiki/Confusion_matrix), or [here](https://rdrr.io/cran/pROC/man/multiclass.html), [on AUROC performance metrics](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) for classification models.
+
 ```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 # Data Subset for Ordinal Regression and Plot
-X <- pkpd_data_wide_d5[,c("CONC", "Severity_label", "TRTACT_high2low")]
+ord_reg_data <- pkpd_data_wide_d5[,c("CONC", "Severity_label", "TRTACT_high2low")]
 
 # Ordinal Values
-X <- X %>% mutate(Severity_label = factor(Severity_label,
+ord_reg_data <- ord_reg_data %>% mutate(Severity_label = factor(Severity_label,
                                           levels = c("Mild","Moderate","Severe"),
                                           ordered = TRUE))
 
 # Ordinal Regression Model
+# Models the *cumulative likelihood* of ordinal responses with a logit link function.
+# More information here:
+#   https://kevinstadler.github.io/blog/bayesian-ordinal-regression-with-random-effects-using-brms/
 model <-  brms::brm(formula = Severity_label ~ log(CONC),
-                     family = brms::cumulative("logit", threshold="flexible"),
-                     data = X,
+                     family = brms::cumulative("logit"),
+                     data = ord_reg_data,
                      refresh = 0)
 
-# Bootstrap with fitted_draws for CI
+# Add several posterior draws
 pframe <- data.frame(CONC = 10^(seq(-1, 0.845, .2)))
 predictions <- tidybayes::fitted_draws(model = model,
                                         newdata = pframe,
@@ -298,9 +308,16 @@ gg <- ggplot(predictions,
 gg <- gg + xgx_geom_pi(percent_level = 0.975)
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + labs(x = conc_label,
-                y = "Class Probability")
+                y = "Probability of being within Severity Group")
 gg <- gg + xgx_annotate_status(status)
 gg
+
+
+# # Classification Performance
+# preds <- predict(model)
+# colnames(preds) <- levels(X$Severity_label)
+# preds <- colnames(preds)[apply(preds, 1, which.max)]
+# cmat <- caret::confusionMatrix(as.factor(preds), X$Severity_label)
 ```
 
 
