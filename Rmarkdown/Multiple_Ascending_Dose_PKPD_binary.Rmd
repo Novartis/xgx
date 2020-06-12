@@ -58,7 +58,8 @@ data = data %>%
          DOSE    = DOSE,   #DOSE column here (numeric value)
          TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
          LIDV_NORM = LIDV/DOSE,
-         LIDV_UNIT    = ifelse(CMT==2, "ng/ml", NA )
+         LIDV_UNIT    = ifelse(CMT==2, "ng/ml", NA ),
+         DAY_label = paste("Day", PROFDAY)
   )
 
 #create a factor for the treatment variable for plotting
@@ -93,22 +94,21 @@ pkpd_data_wide = pd_data %>%
 NCA = pk_data %>%
   group_by(ID, DOSE) %>%
   filter(!is.na(LIDV)) %>%
-  summarize(AUC_0_24  = caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= 24], LIDV[NOMTIME > 0 & NOMTIME <= 24]), 
-            Cmax_0_24 = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
-            SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates and dosing info
-            WEIGHTB  = WEIGHTB[1],
-            TRTACT_high2low = TRTACT_high2low[1],
-            TRTACT_low2high = TRTACT_low2high[1]) %>%
-  gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB, TRTACT_low2high, TRTACT_high2low)) %>%
+  summarize(AUC_0_24 = caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= 24], LIDV[NOMTIME > 0 & NOMTIME <= 24]), 
+            Cmax_0_24     = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
+            AUC_tau = caTools::trapz(TIME[NOMTIME > 120 & NOMTIME <= 144], LIDV[NOMTIME > 120 & NOMTIME <= 144]),
+            Cmax_tau     = max(LIDV[NOMTIME > 120 & NOMTIME <= 144]), 
+            SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
+            WEIGHTB  = WEIGHTB[1]) %>%
+  gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
-  mutate(VALUE_NORM = VALUE/DOSE)
+  mutate(VALUE_NORM = VALUE/DOSE,
+         PROFDAY= ifelse(PARAM == "AUC_0_24" | PARAM == "Cmax_0_24", 1, 6))
 
-NCA = pd_data %>%
-  group_by(ID) %>%
-  arrange(desc(TIME)) %>%
-  slice(1) %>%
-  select(ID, RESPONSE = LIDV) %>%
-  right_join(NCA)
+#add response data at day 1 and 6 to NCA for additional plots
+NCA <- pd_data %>% subset(PROFDAY %in% c(1,6),) %>%
+                       select(ID, PROFDAY, DAY_label, RESPONSE = LIDV,TRTACT_low2high,TRTACT_high2low) %>%
+                       merge(NCA, by = c("ID","PROFDAY"))
 
 #units and labels
   time_units_dataset = "hours"
@@ -335,7 +335,7 @@ print(gg)
 
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
 NCA_plot = NCA %>%
   group_by(PARAM) %>%
   mutate(VALUE_QUART = cut(VALUE, quantile(VALUE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
@@ -349,7 +349,7 @@ gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = RESPONSE),
                        conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
 gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = RESPONSE), 
                        conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
-gg <- gg + facet_wrap(~PARAM, scales = "free_x")
+gg <- gg + facet_wrap(~DAY_label + PARAM, scales = "free_x")
 gg <- gg + labs(color = "Dose", x = "NCA parameter", y = pd_label)
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + scale_y_continuous(breaks=c(0,.5,1), labels = scales::percent) 

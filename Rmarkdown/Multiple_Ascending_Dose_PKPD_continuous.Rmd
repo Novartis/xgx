@@ -48,7 +48,8 @@ pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
            LIDV_NORM = LIDV/DOSE,
            LIDV_UNIT    = ifelse(CMT==2, "ng/ml",
                                  ifelse(CMT==3, "IU/L", NA )
-                                 )
+                                 ),
+           DAY_label = paste("Day", PROFDAY)
     )
 #create a factor for the treatment variable for plotting
 pkpd_data = pkpd_data %>%
@@ -90,8 +91,8 @@ NCA = pk_data %>%
          PROFDAY= ifelse(PARAM == "AUC_0_24" | PARAM == "Cmax_0_24", 1, 6))
 
 #add response data at day 1 and 6 to NCA for additional plots
-NCA <- pd_data[pd_data$PROFDAY%in%c(1,6),] %>%
-                       select(ID,PROFDAY,Response = LIDV,TRTACT_low2high,TRTACT_high2low) %>%
+NCA <- pd_data %>% subset(PROFDAY %in% c(1,6),) %>%
+                       select(ID, PROFDAY, DAY_label, Response = LIDV, TRTACT_low2high, TRTACT_high2low) %>%
                        merge(NCA, by = c("ID","PROFDAY"))
 NCA$DAY_label <- paste("Day", NCA$PROFDAY)
 
@@ -129,14 +130,14 @@ Observe the overall shape of the average profiles. Does the effect appear to inc
 
 #PK data
 gg <- ggplot(data = pk_data, 
-               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
+               aes(x = NOMTIME,y = LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_y_log10()
-gg <- gg + labs(y=conc_label)
+gg <- gg + labs(y = conc_label)
 print(gg)
 
 
@@ -149,14 +150,14 @@ gg %+% (data = pd_data) + scale_y_continuous() + labs(y = pd_label)
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, 
-               aes(x=NOMTIME,y=LIDV))
+               aes(x = NOMTIME,y = LIDV))
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""),fill = guide_legend(""))
 gg <- gg + facet_grid(~TRTACT_low2high)
 gg <- gg + xgx_scale_y_log10()
-gg <- gg + labs(y=conc_label)
+gg <- gg + labs(y = conc_label)
 print(gg)
 
 #PD data
@@ -172,16 +173,16 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
  gg <- ggplot(data = pk_data, 
-               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) 
+               aes(x = TIME, y = LIDV,group = ID, color = factor(TRTACT_high2low))) 
  gg <- gg + xgx_annotate_status(status)
  gg <- gg + geom_line(alpha = 0.5)
  gg <- gg + geom_point(alpha = 0.5)
- gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+ gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                    units_plot    = time_units_plot)    
- gg <- gg + geom_point(data = pk_data[pk_data$CENS==1,], color="red", shape=8,alpha = 0.5)
+ gg <- gg + geom_point(data = pk_data %>% subset(CENS == 1,), color = "red", shape = 8,alpha = 0.5)
  gg <- gg + xgx_scale_y_log10() 
- gg <- gg + labs(y=conc_label)
+ gg <- gg + labs(y = conc_label)
  print(gg)
  
  #PD data
@@ -192,17 +193,17 @@ gg %+% (data = pd_data %>% subset(DOSE>0)) + scale_y_continuous() + labs(y = pd_
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
-gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))
+gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV, group = ID))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_line(alpha = 0.5)
 gg <- gg + geom_point(alpha = 0.5)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + facet_grid(~TRTACT_low2high)
-gg <- gg + geom_point(data = pk_data[pk_data$CENS==1,], color="red", shape=8, alpha = 0.5)
+gg <- gg + geom_point(data = pk_data %>% subset(CENS==1,), color="red", shape=8, alpha = 0.5)
 gg <- gg + xgx_scale_y_log10() 
-gg <- gg + labs(y=conc_label)
+gg <- gg + labs(y = conc_label)
 print(gg)
 
 #PD data
@@ -216,27 +217,26 @@ Plot PD marker against concentration. Do you see any relationship? Does response
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response or Exposure-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
-gg <- ggplot(data = pkpd_data_wide[pkpd_data_wide$PROFDAY== 5,], aes(x=CONC,y=RESPONSE))
+gg <- ggplot(data = pkpd_data_wide %>% subset(PROFDAY == 5,), aes(x = CONC,y = RESPONSE))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT_high2low))
-gg <- gg + geom_point(data=pkpd_data_wide[pkpd_data_wide$CENS==1,], color="red", shape = 8)
-gg <- gg + labs(x=conc_label , y=pd_label)
+gg <- gg + geom_point(data = pkpd_data_wide %>% subset(CENS==1,), color="red", shape = 8)
+gg <- gg + labs(x = conc_label , y = pd_label)
 gg <- gg + xgx_scale_x_log10() 
 gg <- gg + guides(color = guide_legend(""))
 print(gg)
 ```
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
-pkpd_data_wide$DAY_label <- paste("Day", pkpd_data_wide$PROFDAY)
-pkpd_data_wide_day13579 <- pkpd_data_wide[pkpd_data_wide$PROFDAY%in%c(1,3,5,7,9),]
+pkpd_data_wide_day13579 <- pkpd_data_wide %>% subset(PROFDAY %in% c(1,3,5,7,9),)
 
 gg <- ggplot(data = pkpd_data_wide_day13579,
-             aes(x=CONC,y=RESPONSE, color = TRTACT_high2low))
+             aes(x = CONC, y = RESPONSE, color = TRTACT_high2low))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point()
-gg <- gg + geom_point(data=pkpd_data_wide_day13579[pkpd_data_wide_day13579$CENS==1,], color="red", shape = 8)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + labs(x=conc_label , y=pd_label)
+gg <- gg + geom_point(data = pkpd_data_wide_day13579 %>% subset(CENS==1,), color="red", shape = 8)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(x = conc_label , y = pd_label)
 gg <- gg + xgx_scale_x_log10() 
 gg + facet_grid(~DAY_label)
 ```
@@ -248,7 +248,7 @@ Plotting AUC vs response instead of concentration vs response may make more sens
 #separate NCA data to only inclue AUC_0_24 and AUC_tau 
 NCA_AUC <- NCA[NCA$PARAM=="AUC_0_24" | NCA$PARAM=="AUC_tau",]
 NCA_AUC$ID <- as.numeric(as.character(NCA_AUC$ID))
-NCA_AUC <- NCA_AUC[order(NCA_AUC$ID,NCA_AUC$PROFDAY),]
+NCA_AUC <- NCA_AUC[order(NCA_AUC$ID, NCA_AUC$PROFDAY),]
 NCA_AUC$AUC_bins <- cut(NCA_AUC$VALUE, quantile(NCA_AUC$VALUE, na.rm=TRUE), na.rm=TRUE)
 NCA_AUC = NCA_AUC %>%
   group_by(AUC_bins) %>%
@@ -256,11 +256,11 @@ NCA_AUC = NCA_AUC %>%
 
 gg <- ggplot(data = NCA_AUC, aes(x = VALUE, y = Response))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + geom_point(aes(color = TRTACT_high2low)) + geom_smooth(color="black")
-gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "errorbar")
-gg <- gg + xgx_stat_ci(aes(x=AUC_midpoints, y=Response), geom = "point", shape = 0, size = 4)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + labs(x=AUC_units , y=pd_label)
+gg <- gg + geom_point(aes(color = TRTACT_high2low)) + geom_smooth(color = "black")
+gg <- gg + xgx_stat_ci(aes(x = AUC_midpoints, y = Response), geom = "errorbar")
+gg <- gg + xgx_stat_ci(aes(x = AUC_midpoints, y = Response), geom = "point", shape = 0, size = 4)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(x = AUC_units , y = pd_label)
 gg + facet_grid(.~DAY_label)
 ```
 
@@ -272,8 +272,8 @@ Stratify exposure-response plots by covariates of interest to explore whether an
 gg <- ggplot(data = NCA_AUC, aes(x = VALUE, y = Response)) 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = SEX)) + geom_smooth(aes(color = SEX))
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + labs(x=AUC_units , y=pd_label)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(x = AUC_units , y = pd_label)
 gg + facet_grid(.~DAY_label) 
 ```
 
@@ -288,15 +288,16 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
-pkpd_data_wide<- pkpd_data_wide[order(pkpd_data_wide$TIME),]
-gg <- ggplot(data = pkpd_data_wide, aes(x=CONC,y=RESPONSE, color=TIME))
+pkpd_data_wide <- pkpd_data_wide %>% arrange(TIME)
+gg <- ggplot(data = pkpd_data_wide, aes(x = CONC, y = RESPONSE, color = TIME))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + geom_path(arrow=arrow(length=unit(0.15,"cm")))
-gg <- gg + labs(x=conc_label , y=pd_label)
+gg <- gg + geom_path(arrow=arrow(length = unit(0.15,"cm")))
+gg <- gg + labs(x = conc_label , y = pd_label)
 gg <- gg + xgx_scale_x_log10() 
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
                  panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
+
 gg + facet_wrap(~ID+TRTACT_low2high, ncol = 5)
 ```
 
