@@ -13,7 +13,7 @@ output:
 This document contains exploratory plots for binary response data as well as the R code that generates these graphs.The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
 ## Setup
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(xgxr)
@@ -42,7 +42,7 @@ dirs = list(
 ## Load Dataset
 The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 #load dataset
 data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
@@ -149,7 +149,7 @@ Questions to ask:
  * Does the effect appear to increase (decrease) with increasing dose? 
  * Do you detect a saturation of the effect?
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
   gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
   gg <- gg + xgx_stat_ci()
@@ -180,7 +180,7 @@ Questions to ask:
 
 If coloring by dose makes a messy plot, you can try faceting by dose instead. Here we show the same data, but faceted by dose. 
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
   gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV))
   gg <- gg + xgx_stat_ci()
@@ -213,7 +213,7 @@ If coloring by dose makes a messy plot, you can try faceting by dose instead. He
 
 Another longitudinal plot that can be useful for binary data is plotting the PK over time for all individuals, and coloring by response type. This plot is often used for adverse events plotting. For studies with few PK observations, a PK model may be needed in order to produce concentrations at each time point where response is measured.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide, aes(x = NOMTIME, y = CONC))
 gg <- gg + geom_boxplot(aes(group = factor(NOMTIME)), width = 0.5*24)
 gg <- gg + geom_jitter(aes( color = factor(RESPONSE_STR), alpha = factor(RESPONSE_STR)), width = 0.1*24, height = 0) 
@@ -233,7 +233,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 When plotting individual binomial data, it is often helpful to stagger the dots and use transparency, so that it is easier to detect individual dots.
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
@@ -263,7 +263,7 @@ print(gg)
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID), size = 1, alpha = 0.2)  
 gg <- gg + geom_point(aes(color = factor(CENS), shape = factor(CENS), alpha = 0.3), size = 2, alpha = 0.2)
@@ -298,7 +298,7 @@ print(gg)
 
 ## Explore Exposure-Response Relationship
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide, aes(y = CONC, x = RESPONSE))
 gg <- gg + geom_boxplot(aes(group = RESPONSE), width = 0.5, outlier.shape=NA) 
 gg <- gg + geom_jitter(data = pkpd_data_wide %>% filter(CENS == 0, PROFDAY == 5), 
@@ -314,7 +314,7 @@ print(gg)
 
 Plot response against exposure. Include a logistic regression for binary data to help determine the shape of the exposure-respone relationship. Summary information such as mean and 95% confidence intervals by quartiles of exposure can also be plotted. The exposure metric that you use in these plots could be either raw concentrations, or NCA or model-derived exposure metrics (e.g. Cmin, Cmax, AUC), and may depend on the level of data that you have available.
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 pkpd_data_wide_plot = pkpd_data_wide %>%
   mutate(PROFDAY_STR = paste("Day",PROFDAY)) %>%
   filter(PROFDAY %in% c(1,3,5)) %>%
@@ -335,7 +335,7 @@ print(gg)
 
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
 NCA_plot = NCA %>%
   group_by(PARAM) %>%
   mutate(VALUE_QUART = cut(VALUE, quantile(VALUE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%

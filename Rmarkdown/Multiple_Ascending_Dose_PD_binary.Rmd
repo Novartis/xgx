@@ -14,7 +14,7 @@ This document contains exploratory plots for binary response data as well as the
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(gridExtra)
 library(ggplot2)
 library(dplyr)
@@ -43,7 +43,7 @@ dirs = list(
 ## Load Dataset
 The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
 #ensure dataset has all the necessary columns
@@ -113,7 +113,7 @@ Questions to ask when looking at these plots
 
 When overlaying individual binomial data, it is often helpful to stagger the dots and use transparency, so that it is easier to see individual data points.  If you do so, this should be clearly stated.  
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE} 
 
   gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
   gg <- gg + xgx_stat_ci(distribution = "binomial")
@@ -129,7 +129,7 @@ When overlaying individual binomial data, it is often helpful to stagger the dot
 
 ```
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 
   gg <- ggplot(data = pd_data, aes(x=PROFDAY,y=LIDV))
   gg <- gg + geom_point(aes(x=DAY_jitter,y=LIDV_jitter), size=2, alpha = 0.3)
@@ -155,7 +155,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 Binary spaghetti plots may not be as informative as spaghetti plots for continuous data, however you can pick out the transition states from 0 to 1 and back. By looking at the transition states, ask yourself these questions: For each dose group, at what time have most of the subjects "responded"? How wide is the spread of "response time"" across subjects (do all of them respond at the exact same time, or over a range of time?) Do you detect any dampening, or transitioning of response back to no response?
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pd_data, 
              aes(x=DAY_jitter,y=LIDV_jitter))
 gg <- gg + geom_point( size=2, alpha = 0.3)
@@ -180,7 +180,7 @@ Plot individual profiles in order to inspect them for any unusual profiles. Look
 
 ### Response over time, faceted by individual, individual line plots
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
 
 gg <- ggplot(data = pd_data, 
              aes(x=NOMTIME,y=LIDV))
@@ -221,7 +221,7 @@ Questions to consider
 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Day 5"))
 
 gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE,y=LIDV))
@@ -247,7 +247,7 @@ grid.arrange(pp1,pp2,nrow=1)
 
 The crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. In addtion to looking at longitudinal PD over time (as in previous sections above), plotting the cross-sectional Dose-Response curves for different time points throughout the study can also be helpful. In the figure below, we plot the exposure response relationship at a number of different visits to see how the relationsihp might change over time.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE} 
 pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Day 1","Day 3","Day 5"))
 
 gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE,y=LIDV))

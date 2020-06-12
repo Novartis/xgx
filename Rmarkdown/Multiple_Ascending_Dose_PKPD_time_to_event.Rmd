@@ -11,7 +11,7 @@ output:
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_time_to_event.Rmd).
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(broom)
@@ -27,7 +27,7 @@ set.seed(123456)
 
 ## Create a Dataset
 
-```{r warning=FALSE}
+```{r, error = TRUE, warning=FALSE}
 #Use the lung dataset to create a fake exposure dataset
 km_data <- lung %>%
   mutate(fake_Cmax = ph.ecog + age/50 + sex + runif(nrow(lung)),
@@ -60,7 +60,7 @@ Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by ex
 
 Yang, Jun, et al. "The combination of exposure‐response and case‐control analyses in regulatory decision making." The Journal of Clinical Pharmacology 53.2 (2013): 160-166.
 
-```{r warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_fit <- survfit(Surv(time, status) ~ exposure, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
 gg <- gg + xgx_scale_x_time_units(units_dataset = "day", units_plot = "year")
@@ -72,7 +72,7 @@ print(gg)
 
 Using the `ggsurvplot_facet` command, one can look at many exposure metrics at once.  Again, look for separation in the quartiles, but be aware that something like a case-control analysis may be needed to assess whether exposure causes reduced response or whether other factors may affect both exposure and response.
 
-```{r warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_fit_Cmax_AUC <- survfit(Surv(time, status) ~ NCAvalue, data = km_data_Cmax_AUC, conf.int = 0.95)
 gg <- ggsurvplot_facet(km_fit_Cmax_AUC, 
                        km_data_Cmax_AUC, 
@@ -90,7 +90,7 @@ This plot can help in assessing the impact of a covariate (ECOG) on outcome.
 Note, `ph.ecog == 3` patient are removed from dataset because there is only one patient
 with ECOG = 3 and this causes an error when generating the confidence interval.  This bug was [reported to the survminer developer and fixed in the github version](https://github.com/kassambara/survminer/issues/443).
 
-```{r warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_data_noecog3 <- km_data %>% filter (ph.ecog != 3)
 km_fit_ecog <- survfit(Surv(time, status) ~ ph.ecog, 
                        data = km_data_noecog3 , 
@@ -108,7 +108,7 @@ print(gg)
 ## Performing Cox regression on the above data. 
 In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.  Look for small p values or large hazard ratios to identify covariates that have a large effect.
 
-```{r warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_cox <- coxph(Surv(time) ~ fake_AUC + fake_Cmax,
              data =km_data)
 km_cox_summary <- broom::tidy(km_cox) %>%

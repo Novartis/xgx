@@ -18,7 +18,7 @@ Ascending Dose PK/PD dataset for your reference
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 # remove reference to home directory in libPaths
 .libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
 .libPaths(grep("usr", .libPaths(), value=TRUE, invert=TRUE))
@@ -52,7 +52,7 @@ knitr::opts_chunk$set(cache = TRUE)
 
 ## Define Useful Graphics Functions
 
-```{r}
+```{r, error = TRUE}
 
 # annotation of plots with status of code
 AnnotateStatus <- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color="grey") {
@@ -157,7 +157,7 @@ xgx_scale_y_log10 <-  function(breaks = xgx_log_breaks_major, minor_breaks=  xgx
 ## Load Dataset
 The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
 PK.indices = which(my.data$CMT==2 & my.data$TIME > 0)
@@ -179,7 +179,7 @@ my.data$TRTACT <- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order(my
 
 ## Overview of number of patients
 Overview of number of patients at each dose
-```{r}
+```{r, error = TRUE}
 patient.summary = my.data %>%
   distinct(ID, .keep_all=TRUE) %>%
   group_by(DOSE) %>%
@@ -189,7 +189,7 @@ DT::datatable(patient.summary)
 ```
 
 Overview of number of PK datapoints at each dose
-```{r}
+```{r, error = TRUE}
 pk.summary = my.data %>%
   filter(CMT==2) %>%
   group_by(DOSE) %>%
@@ -199,19 +199,19 @@ DT::datatable(pk.summary)
 ```
 
 ## Check for duplicated time points
-```{r}
+```{r, error = TRUE}
 duplicated.check = my.data %>%
   filter(duplicated(paste(ID,CMT,TIME))) %>%
   select(ID, TIME, CMT, LIDV)
 n.duplicated = nrow(duplicated.check)
 ```
 There are `r n.duplicated` duplicated time points that should be investigated.  They are summarized in the list below.
-``` {r}
+``` {r, error = TRUE}
 DT::datatable(duplicated.check)
 ```
 
 ## Check for any missing PK data at positive time points
-```{r}
+```{r, error = TRUE}
 missing.check = my.data %>%
   filter(CMT>=2, TIME > 0) %>%
   filter(is.na(LIDV)) %>%
@@ -226,7 +226,7 @@ Plotting observations against ID can give a quick overview of the range of value
 
 For the example multiple ascending dose PKPD dataset, there are several different datatypes defined by different compartments. Let's plot LIDV vs ID for CMT 2 through 6 to see what range of values LIDV takes on for these different CMT.
 
-```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3, fig.width=8}
+```{r, error = TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3, fig.width=8}
 
 ## For this example we will subset to ID and LIDV, exploring different values for CMT
 
@@ -249,7 +249,7 @@ By doing a simple ID checkout you can see that CMT = 2 and 3 represent continuou
 
 Let's checkout the descriptions for each compartment, and see if our conclusions about the observation values make sense.
 
-```{r}
+```{r, error = TRUE}
 DT::datatable(unique(my.data[order(my.data$CMT),c("CMT","NAME")]), rownames=FALSE)
 ```
 
@@ -262,7 +262,7 @@ The following plot displays observation and dosing events for each individual. T
 
 For the example PKPD dataset, you can tell that this is a simulated dataset by the uniform spacing of dosing and observation events, and the lack of dropouts.
 
-```{r, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 8}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 8}
 
 data_to_plot <-  my.data 
 data_to_plot$EVID = factor(data_to_plot$EVID, levels = c(0,1))
@@ -278,7 +278,7 @@ gg
 ## Nominal time vs Actual time
 In this case, time is in units of hours and so there is no more than one hour difference between actual and nominal time.  But if there is a large difference, there could be an error in how the actual time is calculated.
 
-```{r}
+```{r, error = TRUE}
 my.data = my.data %>%
   mutate(DIFF = TIME-NOMTIME)
 
@@ -320,7 +320,7 @@ This also assumes that all of your events are unrolled, that is:
  
 You can [download the Data.cpp file to examine the code and use the function](Data.cpp).
  
-```{r, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
 ##' This function "unrolls" the ADDL/II dose specification in NONMEM doses.
 ##'
 ##' The function adds ADDL/II to the dataset and adds a flag about if the dose is imputed.
@@ -369,7 +369,7 @@ between the dose and the next observation.
 Plotting the ID vs time between last observation and next dose can be informative to see if there are any surprises between the dose
 and the prior observation.
 
-```{r, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
 ggplot(lst$OD,aes(OD, ID)) + geom_point() + xlab("Time between dose and prior observation")
 ```
 
@@ -380,7 +380,7 @@ observation (less than half an hour). If this was a real dataset, this would be 
 
 The following plot shows the dosing interval between the doses.
 
-```{r, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
 ggplot(lst$II,aes(II, ID)) + geom_point() + xlab("Time between doses")
 ```
 

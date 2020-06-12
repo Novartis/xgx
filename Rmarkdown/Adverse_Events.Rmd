@@ -13,7 +13,7 @@ This document contains plots for safety data as well as the R code that generate
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -32,7 +32,7 @@ xgx_theme_set()
 The plots presented here are based on merged safety data with a popPK model generated parameters data ([download dataset](Data/AE_xgx.csv)), as well as a dataset containing model-generated AUCs ([download dataset](Data/AUC_Safety.csv)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Adverse_Events.Rmd).
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 auc <- read.csv("../Data/AUC_Safety.csv")
 ae.data <- read.csv("../Data/AE_xgx.csv")
 ae.data$DOSE_label <- paste(ae.data$Dose,"mg")
@@ -113,7 +113,7 @@ These plots are looking at the AUC (or Cmax and Ctrough) for patients with the A
 
 ### AUC vs Dose group by AE 
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 gg <- ggplot(data= ae.data,aes(x=factor(Dose), y=AUCAVE, fill=factor(AE))) 
 gg <- gg + geom_boxplot(data=ae.data,aes(x=factor(Dose),y=AUCAVE, fill=factor(AE)),outlier.shape = NA)
 gg <- gg + geom_point(color="black",binaxis='y', stackdir='center',dotsize=0.5,
@@ -134,7 +134,7 @@ gg
 
 Plot binary AE occurrence against AUC or Cmax.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = ae.data, aes(y=AUCAVE,x=AE))
 gg <- gg + geom_jitter(data = ae.data, 
                        aes(color = DOSE_label_high2low), shape=19,  width = 0.1, height = 0, alpha = 0.5)
@@ -155,7 +155,7 @@ Plot binary AE occurrence against dose. Using summary statistics can be helpful,
 Here are some questions to ask yourself when looking at Dose-safety plots: Do you see any relationship? Does AE increase (decrease) with increasing dose? 
 
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 gg1 <- ggplot(data = ae.data, aes(x=Dose,y=AE_binary))
 gg1 <- gg1 + geom_smooth( method = "glm",method.args=list(family=binomial(link = logit)), color = "black")
 gg1 <- gg1 + xgx_stat_ci(conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
@@ -179,7 +179,7 @@ grid.arrange(gg1, gg2, ncol=2)
 Plot AE against exposure. Include a logistic regression for binary data to help determine the shape of the exposuresafety relationship. Summary information such as mean and 95% confidence intervals by quartiles of exposure can also be plotted. Exposure and Cmax metric that you use in these pltots could be either be raw concentrations, or NCA or model-derived exposure metrics (e.g. Cmin, Cmax, AUC), and may depend on the level of data that you have available.
 
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = ae.data, aes(x=AUCAVE,y=AE_binary))
 gg <- gg + geom_jitter(aes( color = DOSE_label_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth( method = "glm",method.args=list(family=binomial(link = logit)), color = "black")
@@ -200,7 +200,7 @@ gg
 The plot below shows time vs AUC from a pop PK model at each day. The colored dots corresponding to adverse events. It is not strictly an exploratory plot. But once you have a PopPK model, it is simple to generate this plot. Just plot the time vs the predicted AUC and color the time points red on days that an adverse event occurred.
 
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 data_to_plot <- ae.data %>% subset(!is.na(AETOXGRDN),)
 gg <- ggplot()
 gg <- gg + geom_jitter(data=auc %>% subset(AUC_day<30,), 
@@ -225,7 +225,7 @@ gg
 
 These plots allow one to look for subtle trends in the individual trajectories with respect to the dosing history, safety events and efficacy as percent change of tunor size from baseline. The plots below make use of the following oncology datasets: RECIST and nmpk dataset [(download here)](Oncology_Efficacy_Data.csv) and dose record dataset [(download here)](Oncology_Efficacy_Dose.csv)
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 14, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 14, warning = FALSE, message= FALSE}
 # Read oncology efficacy data from the oncology efficacy 
 # page and combine them with safety data in this page
 

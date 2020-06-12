@@ -14,7 +14,7 @@ This document contains exploratory plots for single ascending dose PK data as we
 
 ## Setup
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -39,7 +39,7 @@ dirs = list(
 
 ## Load Dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 
 #load dataset
 pkpd_data <- read.csv("../Data/Single_Ascending_Dose_Dataset2.csv")
@@ -101,7 +101,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 ### Concentration over time, colored by Dose, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 4}
 
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= TRTACT_high2low, color = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
@@ -118,7 +118,7 @@ print(gg)
 
 ### Concentration over time, faceted by Dose, mean +/- 95% CI, overlaid on gray spaghetti plots
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
 
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV))
 gg <- gg + geom_line(aes(group = ID), color = rgb(0.5,0.5,0.5), size = 1, alpha = 0.3)  
@@ -142,7 +142,7 @@ print(gg)
 
 ### Dose Normalized Concentration over time, colored by Dose, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV_NORM, 
                  group = TRTACT_high2low, color = TRTACT_high2low))
@@ -163,7 +163,7 @@ print(gg)
 
 Observe the dose normalized AUC and Cmax over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to BLQ observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?
 
-```{r, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = DOSE)) 
 gg <- gg + geom_smooth(method = "lm", color = "black")
@@ -183,7 +183,7 @@ Now that the overall trends in the mean data have been observed, look into the b
 
 ### Concentration over time, colored by Dose, dots and lines grouped by individual
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
@@ -202,7 +202,7 @@ print(gg)
 
 ### Concentration over time, faceted by Dose, dots and lines grouped by individual
 
-```{r single_ascending_PK3, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(aes(group = ID), size = 1, alpha = 0.2)  
 
@@ -231,7 +231,7 @@ Plotting individual profiles on top of gray spaghetti plots puts individual prof
 
 ### Concentration over time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 8}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 8}
 
 pk_data_rep_by_trt <- list()
 for(id in unique(pk_data$ID)){
@@ -274,7 +274,7 @@ print(gg)
 
 ### Concentration over time, colored by categorical covariate, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 3}
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
 gg <- gg + xgx_stat_ci(conf_level = 0.95)
 
@@ -295,7 +295,7 @@ print(gg + aes(group= WEIGHTB>70, color = WEIGHTB>70) )
 ### Dose Normalized Concentration over time, colored by categorical covariate, mean +/- 95% CI
 
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 3}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 3}
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME, 
                  y = LIDV_NORM, 
@@ -315,7 +315,7 @@ print(gg+ aes(color = WEIGHTB>70))
 ```
 
 
-```{r, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
 gg <- ggplot(data = NCA, aes(x = SEX, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = SEX))
@@ -329,7 +329,7 @@ print(gg)
 
 ```
 
-```{r, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
 gg <- ggplot(data = NCA, aes(x = WEIGHTB, y = VALUE_NORM))
 gg <- gg + geom_point()

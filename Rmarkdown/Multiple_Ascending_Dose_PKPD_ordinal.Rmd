@@ -16,7 +16,7 @@ Ordinal data can be thought of as categorical data that has a natural order. For
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -33,7 +33,7 @@ xgx_theme_set()
 
 ## Load Dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
 #ensure dataset has all the necessary columns
@@ -114,7 +114,7 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 
 Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect?
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
 gg1 <- ggplot(data = pk_data, 
                aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
@@ -141,7 +141,7 @@ grid.arrange(gg1, gg2, ncol=2)
 
 ### PK and PD marker over time, faceted by Dose, mean +/- 95% CI by nominal time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, 
                aes(x=NOMTIME,y=LIDV))
@@ -167,7 +167,7 @@ gg <- gg + labs(x=time_label, y=pdresponse_label)
 gg
 ```
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide, aes(y=CONC,x=NOMTIME/24))
 gg <- gg + geom_jitter(data = pkpd_data_wide %>% subset(CENS==0,),
                        aes(color = Severity_label, shape = Severity_label),  width = 0.1, height = 0.0, alpha = 0.75)
@@ -188,7 +188,7 @@ gg
 
 ### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data,
              aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low)))
@@ -218,7 +218,7 @@ gg
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))
 gg <- gg + xgx_annotate_status(status)
@@ -249,7 +249,7 @@ gg
 
 ## Explore Exposure-Response Relationship
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
 pkpd_data_wide_d5 <- pkpd_data_wide %>% subset(PROFDAY==5,)
 
 gg <- ggplot(data = pkpd_data_wide_d5, aes(y=CONC,x=Severity_label))
@@ -281,7 +281,7 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
 pkpd_data_wide<- pkpd_data_wide[order(pkpd_data_wide$TIME),]
 
 gg <- ggplot(data = pkpd_data_wide, aes(x=CONC,y=Severity_label,group = ID, color = TIME))

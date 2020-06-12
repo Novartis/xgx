@@ -17,7 +17,7 @@ This document contains PK exploratory graphs and also the R code that generates 
 Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PK_KeyPlots.Rmd).
 
 ### Setup
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 
 #add key packages
   library(ggplot2)
@@ -45,7 +45,7 @@ dirs = list(
 
 #### Load in data from dzz (concentrations) and format for plotting
 
-```{r load_dzz, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 
 #load data located here:
 data_in = read.csv("../Data/dzz_PKConc.csv",stringsAsFactors = FALSE)
@@ -86,7 +86,7 @@ data = data_in %>%
 ```
 
 #### Load in data from PPtmp (NCA) and format for plotting
-```{r load_nca_PPtmp, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 
 nca = read.csv("../Data/PPtmp_NCA.csv",stringsAsFactors = FALSE)
 
@@ -105,7 +105,7 @@ nca = nca %>%
 ```
 
 ## Specify units
-``` {r}
+```{r, error = TRUE}
 #units and labels
   time_units_dataset = "hours"
   time_units_plot    = "day"
@@ -125,7 +125,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 ### Concentration over time, faceted by regimen, colored by dose
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = data, aes(x = NOMTIME, y = LIDV, color = DOSE_high2low, group=DOSE_high2low))
 gg <- gg + facet_grid(~REGIMEN)
 gg <- gg + xgx_scale_y_log10() 
@@ -143,7 +143,7 @@ print(gg)
 
 ### Concentration over time, faceted by regimen and cycle number, colored by dose
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 6}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 6}
 gg <- gg1
 gg <- gg + xgx_stat_ci(conf_level = 0.95, geom = list("point","line","errorbar"), alpha = 0.5, position = position_dodge(width = 24))
 gg <- gg %+% filter(data, CYCLE %in% c(1,3))
@@ -158,7 +158,7 @@ print(gg)
 
 ### Dose normalized concentration
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = data, aes(x = NOMTIME, y = LIDVNORM, color = DOSE_high2low, group=DOSE_high2low))
 gg <- gg + xgx_stat_ci(conf_level = 0.95, geom = list("point","line","errorbar"), alpha = 0.5, position = position_dodge(width = 24*5))
 gg <- gg + facet_grid(~REGIMEN)
@@ -178,7 +178,7 @@ print(gg)
 Observe the dose normalized AUC over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to CENS observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?
 
 
-```{r NCA, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 6, fig.height = 8}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 6, fig.height = 8}
 nca.filter = nca %>% 
   filter(WNLPARM %in% c("AUCINF_obs","AUClast","AUCtau","Cmax"))
 gg <- ggplot(nca.filter,aes(x=DOSE,y=PPORRESNnorm,group=DOSE))
@@ -203,7 +203,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### Spaghetti, grouped by dose
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
 gg <- gg + geom_line(mapping=aes(group=ID), alpha = 0.5) 
 gg <- gg + geom_point(alpha = 0.5)
@@ -224,7 +224,7 @@ print(gg)
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)?
 
 ### Individual profiles
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 18}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 18}
 gg <- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))
 gg <- gg + geom_line() 
 gg <- gg + geom_point()

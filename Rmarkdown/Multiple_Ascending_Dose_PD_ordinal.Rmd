@@ -16,7 +16,7 @@ Ordinal data can be thought of as categorical data that has a natural order. For
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -33,7 +33,7 @@ xgx_theme_set()
 
 ## Load Dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
 #ensure dataset has all the necessary columns
@@ -101,7 +101,7 @@ filename     = "Example.png")
 
 ### Percent of subjects by response category over time, faceted by dose
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pd_data, aes(x = factor(PROFDAY), fill = Response))
 gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
 gg <- gg + labs(x=time_label, y=pdresponse_label)
@@ -119,7 +119,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### Spaghetti plots of ordinal response over time, faceted by dose
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pd_data, aes(x=time2, y=Severity2, group=ID))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + facet_grid(~TRTACT_low2high)
@@ -139,7 +139,7 @@ Plot individual profiles in order to inspect them for any irregularities. Inspec
 
 ### Ordinal response over time, faceted by individual, individual line plots
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pd_data, aes(x=time2,y=Severity_label))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point( size=2) +  geom_line( aes(group = ID)) 
@@ -159,7 +159,7 @@ gg
 
 ### Percent of subjects by response category against dose, faceted by time
 
-```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
 pd_data_d5 <- pd_data %>% subset(DAY_label%in%c("Day 5"),)
 
 gg <- ggplot(data = pd_data_d5, aes(x = factor(DOSE), fill = Response)) 
@@ -174,7 +174,7 @@ gg
 
 ### Percent of subjects by response category against dose, faceted by day
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
 pd_data_d135 <- pd_data %>% subset(DAY_label%in%c("Day 1","Day 3","Day 5"),)
 
 gg <- ggplot(data = pd_data_d135, aes(x = factor(DOSE), fill = Response)) 
@@ -188,7 +188,7 @@ gg
 
 ### Ordinal response against dose
 
-```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pd_data_d5, aes(y=DOSE,x=Severity_label))
 gg <- gg + geom_jitter(data = pd_data_d5, 
                        aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0, alpha = 0.5)
@@ -203,7 +203,7 @@ gg
 
 ### Ordinal response against dose, faceted by day
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pd_data_d135, aes(y=DOSE,x=Severity_label))+theme_bw()
 gg <- gg + geom_jitter(data = pd_data_d135, 
                        aes(color = TRTACT), shape=19,  width = 0.1, height = 0, alpha = 0.5)

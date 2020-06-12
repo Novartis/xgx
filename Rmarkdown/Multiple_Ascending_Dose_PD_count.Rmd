@@ -14,7 +14,7 @@ This document contains exploratory plots for count PD data as well as the R code
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -31,7 +31,7 @@ xgx_theme_set()
 
 ## Load Dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
@@ -87,7 +87,7 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 
 ### Count over time, colored by Dose, median, 5th & 95th percentiles by nominal time
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE} 
 
 gg <- ggplot(data = pd_data, 
              aes(x=NOMTIME, y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))
@@ -104,7 +104,7 @@ gg
 
 ### Count over time, faceted by Dose, median, 5th & 95th percentiles by nominal time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
  
 gg <- ggplot(data = pd_data, 
              aes(x = NOMTIME, y = LIDV))
@@ -122,7 +122,7 @@ gg
 
 ### Percent of subjects by Count over time, faceted by dose
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 
 gg <- ggplot(data = pd_data, aes(x = factor(PROFDAY), fill = count_high2low))
 gg <- gg + geom_bar(position = "fill") + scale_fill_grey(start = 0.8, end = 0.2, breaks = rev(seq(0,18,6)))
@@ -142,7 +142,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### Spaghetti plots of Count over time, faceted by dose
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 
 gg <- ggplot(data = pd_data, 
              aes(x = NOMTIME, y = LIDV))
@@ -166,7 +166,7 @@ Plot individual profiles in order to inspect them for any irregularities. Inspec
 
 ### Count over time, faceted by individual, individual line plots
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
 
 ncol = length(unique(pd_data$ID))/length(unique(pd_data$DOSE))
 
@@ -195,7 +195,7 @@ Stratify by covariates of interest to explore whether any key covariates impact 
 
 ### Count vs Dose, colored by time, median, 5th & 95th percentiles by nominal time
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE} 
 
 data_to_plot <- pd_data %>% subset(DAY_label %in% c("Baseline", "Day 1", "Day 3", "Day 5"))
 
@@ -216,7 +216,7 @@ gg
 
 ### Count vs Dose, faceted by Time, boxplots by nominal time
 
-```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
  
 data_to_plot  <- pd_data %>% subset(DAY_label %in% c("Day 5"))
 
@@ -237,7 +237,7 @@ gg
 
 ### Count vs Dose, faceted by Time, boxplots by nominal time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
  
 gg %+% (data = pd_data %>% subset(DAY_label %in% c("Baseline","Day 1","Day 3","Day 5")))
 
@@ -245,7 +245,7 @@ gg %+% (data = pd_data %>% subset(DAY_label %in% c("Baseline","Day 1","Day 3","D
 
 ### Percent of subjects by Count
 
-```{r, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
 data_to_plot <- pd_data %>% subset(DAY_label %in% c("Day 5"))
 
 gg <- ggplot(data = data_to_plot, aes(x = factor(DOSE), fill = count_high2low))
@@ -262,7 +262,7 @@ gg
 
 ### Percent of subjects by Count, faceted by time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 gg %+% (data =  pd_data %>% subset(DAY_label %in% c("Baseline","Day 1","Day 3","Day 5")))
 
 ```
