@@ -11,7 +11,7 @@ output:
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_time_to_event.Rmd).
 
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(broom)
