@@ -92,7 +92,7 @@ NCA = pk_data %>%
   time_units_dataset = "hours"
   time_units_plot    = "days"
   trtact_label       = "Dose"
-  dose_units         = unique((pkpd_data %>% filter(CMT == 1) )$EVENTU) %>% as.character()
+  dose_units         = unique((pkpd_data %>% filter(CMT == 1) )$LIDV_UNIT) %>% as.character()
   dose_label         = paste0("Dose (", dose_units, ")")
   conc_units         = unique(pk_data$LIDV_UNIT) %>% as.character()
   conc_label         = paste0("Concentration (", conc_units, ")")
