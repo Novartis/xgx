@@ -14,7 +14,7 @@ This document contains exploratory plots for multiple ascending dose PK data as 
 
 ## Setup
 
-```{r, echo = TRUE, warning = FALSE, message = FALSE}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -30,7 +30,7 @@ xgx_theme_set()
 
 ## Load Dataset
 
-```{r, warning = FALSE, message = FALSE}
+```{r, error = TRUE, warning = FALSE, message = FALSE}
 
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
@@ -118,7 +118,7 @@ When looking at summaries of PK over time, there are several things to observe. 
 
 ### Concentration over Time, colored by dose, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV, 
@@ -141,7 +141,7 @@ print(gg)
 
 For multiple dose studies, zoom in on key visits for a clearer picture of the profiles. Look for accumulation (if any) between first administered dose and steady state.
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 data_to_plot <- pk_data %>% subset(PROFDAY %in% c(1, 6))
 
 gg %+% 
@@ -155,7 +155,7 @@ gg %+%
 
 ### Concentration over Time, faceted by dose, mean +/- 95% CI, overlaid on gray spaghetti plots
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3}
 
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group = interaction(DOSE, PROFDAY)))
 gg <- gg + xgx_theme()
@@ -185,7 +185,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### Concentration over Time, colored by dose, dots and lines grouped by individual
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + xgx_theme()
@@ -206,7 +206,7 @@ print(gg)
 
 ### Side-by-side comparison of first administered dose and steady state
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 
 gg %+% 
   (pk_data %>% subset(PROFDAY %in% c(1, 6))) %+% 
@@ -219,7 +219,7 @@ gg %+%
 
 ### Concentration over Time, faceted by dose, lines grouped by individual
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3}
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg <- gg + xgx_theme()
 gg <- gg + geom_line(aes(group = interaction(ID, PROFDAY)), size = 1, alpha = 0.5) 
@@ -242,7 +242,7 @@ print(gg)
 
 ### Dose Normalized Concentration over Time, colored by dose, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV_NORM, 
@@ -264,7 +264,7 @@ print(gg)
 
 ### Side-by-side comparison of first administered dose and steady state
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
 
 gg %+% 
   (pk_data %>% subset(PROFDAY %in% c(1, 6))) %+% 
@@ -280,7 +280,7 @@ gg %+%
 
 Observe the dose normalized AUC over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to CENS observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 
 gg <- ggplot(data = NCA %>% subset(PARAM %in% c("AUC_0_24", "AUC_tau")), aes(x = DOSE, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = DOSE)) + geom_smooth(method = "lm", color = "black")
@@ -297,7 +297,7 @@ print(gg + facet_grid(.~DAY_label))
 
 For multiple ascending dose studies, plot the ratio between the steady state AUC and the AUC from the first dose administration. Is there any accumulation?
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 
 gg %+% 
   (NCA %>% subset(PARAM == "AUC_acc")) + 
@@ -311,7 +311,7 @@ gg %+%
 
 ### NCA of dose normalized Cmax vs Dose
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 gg %+% 
   (NCA %>% subset(PARAM %in% c("Cmax_0_24", "Cmax_tau"))) + 
   facet_grid(.~DAY_label)
@@ -319,7 +319,7 @@ gg %+%
 
 For multiple ascending dose studies, plot the ratio between the steady state Cmax and the Cmax from the first dose administration. Is there any accumulation?
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 
 gg %+% 
   (NCA %>% subset(PARAM == "Cmax_acc")) + 
@@ -339,7 +339,7 @@ Plotting individual profiles on top of gray spaghetti plots puts individual prof
 
 ### Concentration over Time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 8}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 8}
 
 # In order to plot grayed out spaghetti plots by dose with individuals highlighted, 
 # a new dataset needs to be defined that groups the individuals by dose
@@ -390,7 +390,7 @@ See [Single Ascending Dose PK](Single_Ascending_Dose_PK.html#explore_covariate_e
 
 ### Concentration over Time, colored by categorical covariate, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3}
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
 gg <- gg + xgx_theme()
 gg <- gg + xgx_geom_ci(conf_level = 0.95)
@@ -410,7 +410,7 @@ print(gg + facet_grid(.~TRTACT_low2high) + aes(color = WEIGHTB>70))
 
 ### Dose Normalized Concentration over Time, colored by categorical covariate, mean +/- 95% CI
 
-```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 # plotting dose-normalized concentration for all dose groups pooled
 print(gg %+% aes(y = LIDV_NORM) + ylab(concnorm_label))
 print(gg %+% aes(y = LIDV_NORM) + ylab(concnorm_label) + aes(color = WEIGHTB>70)) 
@@ -418,7 +418,7 @@ print(gg %+% aes(y = LIDV_NORM) + ylab(concnorm_label) + aes(color = WEIGHTB>70)
 
 ### Dose Normalized NCA parameters, stratified by categorical covariate
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = NCA %>% subset(PARAM %in% c("AUC_tau", "Cmax_tau")), 
              aes(x = SEX, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = SEX))
@@ -434,7 +434,7 @@ print(gg)
 
 ### Dose Normalized NCA parameters vs continuous covariate
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = NCA %>% subset(PARAM %in% c("AUC_tau", "Cmax_tau")), 
              aes(x = WEIGHTB, y = VALUE_NORM))
 gg <- gg + geom_point()
