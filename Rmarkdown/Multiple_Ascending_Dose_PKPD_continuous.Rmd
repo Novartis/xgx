@@ -14,7 +14,7 @@ This document contains exploratory plots for continuous PD data as well as the R
 
 ## Setup
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -29,7 +29,7 @@ xgx_theme_set()
 
 ## Load Dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning=FALSE, message=FALSE}
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
@@ -125,7 +125,7 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 
 Observe the overall shape of the average profiles. Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect? 
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 
 #PK data
 gg <- ggplot(data = pk_data, 
@@ -146,7 +146,7 @@ gg %+% (data = pd_data) + scale_y_continuous() + labs(y = pd_label)
 
 ### PK and PD marker over time, faceted by Dose, mean (95% CI) by nominal time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, 
                aes(x=NOMTIME,y=LIDV))
@@ -169,7 +169,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
  gg <- ggplot(data = pk_data, 
                aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) 
@@ -190,7 +190,7 @@ gg %+% (data = pd_data %>% subset(DOSE>0)) + scale_y_continuous() + labs(y = pd_
 
 ### PK and PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 #PK data
 gg <- ggplot(data = pk_data, aes(x=TIME,y=LIDV,group=ID))
 gg <- gg + xgx_annotate_status(status)
@@ -215,7 +215,7 @@ Plot PD marker against concentration. Do you see any relationship? Does response
 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response or Exposure-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 
-```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide[pkpd_data_wide$PROFDAY== 5,], aes(x=CONC,y=RESPONSE))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT_high2low))
@@ -226,7 +226,7 @@ gg <- gg + guides(color = guide_legend(""))
 print(gg)
 ```
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
 pkpd_data_wide$DAY_label <- paste("Day", pkpd_data_wide$PROFDAY)
 pkpd_data_wide_day13579 <- pkpd_data_wide[pkpd_data_wide$PROFDAY%in%c(1,3,5,7,9),]
 
@@ -244,7 +244,7 @@ gg + facet_grid(~DAY_label)
 
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 
-```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
 #separate NCA data to only inclue AUC_0_24 and AUC_tau 
 NCA_AUC <- NCA[NCA$PARAM=="AUC_0_24" | NCA$PARAM=="AUC_tau",]
 NCA_AUC$ID <- as.numeric(as.character(NCA_AUC$ID))
@@ -268,7 +268,7 @@ gg + facet_grid(.~DAY_label)
 
 Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. 
 
-```{r, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 6, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = NCA_AUC, aes(x = VALUE, y = Response)) 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = SEX)) + geom_smooth(aes(color = SEX))
@@ -287,7 +287,7 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
 pkpd_data_wide<- pkpd_data_wide[order(pkpd_data_wide$TIME),]
 gg <- ggplot(data = pkpd_data_wide, aes(x=CONC,y=RESPONSE, color=TIME))
 gg <- gg + xgx_annotate_status(status)
@@ -297,7 +297,7 @@ gg <- gg + xgx_scale_x_log10()
 gg <- gg + xgx_scale_y_log10() 
 gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
                  panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
-gg+facet_wrap(~ID+TRTACT_low2high, ncol = 5)
+gg + facet_wrap(~ID+TRTACT_low2high, ncol = 5)
 ```
 
 
