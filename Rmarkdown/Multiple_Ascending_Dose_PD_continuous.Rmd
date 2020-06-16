@@ -14,7 +14,7 @@ This document contains exploratory plots for multiple ascending continuous PD da
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -25,57 +25,64 @@ status = "DRAFT"
 
 ## ggplot settings
 xgx_theme_set()
+
+#directories for saving individual graphs
+dirs = list(
+  parent_dir = tempdir(), 
+  rscript_dir  = "./", 
+  rscript_name = "Example.R", 
+  results_dir  = "./", 
+  filename_prefix   = "", 
+  filename     = "Example.png")
 ```
 
 ## Load Dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning = FALSE, message = FALSE}
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
+DOSE_CMT = 1
+PD_CMT = 3
+SS_PROFDAY = 6 # steady state prof day
+PD_PROFDAYS = c(0, 2, 4, 6)
+
 #ensure dataset has all the necessary columns
- pkpd_data = pkpd_data %>%
+pkpd_data = pkpd_data %>%
     mutate(ID      = ID,     #ID   column
            TIME    = TIME,   #TIME column name 
-           NOMTIME = NOMTIME,#NOMINAL TIME column name
-           EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
-           PROFDAY = PROFDAY,#PROFILE DAY day associated with profile, e.g. day of dose administration
+           NOMTIME = NOMTIME, #NOMINAL TIME column name
+           PROFDAY = case_when(
+             NOMTIME < (SS_PROFDAY - 1)*24 ~ 1 + floor(NOMTIME / 24), 
+             NOMTIME >= (SS_PROFDAY - 1)*24 ~ SS_PROFDAY
+           ), #PROFILE DAY day associated with profile, e.g. day of dose administration
            LIDV    = LIDV,   #DEPENDENT VARIABLE column name
            CENS    = CENS,   #CENSORING column name
            CMT     = CMT,    #COMPARTMENT column
            DOSE    = DOSE,   #DOSE column here (numeric value)
-           TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
-           LIDV_NORM = LIDV/DOSE,
-           LIDV_UNIT    = ifelse(CMT==2, "ng/ml",
-                                 ifelse(CMT==3, "IU/L", NA )
-                                 ),
+           TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units), 
+           LIDV_UNIT = EVENTU, 
            DAY_label = ifelse(PROFDAY > 0, paste("Day", PROFDAY), "Baseline")
     )
 #create a factor for the treatment variable for plotting
 pkpd_data = pkpd_data %>%
   arrange(DOSE) %>%
-  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)), 
          TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT))))
 
 #create pd dataset
 pd_data <- pkpd_data %>%
-  filter(CMT==3)
+  filter(CMT == PD_CMT)
 
 #units and labels
   time_units_dataset = "hours"
   time_units_plot    = "days"
   trtact_label       = "Dose"
-  dose_label         = "Dose (mg)"
-  pd_label           = "Continuous PD Marker (IU/L)"  
+  dose_units         = unique((pkpd_data %>% filter(CMT == DOSE_CMT))$LIDV_UNIT) %>% as.character()
+  dose_label         = paste0("Dose (", dose_units, ")")
+  pd_units           = unique(pd_data$LIDV_UNIT) %>% as.character()
+  pd_label           = paste0("Continuous PD Marker (", pd_units, ")")  
 
-#directories for saving individual graphs
-dirs = list(
-  parent_dir= tempdir(),
-  rscript_dir  = "./",
-  rscript_name = "Example.R",
-  results_dir  = "./",
-  filename_prefix   = "",
-  filename     = "Example.png")
 ```
 
 ## Provide an overview of the data
@@ -86,17 +93,17 @@ When looking at summaries of continuous PD over time, there are several things t
 
 ### PD marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
 
 #PD data
 gg <- ggplot(data = pd_data, 
-               aes(x=NOMTIME,y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
+               aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
-gg <- gg + labs(y=pd_label)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(y = pd_label)
 gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
@@ -107,18 +114,18 @@ print(gg)
 
 ### PD marker over time, faceted by Dose, mean (95% CI) percentiles by nominal time
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
  
 gg <- ggplot(data = pd_data, 
-               aes(x=NOMTIME,y=LIDV)) 
+               aes(x = NOMTIME, y = LIDV)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + facet_grid(~TRTACT_low2high)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + scale_y_continuous()
-gg <- gg + labs(y=pd_label)
+gg <- gg + labs(y = pd_label)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
@@ -133,16 +140,16 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### PD marker over time, colored by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE}
  
  gg <- ggplot(data = pd_data, 
-               aes(x=TIME, y=LIDV,group=ID, color =factor(TRTACT_high2low))) 
+               aes(x = TIME, y = LIDV, group = ID, color = factor(TRTACT_high2low))) 
  gg <- gg + xgx_annotate_status(status)
  gg <- gg + geom_line()
- gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+ gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                    units_plot    = time_units_plot)    
- gg <- gg + labs(y=pd_label)
+ gg <- gg + labs(y = pd_label)
  gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
@@ -153,18 +160,18 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
  
 gg <- ggplot(data = pd_data, 
-               aes(x=TIME, y=LIDV,group=ID)) 
+               aes(x = TIME, y = LIDV, group = ID)) 
  gg <- gg + xgx_annotate_status(status)
  gg <- gg + geom_line(alpha = 0.5)
  gg <- gg + geom_point(alpha = 0.5)
- gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+ gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
  gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                    units_plot    = time_units_plot)    
  gg <- gg + facet_grid(~TRTACT_low2high)
- gg <- gg + labs(y=pd_label)
+ gg <- gg + labs(y = pd_label)
  gg <- gg + xgx_annotate_status(status)
  #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
@@ -180,7 +187,7 @@ Plot individual profiles in order to inspect them for any irregularities. Inspec
 
 Plotting individual profiles on top of gray spaghetti plots puts individual profiles into context, and may help identify outlying individuals for further inspection.
 
-```{r , cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 8}
+```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 8}
 
 pd_data_rep_by_trt <- list()
 for(id in unique(pd_data$ID)){
@@ -196,19 +203,19 @@ pd_data_rep_by_trt <- bind_rows(pd_data_rep_by_trt)
 gg <- ggplot(mapping = aes(x = TIME, y = LIDV)) 
 gg <- gg + geom_line(data = pd_data_rep_by_trt, 
                      aes(group = ID_rep_by_trt), 
-                     size = 1, color = rgb(0.5,0.5,0.5), alpha = 0.3)
+                     size = 1, color = rgb(0.5, 0.5, 0.5), alpha = 0.3)
 gg <- gg + geom_line(data = pd_data, 
                      aes(group = ID), size = 1)
 gg <- gg + xgx_scale_y_log10()
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + labs(y = pd_label)
-gg <- gg + theme(legend.position="none")
-gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
-                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
+gg <- gg + theme(legend.position = "none")
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9, 0.9, 0.9)), 
+                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9, 0.9, 0.9)))
 gg <- gg + facet_wrap(~ID + TRTACT_low2high, 
                 ncol = 10)
-gg <- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
+gg <- gg + xgx_annotate_status(status, fontsize = 4, color = rgb(0.5, 0.5, 1))
 print(gg)
 
 ```
@@ -233,14 +240,14 @@ Here are some questions to ask yourself when looking at Dose-Response plots: Do 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
-pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Baseline", "Day 6"))
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
+pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% c(0, SS_PROFDAY))
 
-gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE,y=LIDV, group=DOSE))
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE, y = LIDV, group = DOSE))
 gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
-gg <- gg + labs(x=dose_label, y=pd_label)
+gg <- gg + labs(x = dose_label, y = pd_label)
 gg <- gg + xgx_annotate_status(status)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
@@ -252,15 +259,15 @@ print(gg)
 
 Sometimes the crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. Looking at longitudinal PD over time (as in previous sections above) can help to uncover these trends. It may also be helpful to plot the cross-sectional Dose-Response curves for different time points throughout the study.
 
-```{r, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE} 
-pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Baseline","Day 2", "Day 4", "Day 6"))
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE} 
+pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 
 
-gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE,y=LIDV, group = DOSE))
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE, y = LIDV, group = DOSE))
 gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
-gg <- gg + labs(x=dose_label, y=pd_label)
+gg <- gg + labs(x = dose_label, y = pd_label)
 gg <- gg + xgx_annotate_status(status)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
@@ -270,14 +277,14 @@ print(gg)
 
 ### Explore covariate effects on Dose-Response relationship
 
-```{r, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
-pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Baseline", "Day 6"))
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
+pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% c(0, SS_PROFDAY))
 
-gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE+0.1*DOSE*(SEX=="Female"),y=LIDV, color = SEX))
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE + 0.1*DOSE*(SEX == "Female"), y = LIDV, color = SEX))
 gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
-gg <- gg + labs(x=dose_label, y=pd_label)
+gg <- gg + labs(x = dose_label, y = pd_label)
 gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:

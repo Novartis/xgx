@@ -7,7 +7,7 @@ output:
     code_folding: hide
 ---
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)

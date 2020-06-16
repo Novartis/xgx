@@ -5,6 +5,7 @@
 remove(list = ls())
 
 system("rm -rf *_cache")
+system("rm -rf *_files")
 
 #########################################################
 ## render the website
@@ -48,3 +49,7 @@ system(paste0("cp -r www/", folders_to_replace, " ../", folders_to_replace, coll
 
 # remove www folder for clean up
 system("rm -r www")
+
+# clean up cache and files again
+system("rm -rf *_cache")
+system("rm -rf *_files")

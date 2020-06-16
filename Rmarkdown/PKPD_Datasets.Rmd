@@ -17,7 +17,7 @@ This page describes the master PKPD analysis datasets used in the majority of th
 
 ## Setup
 
-```{r, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(RxODE)
 ```
@@ -26,7 +26,7 @@ library(RxODE)
 
 ### Indirect response system
 
-```{r, cache = TRUE, echo = TRUE}
+```{r, error = TRUE, cache = TRUE, echo = TRUE}
 ode <- "
 Concentration = centr/V2;
 C3 = peri/V3;
@@ -46,7 +46,7 @@ cat(gsub(pattern="\nConcentration",replacement="Concentration",x=gsub(pattern=";
 
 ### Single Ascending Dose PK Dataset
 
-```{r, cache = TRUE, echo = TRUE}
+```{r, error = TRUE, cache = TRUE, echo = TRUE}
 set.seed(12345666)
 ndose <- 5
 nsub <- 10 # number of subproblems
@@ -173,14 +173,14 @@ write.csv(Single_Ascending_Dose_Dataset2,"../Data/Single_Ascending_Dose_Dataset2
 
 ```
 
-```{r, echo = TRUE, warning = FALSE}
+```{r, error = TRUE, echo = TRUE, warning = FALSE}
 DT::datatable(Single_Ascending_Dose_Dataset2, rownames = FALSE, options = list(autoWidth = TRUE, scrollX=TRUE)) 
 ```
 
 
 ### Multiple Ascending Dose PK & PD Dataset
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE}
 set.seed(12345666)
 ndose <- 6
 nsub <- 10 # number of subproblems
@@ -383,7 +383,7 @@ write.csv(Multiple_Ascending_Dose_Dataset2,"../Data/Multiple_Ascending_Dose_Data
 ```
 
 
-```{r, echo = TRUE, warning = FALSE}
+```{r, error = TRUE, echo = TRUE, warning = FALSE}
 DT::datatable(Multiple_Ascending_Dose_Dataset2, rownames = FALSE, options = list(autoWidth = TRUE, scrollX=TRUE) )
 ```
 
