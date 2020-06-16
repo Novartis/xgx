@@ -14,7 +14,7 @@ This document contains exploratory plots for count PD data as well as the R code
 
 ## Setup
 
-```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -26,32 +26,41 @@ status = "DRAFT"
 ## ggplot settings
 xgx_theme_set()
 
-
+#directories for saving individual graphs
+dirs = list(
+  parent_dir = "Parent_Directory", 
+  rscript_dir  = "./", 
+  rscript_name = "Example.R", 
+  results_dir  = "./", 
+  filename_prefix   = "", 
+  filename     = "Example.png")
 ```
 
 ## Load Dataset
 
-```{r, error = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning = FALSE, message = FALSE}
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
+DOSE_CMT = 1
+PD_CMT = 4
+SS_PROFDAY = 6 # steady state prof day
+PD_PROFDAYS = c(0, 2, 4, 6)
+
 #ensure dataset has all the necessary columns
-  pkpd_data = pkpd_data %>%
+pkpd_data = pkpd_data %>%
     mutate(ID      = ID,     #ID   column
            TIME    = TIME,   #TIME column name 
            NOMTIME = NOMTIME, #NOMINAL TIME column name
            PROFDAY = case_when(
-             NOMTIME < 5*24 ~ 1 + floor(NOMTIME / 24),
-             NOMTIME >= 5*24 ~ 6
-             ), #PROFILE DAY day associated with profile, e.g. day of dose administration
-           PROFTIME = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
-           EVID    = EVID   , #EVENT ID, >= 1 is dose, otherwise measurement
+             NOMTIME < (SS_PROFDAY - 1)*24 ~ 1 + floor(NOMTIME / 24), 
+             NOMTIME >= (SS_PROFDAY - 1)*24 ~ SS_PROFDAY
+           ), #PROFILE DAY day associated with profile, e.g. day of dose administration
            LIDV    = LIDV,   #DEPENDENT VARIABLE column name
            CENS    = CENS,   #CENSORING column name
            CMT     = CMT,    #COMPARTMENT column
            DOSE    = DOSE,   #DOSE column here (numeric value)
            TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units), 
-           LIDV_NORM = LIDV/DOSE, 
            LIDV_UNIT = EVENTU, 
            DAY_label = ifelse(PROFDAY > 0, paste("Day", PROFDAY), "Baseline")
     )
@@ -65,18 +74,18 @@ pkpd_data = pkpd_data %>%
 
 #create pd dataset
 pd_data <- pkpd_data %>%
-  filter(CMT == 4) %>%
-  mutate(count_low2high = factor(LIDV, levels = sort(unique(LIDV))),
+  filter(CMT == PD_CMT) %>%
+  mutate(count_low2high = factor(LIDV, levels = sort(unique(LIDV))), 
          count_high2low = factor(LIDV, levels = rev(sort(unique(LIDV)))))
 
-#directories for saving individual graphs
-dirs = list(
-  parent_dir = "Parent_Directory", 
-  rscript_dir  = "./", 
-  rscript_name = "Example.R", 
-  results_dir  = "./", 
-  filename_prefix   = "", 
-  filename     = "Example.png")
+#units and labels
+  time_units_dataset = "hours"
+  time_units_plot    = "days"
+  trtact_label       = "Dose"
+  dose_units         = unique((pkpd_data %>% filter(CMT == DOSE_CMT))$LIDV_UNIT) %>% as.character()
+  dose_label         = paste0("Dose (", dose_units, ")")
+  pd_units           = unique(pd_data$LIDV_UNIT) %>% as.character()
+  pd_label           = paste0("PD Marker (", pd_units, ")")  
 
 ```
 
@@ -87,14 +96,14 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 
 ### Count over time, colored by Dose, median, 5th & 95th percentiles by nominal time
 
-```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message = FALSE} 
 
 gg <- ggplot(data = pd_data, 
-             aes(x=NOMTIME, y=LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))
+             aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low, fill = TRTACT_high2low))
 gg <- gg + xgx_geom_pi(percent_level = 0.95, geom = c("line", "point", "errorbar"), alpha = 0.5, position = position_dodge(-9.6))
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
-gg <- gg + ylab("Count")
+gg <- gg + ylab(pd_label)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
@@ -104,15 +113,15 @@ gg
 
 ### Count over time, faceted by Dose, median, 5th & 95th percentiles by nominal time
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
  
 gg <- ggplot(data = pd_data, 
              aes(x = NOMTIME, y = LIDV))
 gg <- gg + xgx_geom_pi(percent_level = 0.95, geom = c("line", "point", "errorbar"))
-gg <- gg + guides(color=guide_legend(""),fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + facet_grid(~TRTACT_low2high)
-gg <- gg + ylab("Count")
+gg <- gg + ylab(pd_label)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
@@ -122,12 +131,12 @@ gg
 
 ### Percent of subjects by Count over time, faceted by dose
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
 
 gg <- ggplot(data = pd_data, aes(x = factor(PROFDAY), fill = count_high2low))
-gg <- gg + geom_bar(position = "fill") + scale_fill_grey(start = 0.8, end = 0.2, breaks = rev(seq(0,18,6)))
+gg <- gg + geom_bar(position = "fill") + scale_fill_grey(start = 0.8, end = 0.2, breaks = rev(seq(0, 18, 6)))
 gg <- gg + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Percent of Subjects") + xlab("Time (days)") + guides(fill=guide_legend("Count"))
+gg <- gg + ylab("Percent of Subjects") + xlab("Time (days)") + guides(fill = guide_legend(pd_label))
 gg <- gg + facet_grid(.~TRTACT_low2high) 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -142,15 +151,15 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 ### Spaghetti plots of Count over time, faceted by dose
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
 
 gg <- ggplot(data = pd_data, 
              aes(x = NOMTIME, y = LIDV))
-gg <- gg + geom_point(size=2, alpha = 0.5) 
+gg <- gg + geom_point(size = 2, alpha = 0.5) 
 gg <- gg + geom_line(aes(group = ID), alpha = 0.5) 
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
-gg <- gg + ylab("Count")
+gg <- gg + ylab(pd_label)
 gg <- gg + facet_grid(~TRTACT_low2high)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -166,7 +175,7 @@ Plot individual profiles in order to inspect them for any irregularities. Inspec
 
 ### Count over time, faceted by individual, individual line plots
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message = FALSE}
 
 ncol = length(unique(pd_data$ID))/length(unique(pd_data$DOSE))
 
@@ -176,9 +185,9 @@ gg <- gg + geom_line(aes(group = ID))
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = "h", units_plot = "d")
 gg <- gg + facet_wrap(~ID + TRTACT_low2high, ncol = ncol)
-gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
-                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
-gg <- gg + xgx_annotate_status(status, fontsize = 4, color=rgb(0.5,0.5,1))
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9, 0.9, 0.9)), 
+                 panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9, 0.9, 0.9)))
+gg <- gg + xgx_annotate_status(status, fontsize = 4, color = rgb(0.5, 0.5, 1))
 gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
@@ -195,18 +204,18 @@ Stratify by covariates of interest to explore whether any key covariates impact 
 
 ### Count vs Dose, colored by time, median, 5th & 95th percentiles by nominal time
 
-```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message = FALSE} 
 
-data_to_plot <- pd_data %>% subset(DAY_label %in% c("Baseline", "Day 1", "Day 3", "Day 5"))
+data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 
 gg <- ggplot(data = data_to_plot, 
              aes(x = DOSE, y = LIDV, color = DAY_label, fill = DAY_label))
 gg <- gg + xgx_geom_pi(percent_level = 0.95, 
                        geom = c("point", "errorbar"), position = position_dodge(50))
-gg <- gg + guides(color=guide_legend(""), fill=guide_legend(""))
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + scale_x_continuous(breaks = unique(data_to_plot$DOSE))
-gg <- gg + xlab("Dose (mg)") + ylab("Count")
-gg <- gg + geom_smooth(method = "glm", method.args=list(family=poisson), position = position_dodge(50))
+gg <- gg + xlab(dose_label) + ylab(pd_label)
+gg <- gg + geom_smooth(method = "glm", method.args = list(family = poisson), position = position_dodge(50))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
 
@@ -216,17 +225,17 @@ gg
 
 ### Count vs Dose, faceted by Time, boxplots by nominal time
 
-```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message = FALSE}
  
-data_to_plot  <- pd_data %>% subset(DAY_label %in% c("Day 5"))
+data_to_plot  <- pd_data %>% subset(PROFDAY %in% SS_PROFDAY)
 
 gg <- ggplot(data = data_to_plot, 
              aes(x = DOSE, y = LIDV))
 gg <- gg + geom_boxplot(aes(group = DOSE))
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
-gg <- gg + geom_smooth(method = "glm",method.args=list(family=poisson), color = "black")
-gg <- gg + xlab("Dose (mg)") 
-gg <- gg + ylab("Count")
+gg <- gg + geom_smooth(method = "glm", method.args = list(family = poisson), color = "black")
+gg <- gg + xlab(dose_label) 
+gg <- gg + ylab(pd_label)
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -237,22 +246,22 @@ gg
 
 ### Count vs Dose, faceted by Time, boxplots by nominal time
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
  
-gg %+% (data = pd_data %>% subset(DAY_label %in% c("Baseline","Day 1","Day 3","Day 5")))
+gg %+% (data = pd_data %>% subset(PROFDAY %in% PD_PROFDAYS))
 
 ```
 
 ### Percent of subjects by Count
 
-```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message= FALSE}
-data_to_plot <- pd_data %>% subset(DAY_label %in% c("Day 5"))
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message = FALSE}
+data_to_plot <- pd_data %>% subset(PROFDAY %in% SS_PROFDAY)
 
 gg <- ggplot(data = data_to_plot, aes(x = factor(DOSE), fill = count_high2low))
-gg <- gg + geom_bar(position = "fill") + scale_fill_grey(start = 0.8, end = 0.2, breaks = rev(seq(0,18,6)))
+gg <- gg + geom_bar(position = "fill") + scale_fill_grey(start = 0.8, end = 0.2, breaks = rev(seq(0, 18, 6)))
 gg <- gg + scale_y_continuous(labels = scales::percent)
-gg <- gg + ylab("Percent of Subjects") + xlab("Dose (mg)") 
-gg <- gg + guides(fill=guide_legend(""))
+gg <- gg + ylab("Percent of Subjects") + xlab(dose_label) 
+gg <- gg + guides(fill = guide_legend(""))
 gg <- gg + facet_grid(.~DAY_label)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -262,8 +271,8 @@ gg
 
 ### Percent of subjects by Count, faceted by time
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
-gg %+% (data =  pd_data %>% subset(DAY_label %in% c("Baseline","Day 1","Day 3","Day 5")))
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
+gg %+% (data =  pd_data %>% subset(PROFDAY %in% PD_PROFDAYS))
 
 ```
 

@@ -44,82 +44,109 @@ The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_
 
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 #load dataset
-data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+
+DOSE_CMT = 1
+PK_CMT = 2
+PD_CMT = 6
+SS_PROFDAY = 6 # steady state prof day
+PD_PROFDAYS <- c(0, 2, 4, 6)
+TAU = 24 # time between doses, units should match units of TIME, e.g. 24 for QD, 12 for BID, 7*24 for Q1W (when units of TIME are h)
 
 #ensure dataset has all the necessary columns
-data = data %>%
+pkpd_data = pkpd_data %>%
   mutate(ID      = ID,     #ID   column
          TIME    = TIME,   #TIME column name 
          NOMTIME = NOMTIME,#NOMINAL TIME column name
-         EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+         PROFDAY = case_when(
+           NOMTIME < (SS_PROFDAY - 1)*24 ~ 1 + floor(NOMTIME / 24),
+           NOMTIME >= (SS_PROFDAY - 1)*24 ~ SS_PROFDAY
+         ), #PROFILE DAY day associated with profile, e.g. day of dose administration
          LIDV    = LIDV,   #DEPENDENT VARIABLE column name
          CENS    = CENS,   #CENSORING column name
          CMT     = CMT,    #COMPARTMENT column
          DOSE    = DOSE,   #DOSE column here (numeric value)
          TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
          LIDV_NORM = LIDV/DOSE,
-         LIDV_UNIT    = ifelse(CMT==2, "ng/ml", NA ),
-         DAY_label = paste("Day", PROFDAY)
+         LIDV_UNIT    = EVENTU,
+         DAY_label = ifelse(PROFDAY > 0, paste("Day", PROFDAY), "Baseline"),
+         BINARY_LEVELS = factor(case_when(
+           CMT != PD_CMT ~ as.character(NA), 
+           LIDV == 0 ~ "Nonresponder", 
+           LIDV == 1 ~ "Responder"
+         ), levels = c("Nonresponder", "Responder"))
   )
 
 #create a factor for the treatment variable for plotting
-data = data %>%
+pkpd_data = pkpd_data %>%
   arrange(DOSE) %>%
   mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
          TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT)))) %>%
   select(-TRTACT)    
 
 #create pk dataset
-pk_data <- data %>%
-  filter(CMT==2)
+pk_data <- pkpd_data %>%
+  filter(CMT==PK_CMT)
 
 #create pd binary dataset
-pd_data <- data %>%
-  filter(CMT==6) %>%
+pd_data <- pkpd_data %>%
+  filter(CMT==PD_CMT) %>%
   mutate(LIDV_jitter = jitter(LIDV, amount = 0.1))
-
-#create pkpd dataset
-pkpd_data = bind_rows(pk_data, pd_data)
 
 #create wide pkpd dataset for plotting PK vs PD
 pkpd_data_wide = pd_data %>%
-  select(ID, NOMTIME, RESPONSE = LIDV) %>%
-  right_join(pk_data) %>%
+  select(ID, NOMTIME, PD = LIDV, BINARY_LEVELS) %>%
+  right_join(pk_data %>% select(-BINARY_LEVELS), by = c("ID", "NOMTIME")) %>%
   rename(CONC = LIDV) %>%
-  mutate(RESPONSE_STR = factor(plyr::mapvalues(RESPONSE, c(0,1), c("Nonresponder","Responder")))) %>%
-  filter(!is.na(RESPONSE))
-
+  filter(!is.na(PD))
 
 #perform NCA, for additional plots
 NCA = pk_data %>%
   group_by(ID, DOSE) %>%
   filter(!is.na(LIDV)) %>%
-  summarize(AUC_0_24 = caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= 24], LIDV[NOMTIME > 0 & NOMTIME <= 24]), 
-            Cmax_0_24     = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
-            AUC_tau = caTools::trapz(TIME[NOMTIME > 120 & NOMTIME <= 144], LIDV[NOMTIME > 120 & NOMTIME <= 144]),
-            Cmax_tau     = max(LIDV[NOMTIME > 120 & NOMTIME <= 144]), 
+  summarize(AUC_0 = ifelse(length(LIDV[NOMTIME > 0 & NOMTIME <= TAU]) > 1,
+                              caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= TAU], 
+                                      LIDV[NOMTIME > 0 & NOMTIME <= TAU]),
+                              NA), 
+            Cmax_0     = ifelse(length(LIDV[NOMTIME > 0 & NOMTIME <= TAU]) > 1,
+                              max(LIDV[NOMTIME > 0 & NOMTIME <= TAU]),
+                              NA), 
+            AUC_tau = ifelse(length(LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                           NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]) > 1,
+                             caTools::trapz(TIME[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                                   NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)],
+                                     LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                            NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]),
+                             NA),
+            Cmax_tau     = ifelse(length(LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                                NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]) > 1,
+                             max(LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                        NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]),
+                             NA),
             SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
             WEIGHTB  = WEIGHTB[1]) %>%
   gather(PARAM, VALUE,-c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
   mutate(VALUE_NORM = VALUE/DOSE,
-         PROFDAY= ifelse(PARAM == "AUC_0_24" | PARAM == "Cmax_0_24", 1, 6))
+         PROFDAY = ifelse(PARAM %in% c("AUC_0", "Cmax_0"), 1, SS_PROFDAY))
 
-#add response data at day 1 and 6 to NCA for additional plots
-NCA <- pd_data %>% subset(PROFDAY %in% c(1,6),) %>%
-                       select(ID, PROFDAY, DAY_label, RESPONSE = LIDV,TRTACT_low2high,TRTACT_high2low) %>%
-                       merge(NCA, by = c("ID","PROFDAY"))
+#add response data at day 1 and at steady state to NCA for additional plots
+NCA <- pd_data %>% subset(PROFDAY %in% c(1, SS_PROFDAY),) %>%
+                       select(ID, PROFDAY, DAY_label, PD = LIDV, TRTACT_low2high, TRTACT_high2low) %>%
+                       merge(NCA, by = c("ID", "PROFDAY"))
 
 #units and labels
   time_units_dataset = "hours"
   time_units_plot    = "days"
   trtact_label       = "Dose"
-  dose_label         = "Dose (mg)"
-  conc_label         = "Concentration (ng/ml)"  
-  pd_label           = "Responder Rate (%)"
-  concnorm_label     = "Normalized Concentration (ng/ml)/mg"
-  conc_units         = "ng/ml"
-  AUC_units          = "h.ng/ml"
+  dose_units         = unique((pkpd_data %>% filter(CMT == DOSE_CMT))$LIDV_UNIT) %>% as.character()
+  dose_label         = paste0("Dose (", dose_units, ")")
+  conc_units         = unique(pk_data$LIDV_UNIT) %>% as.character()
+  conc_label         = paste0("Concentration (", conc_units, ")")
+  AUC_units          = paste0("h.", conc_units)
+  concnorm_label     = paste0("Normalized Concentration (", conc_units, ")/", dose_units)
+  pd_binary_label    = "Response"
+  pd_response_label  = "Responder Rate (%)"
   
 ```
 
@@ -168,7 +195,8 @@ Questions to ask:
   gg <- gg + xgx_stat_ci(distribution = "binomial")
   gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                     units_plot    = time_units_plot)
-  gg <- gg + labs(y = pd_label, color = trtact_label)  
+  gg <- gg + scale_y_continuous(labels=scales::percent)
+  gg <- gg + labs(y = pd_response_label, color = trtact_label)  
   gg <- gg + xgx_annotate_status(status)
   gg <- gg + xgx_annotate_filenames(dirs)
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
@@ -200,7 +228,8 @@ If coloring by dose makes a messy plot, you can try faceting by dose instead. He
   gg <- gg + xgx_stat_ci(distribution = "binomial")
   gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                     units_plot    = time_units_plot)
-  gg <- gg + labs(y = pd_label, color = trtact_label)  
+  gg <- gg + scale_y_continuous(labels=scales::percent)
+  gg <- gg + labs(y = pd_response_label, color = trtact_label)  
   gg <- gg + facet_grid(~TRTACT_low2high)
   gg <- gg + xgx_annotate_status(status)
   gg <- gg + xgx_annotate_filenames(dirs)
@@ -216,7 +245,7 @@ Another longitudinal plot that can be useful for binary data is plotting the PK 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide, aes(x = NOMTIME, y = CONC))
 gg <- gg + geom_boxplot(aes(group = factor(NOMTIME)), width = 0.5*24)
-gg <- gg + geom_jitter(aes( color = factor(RESPONSE_STR), alpha = factor(RESPONSE_STR)), width = 0.1*24, height = 0) 
+gg <- gg + geom_jitter(aes( color = factor(BINARY_LEVELS), alpha = factor(BINARY_LEVELS)), width = 0.1*24, height = 0) 
 gg <- gg + scale_color_manual(values = c("black","blue")) + scale_alpha_manual(values = c(0.2,1))
 gg <- gg + labs(y = conc_label, color = "Response", alpha = "Response")
 gg <- gg + xgx_scale_y_log10()
@@ -253,7 +282,8 @@ gg <- ggplot(data = pd_data, aes(x = TIME, y = LIDV_jitter))
 gg <- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg <- gg + labs(y = conc_label, color = pd_label)
+gg <- gg + scale_y_continuous(labels=scales::percent)
+gg <- gg + labs(y = conc_label, color = pd_response_label)
 gg <- gg + xgx_annotate_status(status) 
 gg <- gg + xgx_annotate_filenames(dirs)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
@@ -285,7 +315,7 @@ gg <- gg + geom_line(aes(group = ID), alpha = 0.2)
 gg <- gg + geom_point(size = 2, alpha = 0.2)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg <- gg + labs(y = conc_label, shape = "BLQ", color = "BLQ")
+gg <- gg + labs(y = pd_binary_label, shape = "BLQ", color = "BLQ")
 gg <- gg + facet_grid(.~TRTACT_low2high)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
@@ -299,14 +329,14 @@ print(gg)
 ## Explore Exposure-Response Relationship
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message= FALSE}
-gg <- ggplot(data = pkpd_data_wide, aes(y = CONC, x = RESPONSE))
-gg <- gg + geom_boxplot(aes(group = RESPONSE), width = 0.5, outlier.shape=NA) 
+gg <- ggplot(data = pkpd_data_wide, aes(y = CONC, x = PD))
+gg <- gg + geom_boxplot(aes(group = PD), width = 0.5, outlier.shape=NA) 
 gg <- gg + geom_jitter(data = pkpd_data_wide %>% filter(CENS == 0, PROFDAY == 5), 
                        aes(color = TRTACT_high2low), shape=19,  width = 0.1, height = 0.0, alpha = 0.5)
 gg <- gg + geom_jitter(data = pkpd_data_wide %>% filter(CENS == 1, PROFDAY == 5),
                        color = "red", shape=8,  width = 0.1, height = 0.0, alpha = 0.5)
 gg <- gg + xgx_scale_y_log10()
-gg <- gg + labs(x = "Response", y = conc_label, color = "Dose")
+gg <- gg + labs(x = pd_binary_label, y = conc_label, color = trtact_label)
 gg <- gg + coord_flip() 
 print(gg)
 
@@ -322,12 +352,13 @@ pkpd_data_wide_plot = pkpd_data_wide %>%
   group_by(CONC_QUART) %>%
   mutate(CONC_MIDPOINT = median(CONC))
 
-gg <- ggplot(data = pkpd_data_wide_plot, aes(x = CONC, y = RESPONSE))
+gg <- ggplot(data = pkpd_data_wide_plot, aes(x = CONC, y = PD))
 gg <- gg + geom_jitter(aes(color = TRTACT_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = RESPONSE), distribution = "binomial", geom = "errorbar", size = 0.5)
-gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = RESPONSE), distribution = "binomial", geom = "point", shape = 0, size = 4)
-gg <- gg + labs(x = conc_label, y = pd_label, color = "Dose")
+gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = PD), distribution = "binomial", geom = "errorbar", size = 0.5)
+gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = PD), distribution = "binomial", geom = "point", shape = 0, size = 4)
+gg <- gg + scale_y_continuous(labels=scales::percent)
+gg <- gg + labs(x = conc_label, y = pd_response_label, color = trtact_label)
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + facet_grid(~PROFDAY_STR)
 print(gg)
@@ -342,15 +373,15 @@ NCA_plot = NCA %>%
   group_by(PARAM, VALUE_QUART) %>%
   mutate(VALUE_MIDPOINT = median(VALUE))
 
-gg <- ggplot(NCA_plot, aes(x = VALUE, y = RESPONSE))
+gg <- ggplot(NCA_plot, aes(x = VALUE, y = PD))
 gg <- gg + geom_jitter(aes( color = TRTACT_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = RESPONSE), 
+gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = PD), 
                        conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
-gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = RESPONSE), 
+gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = PD), 
                        conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
 gg <- gg + facet_wrap(~DAY_label + PARAM, scales = "free_x")
-gg <- gg + labs(color = "Dose", x = "NCA parameter", y = pd_label)
+gg <- gg + labs(color = trtact_label, x = "NCA parameter", y = pd_response_label)
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + scale_y_continuous(breaks=c(0,.5,1), labels = scales::percent) 
 print(gg)

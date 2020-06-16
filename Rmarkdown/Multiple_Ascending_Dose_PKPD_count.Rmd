@@ -26,6 +26,14 @@ status = "DRAFT"
 ## ggplot settings
 xgx_theme_set()
 
+#directories for saving individual graphs
+dirs = list(
+  parent_dir = "Parent_Directory", 
+  rscript_dir  = "./", 
+  rscript_name = "Example.R", 
+  results_dir  = "./", 
+  filename_prefix   = "", 
+  filename     = "Example.png")
 ```
 
 
@@ -35,17 +43,20 @@ xgx_theme_set()
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
+DOSE_CMT = 1
+PK_CMT = 2
+PD_CMT = 4
+SS_PROFDAY = 6 # steady state prof day
+PD_PROFDAYS <- c(0, 2, 4, 6)
+TAU = 24 # time between doses, units should match units of TIME, e.g. 24 for QD, 12 for BID, 7*24 for Q1W (when units of TIME are h)
+
 #ensure dataset has all the necessary columns
   pkpd_data = pkpd_data %>%
     mutate(ID      = ID,     #ID   column
            TIME    = TIME,   #TIME column name 
            NOMTIME = NOMTIME, #NOMINAL TIME column name
-           PROFDAY = case_when(
-             NOMTIME < 5*24 ~ 1 + floor(NOMTIME / 24),
-             NOMTIME >= 5*24 ~ 6
-             ), #PROFILE DAY day associated with profile, e.g. day of dose administration
+           PROFDAY = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
            PROFTIME = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
-           EVID    = EVID   , #EVENT ID, >= 1 is dose, otherwise measurement
            LIDV    = LIDV,   #DEPENDENT VARIABLE column name
            CENS    = CENS,   #CENSORING column name
            CMT     = CMT,    #COMPARTMENT column
@@ -65,73 +76,71 @@ pkpd_data = pkpd_data %>%
 
 #create pk dataset
 pk_data <- pkpd_data %>%
-  filter(CMT==2)
+  filter(CMT == PK_CMT)
 
 #create pd dataset
 pd_data <- pkpd_data %>%
-  filter(CMT == 4) %>%
+  filter(CMT == PD_CMT) %>%
   mutate(count_low2high = factor(LIDV, levels = sort(unique(LIDV))),
          count_high2low = factor(LIDV, levels = rev(sort(unique(LIDV)))))
 
-#create pkpd dataset
-pkpd_data = bind_rows(pk_data, pd_data)
-
 #create wide pkpd dataset for plotting PK vs PD
 pkpd_data_wide = pd_data %>%
-  select(ID, NOMTIME, RESPONSE = LIDV) %>%
+  select(ID, NOMTIME, PD = LIDV) %>%
   right_join(pk_data) %>%
   rename(CONC = LIDV) %>%
-  filter(!is.na(RESPONSE))
+  filter(!is.na(PD))%>%
+  filter(!is.na(CONC))
 
 #perform NCA, for additional plots
 NCA = pk_data %>%
   group_by(ID, DOSE) %>%
   filter(!is.na(LIDV)) %>%
-  summarize(AUC_0_24 = caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= 24], LIDV[NOMTIME > 0 & NOMTIME <= 24]), 
-            Cmax_0_24     = max(LIDV[NOMTIME>0 & NOMTIME<= 24]), 
-            AUC_tau = caTools::trapz(TIME[NOMTIME > 120 & NOMTIME <= 144], LIDV[NOMTIME > 120 & NOMTIME <= 144]), 
-            Cmax_tau     = max(LIDV[NOMTIME > 120 & NOMTIME <= 144]), 
-            AUC_acc = AUC_tau / AUC_0_24, 
-            Cmax_acc = Cmax_tau / Cmax_0_24, 
+  summarize(AUC_0 = ifelse(length(LIDV[NOMTIME > 0 & NOMTIME <= TAU]) > 1,
+                              caTools::trapz(TIME[NOMTIME > 0 & NOMTIME <= TAU], 
+                                      LIDV[NOMTIME > 0 & NOMTIME <= TAU]),
+                              NA), 
+            Cmax_0     = ifelse(length(LIDV[NOMTIME > 0 & NOMTIME <= TAU]) > 1,
+                              max(LIDV[NOMTIME > 0 & NOMTIME <= TAU]),
+                              NA), 
+            AUC_tau = ifelse(length(LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                           NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]) > 1,
+                             caTools::trapz(TIME[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                                   NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)],
+                                     LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                            NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]),
+                             NA),
+            Cmax_tau     = ifelse(length(LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                                NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]) > 1,
+                             max(LIDV[NOMTIME > (SS_PROFDAY-1)*24 & 
+                                        NOMTIME <= ((SS_PROFDAY-1)*24 + TAU)]),
+                             NA), 
             SEX      = SEX[1], #this part just keeps the SEX and WEIGHTB covariates
-            WEIGHTB  = WEIGHTB[1],
-            TRTACT_high2low = TRTACT_high2low[1],
-            TRTACT_low2high = TRTACT_low2high[1]) %>%
-  gather(PARAM, VALUE, -c(ID, DOSE, SEX, WEIGHTB, TRTACT_low2high, TRTACT_high2low)) %>%
+            WEIGHTB  = WEIGHTB[1]) %>%
+  gather(PARAM, VALUE, -c(ID, DOSE, SEX, WEIGHTB)) %>%
   ungroup() %>%
   mutate(VALUE_NORM = VALUE/DOSE, 
-         PROFDAY = ifelse(PARAM %in% c("AUC_0_24", "Cmax_0_24"), 1, 6), 
-         DAY_label = paste("Day", PROFDAY))
+         PROFDAY = ifelse(PARAM %in% c("AUC_0", "Cmax_0"), 1, SS_PROFDAY))
 
 # Merge with PD data
-NCA = pd_data %>%
-  group_by(ID) %>%
-  arrange(desc(TIME)) %>%
-  slice(1) %>%
-  select(ID, RESPONSE = LIDV) %>%
-  right_join(NCA)
+# add response data at day 1 and steady state to NCA for additional plots
+NCA <- pd_data %>% subset(PROFDAY %in% c(1, SS_PROFDAY),) %>%
+  select(ID, PROFDAY, DAY_label, PD = LIDV, TRTACT_low2high, TRTACT_high2low) %>%
+  merge(NCA, by = c("ID","PROFDAY"))
 
 #units and labels
   time_units_dataset = "hours"
   time_units_plot    = "days"
   trtact_label       = "Dose"
-  dose_units         = unique((pkpd_data %>% filter(CMT == 1) )$EVENTU) %>% as.character()
+  dose_units         = unique((pkpd_data %>% filter(CMT == DOSE_CMT) )$LIDV_UNIT) %>% as.character()
   dose_label         = paste0("Dose (", dose_units, ")")
   conc_units         = unique(pk_data$LIDV_UNIT) %>% as.character()
   conc_label         = paste0("Concentration (", conc_units, ")")
   concnorm_label     = paste0("Normalized Concentration (", conc_units, ")/", dose_units)
   AUC_units          = paste0("h.", conc_units)
-  pd_label           = "Count"
+  pd_units           = unique(pd_data$LIDV_UNIT) %>% as.character()
+  pd_label           = paste0("PD Marker (", pd_units, ")")  
 
-
-#directories for saving individual graphs
-dirs = list(
-  parent_dir = "Parent_Directory", 
-  rscript_dir  = "./", 
-  rscript_name = "Example.R", 
-  results_dir  = "./", 
-  filename_prefix   = "", 
-  filename     = "Example.png")
 ```
 
 
@@ -216,7 +225,7 @@ gg %+% (data = pd_data %>% subset(DOSE > 0)) +
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message= FALSE}
 
-gg <- ggplot(data = pkpd_data_wide, aes(x = CONC,y = RESPONSE))
+gg <- ggplot(data = pkpd_data_wide, aes(x = CONC,y = PD))
 gg <- gg + geom_jitter(aes(color = TRTACT_high2low), width = 0, height = 0.1, alpha = 0.5)
 gg <- gg + ylab(pd_label) + xlab(conc_label)
 gg <- gg + guides(color = guide_legend("")) 
@@ -231,9 +240,9 @@ gg
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE}
 
-gg <- ggplot(data = pkpd_data_wide %>% subset(PROFDAY %in% c(1,3,5)), 
-             aes(y = CONC, x = RESPONSE))
-gg <- gg + geom_boxplot(aes(group = RESPONSE)) + coord_flip()
+gg <- ggplot(data = pkpd_data_wide %>% subset(PROFDAY %in% PD_PROFDAYS), 
+             aes(y = CONC, x = PD))
+gg <- gg + geom_boxplot(aes(group = PD)) + coord_flip()
 gg <- gg + geom_jitter(aes(color = TRTACT_high2low), width = 0.1, height = 0, alpha = 0.5) 
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xlab(pd_label) + ylab(conc_label)
@@ -261,8 +270,9 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
+pkpd_data_wide <- pkpd_data_wide %>% arrange(ID, TIME)
 
-gg <- ggplot(data = pkpd_data_wide, aes(x = CONC, y = RESPONSE, color = TIME))
+gg <- ggplot(data = pkpd_data_wide, aes(x = CONC, y = PD, color = TIME))
 gg <- gg + geom_path(arrow = arrow(length=unit(0.15,"cm")))
 gg <- gg + xgx_scale_x_log10() + xgx_scale_y_log10()
 gg <- gg + ylab(pd_label) + xlab(conc_label)

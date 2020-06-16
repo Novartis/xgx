@@ -14,7 +14,7 @@ This document contains exploratory plots for binary response data as well as the
 
 ## Setup
 
-```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
 library(gridExtra)
 library(ggplot2)
 library(dplyr)
@@ -43,22 +43,28 @@ dirs = list(
 ## Load Dataset
 The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
-```{r, error = TRUE, warning=FALSE, message=FALSE}
+```{r, error = TRUE, warning = FALSE, message = FALSE}
 data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+
+DOSE_CMT = 1
+PD_CMT = 6
+SS_PROFDAY = 6 # steady state prof day
+PD_PROFDAYS <- c(0, 2, 4, 6)
 
 #ensure dataset has all the necessary columns
 data = data %>%
   mutate(ID      = ID,     #ID   column
          TIME    = TIME,   #TIME column name 
          NOMTIME = NOMTIME,#NOMINAL TIME column name
-         EVID    = EVID   ,#EVENT ID, >=1 is dose, otherwise measurement
+         PROFDAY = case_when(
+           NOMTIME < (SS_PROFDAY - 1)*24 ~ 1 + floor(NOMTIME / 24),
+           NOMTIME >= (SS_PROFDAY - 1)*24 ~ SS_PROFDAY
+         ), #PROFILE DAY day associated with profile, e.g. day of dose administration
          LIDV    = LIDV,   #DEPENDENT VARIABLE column name
          CENS    = CENS,   #CENSORING column name
          CMT     = CMT,    #COMPARTMENT column
          DOSE    = DOSE,   #DOSE column here (numeric value)
          TRTACT  = TRTACT, #DOSE REGIMEN column here (character, with units),
-         LIDV_NORM = LIDV/DOSE,
-         LIDV_UNIT    = ifelse(CMT==2, "ng/ml", NA ),
          DAY_label = ifelse(PROFDAY > 0, paste("Day", PROFDAY), "Baseline")
   )
 
@@ -71,7 +77,7 @@ data = data %>%
 
 #create pd binary dataset
 pd_data <- data %>%
-  filter(CMT==6) %>%
+  filter(CMT == PD_CMT) %>%
   mutate(LIDV_jitter = jitter(LIDV, amount = 0.1)) %>%
   mutate(DAY_jitter = jitter(PROFDAY, amount = 0.1))
 
@@ -113,13 +119,13 @@ Questions to ask when looking at these plots
 
 When overlaying individual binomial data, it is often helpful to stagger the dots and use transparency, so that it is easier to see individual data points.  If you do so, this should be clearly stated.  
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE} 
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE} 
 
   gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
   gg <- gg + xgx_stat_ci(distribution = "binomial")
   gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                     units_plot    = time_units_plot)
-  gg <- gg + scale_y_continuous(labels=scales::percent)
+  gg <- gg + scale_y_continuous(labels = scales::percent)
   gg <- gg + labs(y = pd_label, color = trtact_label)  
   gg <- gg + xgx_annotate_status(status)
   #gg <- gg + xgx_annotate_filenames(dirs)
@@ -129,15 +135,15 @@ When overlaying individual binomial data, it is often helpful to stagger the dot
 
 ```
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
 
-  gg <- ggplot(data = pd_data, aes(x=PROFDAY,y=LIDV))
-  gg <- gg + geom_point(aes(x=DAY_jitter,y=LIDV_jitter), size=2, alpha = 0.3)
+  gg <- ggplot(data = pd_data, aes(x = PROFDAY, y = LIDV))
+  gg <- gg + geom_point(aes(x = DAY_jitter, y = LIDV_jitter), size = 2, alpha = 0.3)
   gg <- gg + xgx_stat_ci(conf_level = 0.95, distribution = "binomial", geom = list("line", "ribbon"))
 
   gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_plot, 
                                     units_plot    = time_units_plot)
-  gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels=scales::percent)
+  gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels = scales::percent)
   gg <- gg + labs(y = pd_label)  
   gg <- gg + facet_grid(~TRTACT_low2high)
   gg <- gg + xgx_annotate_status(status)
@@ -155,10 +161,10 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 Binary spaghetti plots may not be as informative as spaghetti plots for continuous data, however you can pick out the transition states from 0 to 1 and back. By looking at the transition states, ask yourself these questions: For each dose group, at what time have most of the subjects "responded"? How wide is the spread of "response time"" across subjects (do all of them respond at the exact same time, or over a range of time?) Do you detect any dampening, or transitioning of response back to no response?
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
 gg <- ggplot(data = pd_data, 
-             aes(x=DAY_jitter,y=LIDV_jitter))
-gg <- gg + geom_point( size=2, alpha = 0.3)
+             aes(x = DAY_jitter, y = LIDV_jitter))
+gg <- gg + geom_point( size = 2, alpha = 0.3)
 gg <- gg + geom_line(aes(group = ID), alpha = 0.3) 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_plot, 
                                     units_plot    = time_units_plot)
@@ -180,12 +186,12 @@ Plot individual profiles in order to inspect them for any unusual profiles. Look
 
 ### Response over time, faceted by individual, individual line plots
 
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message= FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message = FALSE}
 
 gg <- ggplot(data = pd_data, 
-             aes(x=NOMTIME,y=LIDV))
-gg <- gg + geom_point( size=2) 
-gg <- gg + geom_line( aes(group = ID)) 
+             aes(x = NOMTIME, y = LIDV))
+gg <- gg + geom_point(size = 2) 
+gg <- gg + geom_line(aes(group = ID)) 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                     units_plot  = time_units_plot)
 gg <- gg + facet_wrap(~ID + TRTACT_low2high, 
@@ -211,7 +217,7 @@ One of the key questions when looking at PD markers is to determine if there is 
 
 ### Responder rate (95% CI) by dose, for endpoint of interest 
 
-Both linear scale and log scale may be used for dose.  Linear scale helps in seeing a plateau at large doses.  Log-scale often helps to see all dose groups.  If the plot on log-scale looks linear, a log-linear dose-response model could be fit, i.e. Response=Elog*log(1+C).
+Both linear scale and log scale may be used for dose.  Linear scale helps in seeing a plateau at large doses.  Log-scale often helps to see all dose groups.  If the plot on log-scale looks linear, a log-linear dose-response model could be fit, i.e. Response = Elog*log(1+C).
 
 Questions to consider 
 
@@ -221,24 +227,24 @@ Questions to consider
 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 
-```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
-pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Day 5"))
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
+pd_data_to_plot <- pd_data %>% subset(PROFDAY == SS_PROFDAY)
 
-gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE,y=LIDV))
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE,y = LIDV))
 gg <- gg + xgx_stat_ci(conf_level = .95,distribution = "binomial", geom = list("point","errorbar"))
-gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels=scales::percent)
+gg <- gg + geom_smooth(method = "glm", method.args = list(family = binomial(link = logit)), color = "black")
+gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels = scales::percent)
 gg <- gg + coord_cartesian(ylim = c(0, 1))
-gg <- gg + labs(x=dose_label, y=pd_label)
+gg <- gg + labs(x = dose_label, y = pd_label)
 gg <- gg + xgx_annotate_status(status)
 
 pp1 <- gg + ggtitle("Dose on Linear Scale")
 #print(pp1)
 
 ## Same plot but on a log scale
-pp2 <- gg + scale_x_log10(breaks=unique(pd_data_to_plot$DOSE))+ ggtitle("Dose on Log Scale")
+pp2 <- gg + scale_x_log10(breaks = unique(pd_data_to_plot$DOSE))+ ggtitle("Dose on Log Scale")
 #print(pp2)
-grid.arrange(pp1,pp2,nrow=1)
+grid.arrange(pp1,pp2,nrow = 1)
 
 ```
 
@@ -247,15 +253,15 @@ grid.arrange(pp1,pp2,nrow=1)
 
 The crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. In addtion to looking at longitudinal PD over time (as in previous sections above), plotting the cross-sectional Dose-Response curves for different time points throughout the study can also be helpful. In the figure below, we plot the exposure response relationship at a number of different visits to see how the relationsihp might change over time.
 
-```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message= FALSE} 
-pd_data_to_plot <- pd_data %>% subset(DAY_label %in% c("Day 1","Day 3","Day 5"))
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message = FALSE} 
+pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 
-gg <- ggplot(data = pd_data_to_plot, aes(x=DOSE,y=LIDV))
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE,y = LIDV))
 gg <- gg + xgx_stat_ci(conf_level = .95,distribution = "binomial", geom = list("point","errorbar"))
-gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels=scales::percent)
+gg <- gg + geom_smooth(method = "glm", method.args = list(family = binomial(link = logit)), color = "black")
+gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels = scales::percent)
 gg <- gg + coord_cartesian(ylim = c(0, 1))
-gg <- gg + labs(x=dose_label, y=pd_label)
+gg <- gg + labs(x = dose_label, y = pd_label)
 gg + facet_grid(~DAY_label)
 gg <- gg + xgx_annotate_status(status)
 
