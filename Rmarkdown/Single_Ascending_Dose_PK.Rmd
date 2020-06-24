@@ -9,9 +9,9 @@ output:
 ---
 
 ## Overview
-
+<!--START_EXPLANATION-->
 This document contains exploratory plots for single ascending dose PK data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Single Ascending Dose PK dataset for your reference ([download dataset](Data/Single_Ascending_Dose_Dataset2.csv)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Single_Ascending_Dose_PK.Rmd).
-
+<!--END_EXPLANATION-->
 ## Setup
 
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
@@ -94,11 +94,11 @@ NCA = pk_data %>%
 ```
 
 ## Provide an overview of the data
-
+<!--START_EXPLANATION-->
 Summarize the data in a way that is easy to visualize the general trend of PK over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
 
 When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?
-
+<!--END_EXPLANATION-->
 ### Concentration over time, colored by Dose, mean +/- 95% CI
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 4}
@@ -160,9 +160,9 @@ print(gg)
 ```
 
 ### NCA of dose normalized AUC and Cmax vs Dose
-
+<!--START_EXPLANATION-->
 Observe the dose normalized AUC and Cmax over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to BLQ observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 gg <- ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = DOSE)) 
@@ -178,9 +178,9 @@ print(gg)
 ```
 
 ## Explore variability
-
+<!--START_EXPLANATION-->
 Now that the overall trends in the mean data have been observed, look into the between subject variability by plotting spaghetti plots. Consider again whether to color by dose or facet by dose. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations?
-
+<!--END_EXPLANATION-->
 ### Concentration over time, colored by Dose, dots and lines grouped by individual
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
@@ -224,11 +224,11 @@ print(gg)
 ```
 
 ## Explore irregularities in profiles
-
+<!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)? 
 
 Plotting individual profiles on top of gray spaghetti plots puts individual profiles into context, and may help identify outlying individuals for further inspection. Are there any individuals that appear to have very high or low Cmax compared to others within the same dose group? What about the timing of Cmax? What about the slope of the elimination phase? Does it appear that any subjects could have received an incorrect dose?
-
+<!--END_EXPLANATION-->
 ### Concentration over time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 8}

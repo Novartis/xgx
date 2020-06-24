@@ -9,9 +9,9 @@ output:
 ---
 
 ## Overview
-
+<!--START_EXPLANATION-->
 This document contains exploratory plots for multiple ascending continuous PD data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_continuous.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
-
+<!--END_EXPLANATION-->
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -86,11 +86,11 @@ pd_data <- pkpd_data %>%
 ```
 
 ## Provide an overview of the data
-
+<!--START_EXPLANATION-->
 Summarize the data in a way that is easy to visualize the general trend of PD over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
 
 When looking at summaries of continuous PD over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. How does the profile change over time? Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect? 
-
+<!--END_EXPLANATION-->
 ### PD marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
@@ -134,9 +134,9 @@ print(gg)
 ```
 
 ## Explore variability
-
+<!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?
-
+<!--END_EXPLANATION-->
 
 ### PD marker over time, colored by Dose, dots & lines grouped by individuals
 
@@ -180,13 +180,13 @@ gg <- ggplot(data = pd_data,
 ```
 
 ## Explore Irregularities in Profiles
-
+<!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. 
-
+<!--END_EXPLANATION-->
 ### PD marker over time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group
-
+<!--START_EXPLANATION-->
 Plotting individual profiles on top of gray spaghetti plots puts individual profiles into context, and may help identify outlying individuals for further inspection.
-
+<!--END_EXPLANATION-->
 ```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 8}
 
 pd_data_rep_by_trt <- list()
@@ -221,7 +221,7 @@ print(gg)
 ```
 
 ## Explore covariate effects on PD
-
+<!--START_EXPLANATION-->
 Stratify by covariates of interest to explore whether any key covariates impact response. For examples of plots and code startifying by covariate, see [Single Ascending Dose Covariate Section](Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk)
 
 **Warning** Be careful of interpreting covariate effects on PD. Covariate effects on PD could be the result of covariate effects on PK transfering to PD through the PK/PD relationship.
@@ -238,7 +238,7 @@ Plot PD marker against dose. Using summary statistics can be helpful, e.g. Mean 
 Here are some questions to ask yourself when looking at Dose-Response plots: Do you see any relationship? Does response increase (decrease) with increasing dose? Are you able to detect a plateau or emax (emin) on the effect? If so, around what dose does this occur?
 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
-
+<!--END_EXPLANATION-->
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
 pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% c(0, SS_PROFDAY))
@@ -256,9 +256,9 @@ print(gg)
 ```
 
 ### PD marker by Dose, faceted by visit, mean (95% CI) by Dose
-
+<!--START_EXPLANATION-->
 Sometimes the crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. Looking at longitudinal PD over time (as in previous sections above) can help to uncover these trends. It may also be helpful to plot the cross-sectional Dose-Response curves for different time points throughout the study.
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE} 
 pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 
