@@ -63,13 +63,13 @@ We are losing programming resources
 
 ### Extended Team
 * Matt Fidler
-* Joseph Kahn
-* Xu (Sue) Zhu
 
 ### Contributors
 
 The following people contributed example graphs and code or provided useful feedback on the contents and development of this website.
 
+* Chase Brown
+* Konstantin Krismer
 * Anwesha Chaudhury
 * Xinrui Zhang
 * Siyan Xu
@@ -79,6 +79,8 @@ The following people contributed example graphs and code or provided useful feed
 * Francois Combes
 * Oliver Sander
 * Xinting Wang
+* Joseph Kahn
+* Xu (Sue) Zhu
 
 ### Leadership Sponsors
 
