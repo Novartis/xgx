@@ -1,0 +1,16 @@
+base
+shiny
+learnr
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+xgxr
+gridExtra
+DescTools
+minpack.lm

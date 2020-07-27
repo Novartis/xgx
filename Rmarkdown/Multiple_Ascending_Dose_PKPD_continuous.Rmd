@@ -236,10 +236,14 @@ Plot PD marker against concentration. Do you see any relationship? Does response
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response or Exposure-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 <!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
+
+library(xgxr)
+source("~/xgxr/R/xgx_stat_ci.R")
 gg <- ggplot(data = pkpd_data_wide %>% subset(PROFDAY == SS_PROFDAY,), aes(x = CONC,y = PD))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT_high2low))
 gg <- gg + geom_point(data = pkpd_data_wide %>% subset(CENS==1,), color="red", shape = 8)
+gg <- gg + xgx_stat_ci(geom = "errorbar")
 gg <- gg + labs(x = conc_label , y = pd_label)
 gg <- gg + xgx_scale_x_log10() 
 gg <- gg + guides(color = guide_legend(""))
@@ -264,6 +268,10 @@ gg + facet_grid(~DAY_label)
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 <!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
+source("~/xgxr/R/xgx_conf_int.R")
+source("~/xgxr/R/xgx_stat_ci.R")
+
+
 NCA_plot = NCA %>%
   group_by(PARAM) %>%
   mutate(VALUE_QUART = cut(VALUE, quantile(VALUE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
@@ -273,12 +281,13 @@ NCA_plot = NCA %>%
 gg <- ggplot(data = NCA_plot, aes(x = VALUE, y = PD))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT_high2low)) + geom_smooth(color = "black")
-gg <- gg + xgx_stat_ci(aes(x = VALUE_MIDPOINT, y = PD), geom = "errorbar")
-gg <- gg + xgx_stat_ci(aes(x = VALUE_MIDPOINT, y = PD), geom = "point", shape = 0, size = 4)
+gg <- gg + xgx_stat_ci(geom = "errorbar", bins = 5)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + labs(color = trtact_label, x = "NCA parameter", y = pd_label)
 gg <- gg + facet_wrap(~DAY_label + PARAM, scales = "free_x")
 print(gg)
+
+
 ```
 
 ### Explore covariate effects on Exposure-Response Relationship

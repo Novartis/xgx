@@ -1,0 +1,720 @@
+---
+title: "QT Analysis"
+author: "Chase Brown, Alison Margolskee, Fariba Khanshan, Andy Stein"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+#### Environment Setup Code
+```{r setup-environment, message=FALSE, error=TRUE, warning=FALSE, warn.conflicts = FALSE}
+library(tidyverse)
+library(xgxr)
+library(minpack.lm)
+source("~/xgxr/R/xgx_stat_ci.R")
+source("~/xgxr/R/xgx_conf_int.R")
+source("~/xgxr/R/xgx_stat_smooth.R")
+
+
+#set seed for random number generator (for plots with jitter)
+set.seed(12345)
+
+#flag for labeling figures as draft
+status = "DRAFT"
+
+# ggplot settings
+xgx_theme_set()
+```
+
+#### Load Dataset
+
+```{r load-dataset, error=TRUE, warning=FALSE}
+#load dataset
+df <- read.csv("~/archive/QT_Prolongation_dataset.csv")
+
+# DOSE_CMT = 1
+# PK_CMT = 2
+# PD_CMT = 6
+SS_PROFDAY = 3 # steady state prof day
+PD_PROFDAYS <- c(1, 4, 7)
+TAU = 24 # time between doses, units should match units of TIME, e.g. 24 for QD, 12 for BID, 7*24 for Q1W (when units of TIME are h)
+
+#ensure dataset has all the necessary columns
+df <- df %>%
+  mutate(ID      = SUBJID, # ID column
+         TIME    = TIME,   # TIME column name 
+         LIDV    = calculated_CONC,
+         DOSE    = DOSE,   # DOSE column here (numeric value)
+         LIDV_NORM = LIDV/DOSE,
+         LIDV_UNIT    = "milliseconds",
+         WEIGHTB = WEIGHT
+  )
+
+df$ID <- as.factor(df$ID)
+df$SEX <- as.factor(plyr::mapvalues(df$SEX, from = c(1,2), to = c("M", "F")))
+df$DOSE_FACTOR <- as.factor(df$DOSE)
+df$weight_group <- as.numeric(cut_number(df$WEIGHT, 4))
+df$SC <- df$calculated_CONC / median(df$calculated_CONC)
+
+df <- drop_na(df)
+
+# Noncompartmental Analysis (NCA) for determining $C_max$ without modeling
+NCA = df %>%
+  group_by(ID, DOSE) %>%
+  filter(!is.na(LIDV)) %>%
+  summarize(AUC_last = caTools::trapz(TIME, LIDV),
+            Cmax     = max(LIDV),
+            delta_QTcF = max(Change_baseline_derived_QTcF), # [which.max(LIDV)],
+            # this part just keeps the SEX and WEIGHTB covariates
+            SEX      = SEX[1],
+            WEIGHTB  = WEIGHTB[1]) %>%
+  pivot_longer(names_to = "PARAM", values_to = "VALUE", cols = -c(ID, DOSE, SEX, WEIGHTB, delta_QTcF)) %>%
+  ungroup() %>%
+  mutate(VALUE_NORM = VALUE/DOSE)
+
+# Units and labels
+  time_units_dataset = "hours"
+  time_units_plot    = "days"
+  trtact_label       = "Dose"
+  dose_units         = "mg"
+  dose_label         = paste0("Dose (", dose_units, ")")
+  conc_units         = "ng/mL"
+  conc_label         = paste0("Concentration (", conc_units, ")")
+  AUC_units          = paste0("h.", conc_units)
+  concnorm_label     = paste0("Normalized Concentration (", conc_units, ")/", dose_units)
+```
+
+## Overview
+
+<!--START_EXPLANATION-->
+Assessing drug safety involves the analysis of several different biological modalities; however, as cardiovascular and hypertensive issues are the global number one cause of death, drug safety analyses focus upon cardiac and neurological (i.e. heart regulation) toxicity.
+
+Here we will be assessing the alterations and tachychardias in patient electrocardiograms (ECGs).  We will be specifically interested in the *QT prolongation*, which has a potential to induce a serious Torsades de Pointes (TdP) state.
+
+### Components of Electrocardiograms (ECGs)
+
+There are 3-4 primary components of the an ECG:
+
+  * P wave (atrial depolarization)
+  * QRS complex (ventricular depolarization)
+  * T wave (ventricular repolarization)
+  * U wave (papillary muscle repolarization - signal is not always clearly visible)
+
+These features of an ECG are associated with specific action potential components.  The phases of the action potential and their mapping
+with the components of the ECG are:
+
+  - Phase 0: Depolarization of the cell when $Na^+$ channels open, causing $Na^+$ to rush into the cell
+  - Phase 1: $Na^+$ close, $K^+$ channels open causing $K^+$ to flow out of the cell
+  - Phase 2: $Ca^{2+}$ inward current along with continuing $K^+$ outward current causes a plataeu in the voltage
+  - Phase 3: $Ca^{2+}$ channels close while $K^+$ are still open, causing a repolarization of the cells. $Na^+/K^+$ pumps work to restore the baseline concentrations of intracellular/extracellular $Na^+/K^+$.
+  - Phase 4: Sinus node causes trigger for $Na^+$ channels to open again
+
+  
+#### QT Interval
+
+#### Wigger's Diagram
+
+<img src=https://media.cheggcdn.com/study/e95/e95486d4-5c08-4d5c-80bb-1917ff92b867/11077-14-28ICC1.png>
+
+
+#### Quick Note on Nomenclature
+The nomenclature of the QRS complex was determined by Willem Einthoven while working with a capillary electrometer in the 1800s.
+He assigned the variables A, B, C, D, etc. to the features of the original signals from the Lippmann's capillary electrometer 
+readings, but when correcting the signal to be more consistent with the theoretical/precise readings, 
+he altered the nomenclature to begin at P (i.e. P, Q, R, S, etc.), in order to
+be consistent with the geometical work of Descartes.
+
+##### Einthoven's original capillary eletrometer plot
+Construction eines electrocardiograms nach den aus einer direct registrerten curve entnommenen Grössen - (Translation: "Construction of an electrocardiogram according to the sizes taken from a directly registered curve"
+
+<img src=https://imgur.com/i0iWKIs.png>
+
+
+## Drug-induced QT Prolongation
+
+## QTc: Correction of the QT interval
+
+### $QTc_B$: Bazzet's correction
+
+$QTc_B = \frac{QT}{\frac{\sqrt{RR}}{1s}}$
+
+Where $RR$ and $QT$ are given in units of seconds.
+
+### $QTc_F$: Fridericia's correction
+
+$QTc_F = \frac{QT}{(\frac{RR}{1s})^{\frac{3}{2}}}$
+
+Where $RR$ and $QT$ are given in units of seconds.
+
+### $QTc_V$: Van de Water’s correction
+
+$QTc_V = QT + 0.87 (RR - 1)$
+
+Where $RR$ and $QT$ are given in units of seconds.
+
+### $QT_{lc}$: Sagie's correction (Framingham study)
+
+A newer, and perhaps improved method for estimating the correction to the QT interval 
+has been derived from the Framingham study data.$^{(1)}$
+
+$QT_{lc} = QT + 0.154 ( 1 - RR)$
+
+Where $RR$ and $QT$ are given in units of seconds.
+
+### Quick comparison of QT interval correction methods
+
+```{r, error=TRUE, warning=FALSE}
+heart_rate = seq(40,180,1)
+qtcb <- function(QT, HR){
+  RR = 60/HR
+  return(QT / (sqrt(RR)))
+}
+qtcf <- function(QT, HR){
+  RR = 60/HR
+  return(QT / ((RR)^(1/3)))
+}
+qtcv <- function(QT, HR){
+  RR = 60/HR
+  return(QT - 0.087*(RR - 1))
+}
+qtlc <- function(QT, HR){
+  RR = 60/HR
+  return(QT + 0.154 * ( 1 - RR))
+}
+QT = 0.25 # seconds
+plot_data = data.frame("heart_rate" = heart_rate,
+                       "$QTc_B$" = 1/qtcb(QT, heart_rate),
+                       "$QTc_F$" = 1/qtcf(QT, heart_rate),
+                       "$QTc_V$" = 1/qtcv(QT, heart_rate),
+                       "$QTlc$" = 1/qtlc(QT, heart_rate))
+
+plot_data <- tidyr::pivot_longer(data = plot_data,
+                          cols = -heart_rate,
+                          names_to = "correction_type",
+                          values_to = "inverse_QTc")
+gg <- ggplot(data = plot_data, aes(x = heart_rate,
+                                   y = inverse_QTc,
+                                   color = correction_type)) + geom_point()
+gg
+```
+
+<!--END_EXPLANATION-->
+
+## Overview of our data
+
+```{r}
+summary(df)
+```
+
+### Concentration vs $QTc_F$
+
+First, we look at the change in the QT interval against the concentration to see if there is a relationship.
+An asymptotic relationship is observed with the use of `xgx_stat_ci()`; however,
+this relationship is not well captured by the `geom_smooth()` loess function.
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = calculated_CONC,
+                 y = Change_baseline_derived_QTcF))
+                 # color = SEX,
+                 # group = ID,
+                 # fill = SEX))
+
+gg <- gg + geom_point(alpha = 0.5, aes(shape = DOSE_FACTOR))
+gg <- gg + geom_smooth(method = "loess", formula = "y ~ x")
+gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+# gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+# gg <- gg + facet_wrap("DOSE")
+# gg <- gg + labs(title = "Sex in QTcF")#y = conc_label)
+print(gg)
+```
+
+## Modeling the $\Delta QTc_F$ relationship with concentration via $E_{max}$
+In order to better capture the asymptotic form of the data, we use a function 
+($y = E_0 + E_{max} \frac{x}{ED_{50} + x}$)
+well-suited for this task via `xgx_geom_smooth_emax()`.
+Note that the line adn confidence intervals now overlap with the `xgx_stat_ci()`
+means and error bars .
+
+```{r}
+require(dplyr)
+alpha <- 0.05
+
+data %>% 
+    group_by(Group, Time) %>% 
+    summarize(mean = mean(mean_PctPasses),
+              lower = mean(mean_PctPasses) - qt(1- alpha/2, (n() - 1))*sd(mean_PctPasses)/sqrt(n()),
+              upper = mean(mean_PctPasses) + qt(1- alpha/2, (n() - 1))*sd(mean_PctPasses)/sqrt(n()))
+
+```
+
+```{r, error=TRUE, warning=FALSE}
+xgx_geom_smooth_emax <- function(mapping = NULL, data = NULL, geom = "smooth",
+                                 position = "identity", ..., method = "nlsLM", formula, 
+                                 se = TRUE, n = 80, span = 0.75, fullrange = FALSE,
+                                 level = 0.95, method.args = list(), na.rm = FALSE,
+                                 show.legend = NA, inherit.aes = TRUE){
+  if(missing(formula)) {
+    warning("Formula not specified.\nUsing default formula y ~ E0 + Emax*x/(ED50 + x), 
+            initializing E0, Emax, and ED50 to 1, 
+            and setting lower bound on ED50 to 0")
+    formula = y ~ E0 + Emax*x/(ED50 + x)
+    method.args$start = list(E0 = 1, Emax = 1, ED50 = 1)
+    method.args$lower = c(-Inf, -Inf, 0)
+  }
+  
+  ggplot2::stat_smooth(mapping = mapping, data = data, geom = geom, 
+                       position = position, ..., method = method, formula = formula,
+                       se = se, n = n, span = span, fullrange = fullrange, 
+                       level = level, method.args = method.args, na.rm = na.rm,
+                       show.legend = show.legend, inherit.aes = inherit.aes)
+}
+
+gg <- ggplot(data = df, 
+             aes(x = calculated_CONC,
+                 y = Change_baseline_derived_QTcF))
+gg <- gg + xgx_geom_smooth_emax()
+gg <- gg + geom_point(alpha = 0.5, aes(shape = DOSE_FACTOR))
+gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+# gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+# gg <- gg + facet_wrap("DOSE")
+# gg <- gg + labs(title = "Sex in QTcF")#y = conc_label)
+print(gg)
+l <- gg$layers[[1]]
+
+```
+
+## Mixed Effects Models
+#### $\Delta QTc_{F_{ij}} = QTc_{F_{i}}^{Time j} - QTc_{F_i}^{BL}$
+##### Model 1: $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + \beta_1 * SC_{ij} + \epsilon_{ij}$
+
+Where $SC$ is the scaled concentration (scaled by the median concentration)
+
+```{r, error=TRUE, warning=FALSE}
+model <- lm(formula = Change_baseline_derived_QTcF ~ 1 + SC + ID,
+            data = df)
+
+gg <- ggplot(data = df, 
+             aes(x = SC,
+                 y = Change_baseline_derived_QTcF))
+
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_point()
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+
+gg <- gg + labs("")
+print(gg)
+```
+
+##### Model 2: $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + log(1 + \beta_1 * SC_{ij}) + \epsilon_{ij}$
+
+```{r, error=TRUE, warning=FALSE}
+model <- lm(formula = Change_baseline_derived_QTcF ~ 1 + log(1 + SC) + ID,
+            data = df)
+
+gg <- ggplot(data = df, 
+             aes(x = SC,
+                 y = Change_baseline_derived_QTcF))
+
+gg <- gg + geom_smooth(mapping = aes(y = predict(model)))
+gg <- gg + geom_point()
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+print(gg)
+```
+
+
+### Mixed Effects model using $C_{max}$
+#### $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + log(1 + \beta_1 * C_{max,ij}) + \epsilon_{ij}$
+```{r, error=TRUE, warning=FALSE}
+plot_df <- NCA %>% subset(PARAM == "Cmax")
+
+model <- lm(formula = delta_QTcF ~ 1 + log(1 + VALUE) + ID,
+            data = plot_df)
+
+gg <- ggplot(data = plot_df, 
+             aes(x = VALUE,
+                 y = delta_QTcF))
+
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_point()
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(title = latex2exp::TeX("$QTc_F$ vs. $C_{max}$"),
+                y = latex2exp::TeX("$\\Delta QTc_F$"),
+                x = latex2exp::TeX("C_{max}"))
+# gg <- gg + facet_wrap("SEX")
+print(gg)
+```
+
+
+## AUC
+
+### Mixed Effects model with AUC
+
+#### $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + 1 + \beta_1 * AUC_{ij} + \epsilon_{ij}$
+
+```{r, error=TRUE, warning=FALSE}
+plot_df <- drop_na(NCA %>% subset(PARAM == "AUC_last"))
+
+model <- lm(formula = delta_QTcF ~ 1 + VALUE + ID,
+            data = plot_df)
+
+gg <- ggplot(data = plot_df,
+             aes(x = VALUE,
+                 y = delta_QTcF))
+
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_point()
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(title = latex2exp::TeX("$QTc_F$ vs. AUC"),
+                y = latex2exp::TeX("$\\Delta QTc_F$"),
+                x = latex2exp::TeX("AUC"))
+print(gg)
+```
+
+
+
+
+### Which covariates are related to the $\Delta QTcF$?
+#### Sex
+
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = calculated_CONC,
+                 y = Change_baseline_derived_QTcF,
+                 color = SEX,
+                 fill = SEX))
+gg <- gg + xgx_geom_smooth_emax()
+gg <- gg + geom_point(alpha = 0.5) 
+gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(title = "Sex in QTcF")
+print(gg)
+```
+##### Sex in $QTc_F$
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Derived_Baseline_QTcF,
+                 color = SEX,
+                 # group = ID,
+                 fill = SEX))
+# gg <- gg + geom_line(alpha = 0.5)
+# gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Sex in QTcF")#y = conc_label)
+print(gg)
+```
+
+##### Sex in $\Delta QTc_F$
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = log_CONC,
+                 color = DOSE_FACTOR,
+                 # group = ID,
+                 fill = DOSE_FACTOR))
+# gg <- gg + geom_line(alpha = 0.5)
+# gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+# gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+# gg <- gg + facet_wrap("DOSE")
+# gg <- gg + labs(title = "Sex in QTc_F change")#y = conc_label)
+print(gg)
+```
+
+
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Change_baseline_derived_QTcF,
+                 color = DOSE_FACTOR,
+                 # group = ID,
+                 fill = DOSE_FACTOR))
+# gg <- gg + geom_line(alpha = 0.5)
+# gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+# gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+# gg <- gg + facet_wrap("DOSE")
+# gg <- gg + labs(title = "Sex in QTc_F change")#y = conc_label)
+print(gg)
+```
+```{r, error=TRUE, warning=FALSE}
+plot_df <- drop_na(NCA %>% subset(PARAM == "AUC_last"))
+
+model <- lm(formula = delta_QTcF ~ 1 + VALUE + ID,
+            data = plot_df)
+
+gg <- ggplot(data = plot_df,
+             aes(x = VALUE,
+                 y = delta_QTcF,
+                 color = SEX))
+
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_point()
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(title = latex2exp::TeX("$QTc_F$ vs. AUC"),
+                y = latex2exp::TeX("$\\Delta QTc_F$"),
+                x = latex2exp::TeX("AUC"))
+print(gg)
+```
+
+```{r, error=TRUE, warning=FALSE}
+plot_df <- drop_na(NCA %>% subset(PARAM == "Cmax"))
+
+model <- lm(formula = delta_QTcF ~ 1 + VALUE + ID,
+            data = plot_df)
+
+gg <- ggplot(data = plot_df,
+             aes(x = VALUE,
+                 y = delta_QTcF,
+                 color = SEX))
+
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_point()
+
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(title = latex2exp::TeX("$QTc_F$ vs. $C_{max}$"),
+                y = latex2exp::TeX("$\\Delta QTc_F$"),
+                x = latex2exp::TeX("$C_{max}$"))
+print(gg)
+```
+
+#### Sex for each subject
+##### Sex vs $QTc_F$ for each subject
+
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Change_baseline_derived_QTcF,
+                 color = SEX,
+                 group = ID,
+                 fill = SEX))
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+# gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Sex in QTcF")#y = conc_label)
+print(gg)
+```
+
+##### Sex vs $\Delta QTc_F$ for each subject
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Change_baseline_derived_QTcF,
+                 color = SEX,
+                 group = ID,
+                 fill = SEX))
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+# gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Sex in QTcF")#y = conc_label)
+print(gg)
+```
+
+#### Weight
+##### Weight vs $QTc_F$
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Derived_Baseline_QTcF,
+                 color = weight_group,
+                 group = weight_group,
+                 fill = weight_group))
+# gg <- gg + geom_line(alpha = 0.5)
+# gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Weight in QTcF")#y = conc_label)
+print(gg)
+```
+
+#### Weight for each individual
+
+```{r, error=TRUE, warning=FALSE}
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Derived_Baseline_QTcF,
+                 color = weight_group,
+                 group = weight_group,
+                 fill = weight_group))
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+# gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Weight in QTcF")#y = conc_label)
+print(gg)
+```
+##### Weight vs $\Delta QTc_F$
+```{r, error=TRUE, warning=FALSE}
+
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Change_baseline_derived_QTcF,
+                 color = weight_group,
+                 group = weight_group,
+                 fill = weight_group))
+# gg <- gg + geom_line(alpha = 0.5)
+# gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Weight in QTcF")#y = conc_label)
+print(gg)
+```
+##### Weight vs $\Delta QTc_F$ within each patient
+```{r, error=TRUE, warning=FALSE}
+
+gg <- ggplot(data = df, 
+             aes(x = TIME,
+                 y = Change_baseline_derived_QTcF,
+                 color = weight_group,
+                 group = weight_group,
+                 fill = weight_group))
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+# gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_y_log10()
+# gg <- gg + xgx_scale_x_log10()
+gg <- gg + facet_wrap("DOSE")
+gg <- gg + labs(title = "Weight in QTcF")#y = conc_label)
+print(gg)
+```
+
+### Hysteresis Plots
+
+The hysteresis plots can indicate the delayed repsonse to exposure.  In this case,
+it appears that the paths are counter-clockwise (individual 28 shows this more clearly), 
+which indicates that there is a delay between an increasing concentration and a decreasing response.
+
+A clockwise path would indicate a delay in an increasing concentration causing an increasing response.
+
+```{r fig.height=20, fig.width=10}
+df_wide <- df %>% arrange(ID, TIME)
+
+gg <- ggplot(data = df, aes(x = log_CONC, y = Change_baseline_derived_QTcF, color = TIME))
+# gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_path(arrow = arrow(length = unit(0.15,"cm")))
+# 
+# gg <- gg + xgx_scale_x_log10()
+# gg <- gg + xgx_scale_y_log10()
+# gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
+#                  panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
+
+gg + facet_wrap(~ID, ncol = 5)
+```
+
+<!-- ```{r, error=TRUE, warning=FALSE} -->
+<!-- gg <- ggplot(data = df, aes(x = TIME, -->
+<!--                             y = Change_baseline_derived_QTcF, -->
+<!--                             color = log_CONC)) -->
+<!-- gg <- gg + xgx_stat_ci() -->
+<!-- # gg <- gg + xgx_scale_y_log10() -->
+<!-- gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, -->
+<!--                                   units_plot    = time_units_plot) -->
+
+<!-- gg <- gg + xgx_annotate_status(status) -->
+<!-- gg <- gg + geom_point() -->
+<!-- gg <- gg + facet_wrap("DOSE") -->
+<!-- gg -->
+<!-- ``` -->
+
+<!-- ```{r, error=TRUE, warning=FALSE} -->
+
+<!-- gg <- ggplot(data = df, aes(x = TIME, -->
+<!--                             y = Change_baseline_derived_QTcF, -->
+<!--                             color = DOSE)) -->
+<!-- gg <- gg + xgx_stat_ci() -->
+<!-- gg <- gg + xgx_scale_y_log10() -->
+<!-- gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, -->
+<!--                                   units_plot    = time_units_plot) -->
+<!-- gg <- gg + labs(y=conc_label,color = trtact_label) -->
+<!-- gg <- gg + xgx_annotate_status(status) -->
+<!-- gg <- gg + geom_point() -->
+<!-- gg <- gg + facet_wrap("TIME") -->
+<!-- gg -->
+<!-- ``` -->
+
+
+<!-- <img src=https://www.google.com/url?sa=i&url=https%3A%2F%2Fjournals.plos.org%2Fplosone%2Farticle%2Ffigure%3Fid%3D10.1371%2Fjournal.pone.0139873.g005&psig=AOvVaw13z514Blqgsfwf796b0lsp&ust=1593192390767000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCLihrKm-neoCFQAAAAAdAAAAABAD> -->
+
+<!-- ### References: -->
+<!--   - [Sagie, Alex, Martin G. Larson, Robert J. Goldberg, James R. Bengtson, and Daniel Levy. "An improved method for adjusting the QT interval for heart rate (the Framingham Heart Study)." The American journal of cardiology 70, no. 7 (1992): 797-801.](https://www.sciencedirect.com/science/article/abs/pii/000291499290562D) -->
+
+<!--   - Einthoven, W. Ueber die Form des menschlichen Electrocardiogramms. Pflüger, Arch. 60, 101–123 (1895).  https://link.springer.com/article/10.1007%2FBF01662582 -->
+
+<!--   - https://watermark.silverchair.com/181.pdf?token=AQECAHi208BE49Ooan9kkhW_Ercy7Dm3ZL_9Cf3qfKAc485ysgAAAqkwggKlBgkqhkiG9w0BBwagggKWMIICkgIBADCCAosGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMS0SvvERW8lnkB0TtAgEQgIICXPJbpHg-0Wq_AaeCxrhDkZp7_LiRQl9a2Iqo_2pPgvZJ6UVSdGTDhtVv5CabtJsdLBK29uWi_X2wcnAukvQ1lhqPKM0S-vR-Pt5BVLlbZiFlPAgm_iyRYj-kC3oKeqPuueYjapMOzyxMry5dJDeB_l9WU-fANFsGWhVEU1TlVogq6UPY8urQ2k4wyFnk1QgcJEiSoh01ACICOkQzdm-dedP24Lg1yka91VHqa-Fc4JQx5dvaNxMLzfzc6Jny58Yljopc2SygoEBTPMg5hboSTlJKZ8BkbALEBIFiOJJyejDqz4q0AQDULiXseRLq2nr00RHVttM9jdlWnA3VmL6kRQvZr7SAv1AUlAZRnm-DsTbFTXFEKG7UJxnyISuQZKtGocK4WVfdeoR50yhrmRzxjHQOrTgZSCS80Kr-pWUQFE2W2C0AtcDJlx0MV78Ol4EhF06ZQEEVQmSGljqumupVBfCMBXQeDyAuFmkoabEen35EQ6-l_HMDDmMfpVtn-wJX0uKd-Uk0a07uATYH50crHD41Tzr2-_TkCxkKfC6FDqBszPnMXFaNqqmfm73J5vulhv-y63Rh26uYgGcaGvll84v4Qdf9K29utVqk3P9LPcqjofwmo2K0uj5otiDIlwHJepZPQ7bJln5-5veFxVscDUJdl7pE8muXLA0BEp0XDDPDcn7njGBWdSHNUWbjfzxmcxEzT5swv31Li81bqw1XMb6GLcz2ifrgoCuQufw8-ICRdKXSVGx6BPOcuXc0TJ_EW9S8kPfsKC6UhrXuDPrZYZn3si1EYkAAFoCITFY -->
+
+<!--   - https://www.ahajournals.org/doi/10.1161/01.CIR.98.18.1937 -->
+

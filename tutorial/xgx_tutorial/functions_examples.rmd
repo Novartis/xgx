@@ -1,0 +1,282 @@
+## Functions - Examples
+
+In this first example, we will walk you through a few code snippets displaying the use of xGx functions.
+
+### Confidence intervals
+
+The code for confidence intervals is a bit complex and hard to remember.
+
+Rather than copy-pasting this code we provide the function `xgx_stat_ci` 
+for calculating and plotting default confidence intervals and 
+also `xgx_geom_pi` for percentile intervals.
+
+`xgx_stat_ci` allows the definition of multiple `geom` options in
+one function call, defined through a list.
+The default is `geom = list("point","line","errorbar")`.
+
+
+#### Binning non-discretized x axis with `xgx_stat_ci()`
+```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
+# Example of binned x values by quantile
+gg <- xgx_plot(pkpd_data_wide,
+         aes(x = CONC, response = ORDINAL_LEVELS, color = ORDINAL_LEVELS))
+gg <- gg + xgx_stat_ci(bins = 6, distribution = "ordinal")
+print(gg)
+```
+
+#### Binning with custom (non-quantile) *breaks* parameter
+```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
+# Example of binned x values by quantile
+gg <- xgx_plot(pkpd_data_wide,
+         aes(x = CONC, response = ORDINAL_LEVELS))
+gg <- gg + xgx_stat_ci(breaks = c(0.1, 0.2, 0.5, 1, 3), distribution = "ordinal")
+print(gg)
+```
+
+
+The default settings calculate the confidence interval based on the 
+Student t Distribution (assuming normally distributed data). You can also 
+specify "lognormal"", "binomial"" or "multinomial"" for the `distribution`. The first will 
+perform the confidence interval operation on the log-scaled data, the second 
+uses the binomial exact confidence interval calculation from the `binom` package, and the 
+third uses `MultinomCI` from the `DescTools` package. 
+
+Note: you DO NOT need to use both `distribution = "lognormal"` 
+and `scale_y_log10()`, choose only one of these.
+
+```{r, fig.width=4, fig.height=2, warning=FALSE, error=FALSE, message=FALSE}
+# plotting lognormally distributed data
+data <- data.frame(x = rep(c(1, 2, 3), each = 20),
+                   y = 10^(rep(c(1, 2, 3), each = 20) + stats::rnorm(60)),
+                   group = rep(1:3, 20))
+xgx_plot(data, aes(x = x, y = y)) + 
+ xgx_stat_ci(conf_level = 0.95, distribution = "lognormal")
+ 
+# note: you DO NOT need to use both distribution = "lognormal" and scale_y_log10()
+xgx_plot(data,aes(x = x, y = y)) + 
+ xgx_stat_ci(conf_level = 0.95) + xgx_scale_y_log10()
+# plotting binomial data
+data <- data.frame(x = rep(c(1, 2, 3), each = 20),
+                  y = rbinom(60, 1, rep(c(0.2, 0.6, 0.8), each = 20)),
+                  group = rep(1:3, 20))
+xgx_plot(data, aes(x = x, y = y)) + 
+ xgx_stat_ci(conf_level = 0.95, distribution = "binomial")
+# Example plotting the percent of subjects in a categorical covariate group by treatment.
+set.seed(12345)
+data = data.frame(x = 120*exp(rnorm(100,0,1)),
+                 response = sample(c("Trt1", "Trt2", "Trt3"), 100, replace = TRUE),
+                 covariate = factor(sample(c("White","Black","Asian","Other"), 100, replace = TRUE), 
+                                    levels = c("White", "Black", "Asian", "Other")))
+xgx_plot(data = data) +
+ xgx_stat_ci(mapping = aes(x = response, response = covariate),
+             distribution = "ordinal") +
+ xgx_stat_ci(mapping = aes(x = 1, response = covariate), geom = "hline",
+             distribution = "ordinal") +
+ scale_y_continuous(labels = scales::percent_format()) + 
+ facet_wrap(~covariate) + 
+ xlab("Treatment group") + ylab("Percent of subjects by category")
+```
+
+`xgx_stat_ci` can now also cut data by quantiles of `x` using the `bins` option, e.g. `bins = 4` will cut the data by quartiles of `x`. You can also supply your own breaks to cut the data. 
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+# plotting 
+set.seed(12345)
+data = data.frame(x = 120*exp(rnorm(100,0,1)),
+              response = sample(c("Mild","Moderate","Severe"), 100, replace = TRUE),
+              covariate = sample(c("Male","Female"), 100, replace = TRUE)) %>%
+  mutate(y = (50 + 20*x/(200 + x))*exp(rnorm(100, 0, 0.3)))
+# plotting a lognormally distributed variable by quartiles of x
+xgx_plot(data = data) +
+  xgx_stat_ci(mapping = aes(x = x, y = y, colour = covariate),
+              distribution = "lognormal", bins = 4)
+# plotting ordinal or multinomial data, by quartiles of x
+xgx_plot(data = data) +
+  xgx_stat_ci(mapping = aes(x = x, response = response, colour = covariate),
+              distribution = "ordinal", bins = 4) +
+  scale_y_continuous(labels = scales::percent_format()) + facet_wrap(~response)
+xgx_plot(data = data) +
+  xgx_stat_ci(mapping = aes(x = x, response = response, colour = response),
+              distribution = "ordinal", bins = 4) +
+  scale_y_continuous(labels = scales::percent_format()) + facet_wrap(~covariate)
+```
+
+#### Nonlinear smoothing (e.g. Emax)
+
+The current ggplot2::geom_smooth does not allow for plotting confidence bands for method = "nls", as ggplot2 does not supply a `predictdf` for an object of class `nls`, which geom_smooth silently calls to calculate the ymin and ymax for the confidence bands. The xgxr package includes a definition of `predictdf.nls`, allowing for confidence bands for method = "nls". xgxr also includes an Emax smooth function called `xgx_geom_smooth_emax` which utilizes the "nlsLM" method, and silently calls the `predictdf.nls` defined by xgxr.
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(123456)
+Nsubj <- 10
+Doses <- c(0, 25, 50, 100, 200)
+Ntot <- Nsubj*length(Doses)
+times <- c(0,14,30,60,90)
+dat1 <- data.frame(ID = 1:(Ntot),
+                   DOSE = rep(Doses, Nsubj),
+                   E0 = 50*rlnorm(Ntot, 0, 0.3),
+                   Emax = 100*rlnorm(Ntot, 0, 0.3),
+                   ED50 = 50*rlnorm(Ntot, 0, 0.3)) %>%
+  dplyr::mutate(Response = (E0 + Emax*DOSE/(DOSE + ED50))*rlnorm(Ntot, 0, 0.3)  ) %>%
+  merge(data.frame(ID = rep(1:(Ntot), each = length(times)), Time = times), by = "ID") 
+gg <- ggplot(data = dat1, aes(x = DOSE, y = Response))
+gg <- gg + geom_point()
+gg
+gg + geom_smooth(method = "nlsLM", 
+                 formula = y ~ E0 + Emax*x/(ED50 + x),
+                 method.args = list(start = list(E0 = 1, ED50 = 1, Emax = 1),
+                                    lower = c(-Inf, 0, -Inf)))
+gg + xgx_geom_smooth_emax()
+gg + 
+  xgx_geom_smooth_emax(geom = "ribbon", color = "black", fill = NA, linetype = "dashed") + 
+  xgx_geom_smooth_emax(geom = "line", color = "red")
+```
+
+#### Nice log scale
+
+This version of the log scale function shows the tick marks between the 
+major breaks (i.e. at 1, 2, 3, ... 10, instead of just 1 and 10).  It also 
+uses $$10^x$$ notation when the labels are base 10 and are very small or 
+very large (<.001 or >9999)
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+df <- data.frame(x = c(0, stats::rlnorm(1000, 0, 1)),
+                 y = c(0, stats::rlnorm(1000, 0, 3)))
+xgx_plot(data = df, aes(x = x, y = y)) + 
+  geom_point() + 
+  xgx_scale_x_log10() + 
+  xgx_scale_y_log10()
+```
+
+#### Reverse log transform
+
+This transform is useful for plotting data on a percentage scale that can 
+approach 100% (such as receptor occupancy data).
+
+```{r, fig.height=3.5, warning=FALSE, error=FALSE, message=FALSE}
+conc <- 10^(seq(-3, 3, by = 0.1))
+ec50 <- 1
+data <- data.frame(concentration = conc, 
+                  bound_receptor = 1 * conc / (conc + ec50))
+gy <- xgx_plot(data, aes(x = concentration, y = bound_receptor)) + 
+  geom_point() + 
+  geom_line() + 
+  xgx_scale_x_log10() +
+  xgx_scale_y_reverselog10()
+gx <- xgx_plot(data, aes(x = bound_receptor, y = concentration)) + 
+  geom_point() + 
+  geom_line() + 
+  xgx_scale_y_log10() +
+  xgx_scale_x_reverselog10()
+gridExtra::grid.arrange(gy, gx, nrow = 1)
+```
+
+#### Nice scale for percent change data
+
+This transform is useful for plotting percent change from baseline data. 
+Percent change data can range from -100% to +Inf%, and depending on the range
+of the data, a linear scale can lose the desired resolution. This transform
+plots percent change data on a scale of log10(PCHG + 100%), similar to a 
+log scale of ratio to baseline.
+
+```{r, fig.height=3.5, warning=FALSE, error=FALSE, message=FALSE}
+Nsubj <- 10
+Doses <- c(0, 25, 50, 100, 200)
+Ntot <- Nsubj*length(Doses)
+times <- c(0,14,30,60,90)
+dat1 <- data.frame(ID = 1:(Ntot),
+                   DOSE = rep(Doses, Nsubj),
+                   PD0 = rlnorm(Ntot, log(100), 1),
+                   Kout = exp(rnorm(Ntot,-2, 0.3)),
+                   Imax = 1,
+                   ED50 = 25) %>%
+  dplyr::mutate(PDSS = PD0*(1 - Imax*DOSE/(DOSE + ED50))*exp(rnorm(Ntot, 0.05, 0.3))  ) %>%
+  merge(data.frame(ID = rep(1:(Ntot), each = length(times)), Time = times), by = "ID") %>%
+  dplyr::mutate(PD = ((PD0 - PDSS)*(exp(-Kout*Time)) + PDSS), 
+                PCHG = (PD - PD0)/PD0)
+ggplot2::ggplot(dat1 %>% subset(Time == 90), 
+                ggplot2::aes(x = DOSE, y = PCHG, group = DOSE)) +
+  ggplot2::geom_boxplot() +
+  xgx_theme() +
+  xgx_scale_y_percentchangelog10() +
+  ylab("Percent Change from Baseline") +
+  xlab("Dose (mg)")
+ggplot2::ggplot(dat1, 
+                ggplot2::aes(x = Time, y = PCHG, group = ID, color = factor(DOSE))) +
+  ggplot2::geom_line() +
+  xgx_theme() +
+  xgx_scale_y_percentchangelog10() +
+  guides(color = guide_legend(title = "Dose (mg)")) +
+  ylab("Percent Change from Baseline")
+dat2 <- data.frame(ID = 1:(Ntot),
+                  DOSE = rep(Doses, Nsubj),
+                  PD0 = rlnorm(Ntot, log(100), 1),
+                  Kout = exp(rnorm(Ntot,-2, 0.3)),
+                  Emax = 50*rlnorm(Ntot, 0, 0.3),
+                  ED50 = 300) %>%
+ dplyr::mutate(PDSS = PD0*(1 + Emax*DOSE/(DOSE + ED50))*exp(rnorm(Ntot, -1, 0.3))  ) %>%
+  merge(data.frame(ID = rep(1:(Ntot), each = length(times)), Time = times), by = "ID") %>%
+  dplyr::mutate(PD = ((PD0 - PDSS)*(exp(-Kout*Time)) + PDSS), 
+                PCHG = (PD - PD0)/PD0)
+ggplot2::ggplot(dat2, ggplot2::aes(x = DOSE, y = PCHG, group = DOSE)) +
+  ggplot2::geom_boxplot() +
+  xgx_theme() +
+  xgx_scale_y_percentchangelog10() +
+  ylab("Percent Change from Baseline") +
+  xlab("Dose (mg)")
+ggplot2::ggplot(dat2, 
+                ggplot2::aes(x = Time, y = PCHG, group = ID, color = factor(DOSE))) +
+  ggplot2::geom_line() +
+  xgx_theme() +
+  xgx_scale_y_percentchangelog10() +
+  guides(color = guide_legend(title = "Dose (mg)")) +
+  ylab("Percent Change from Baseline")
+```
+
+#### Scaling x-axis as a time scale
+
+For time, it's often good for the x ticks to be spaced in a particular way. 
+For instance, for hours, subdividing in increments by 24, 12, 6, and 3 hours 
+can make more sense than by 10 or 100.  Similarly for days, increments of 7 
+or 28 days are preferred over 5 or 10 days.  `xgx_scale_x_time_units` allows 
+for this, where it is the input and output units.
+
+```{r, fig.height=7, warning=FALSE, error=FALSE, message=FALSE}
+data <- data.frame(x = 1:1000, y = stats::rnorm(1000))
+g <- xgx_plot(data = data, aes(x = x, y = y)) + 
+  geom_point()
+g1 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "hours")
+g2 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "days")
+g3 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "weeks")
+g4 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "months")
+gridExtra::grid.arrange(g1, g2, g3, g4, nrow = 2)
+```
+
+### Data checking
+
+#### Numerical check
+
+We've found that during exploration, it can be extremely important to 
+check the dataset for issues.  This can be done using the `xgx_check_data` 
+or `xgx_summarize_data` function (the two functions are identical).
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+data <- mad_missing_duplicates %>%
+  filter(CMT %in% c(1, 2, 3)) %>%
+  rename(DV      = LIDV,
+         YTYPE   = CMT,
+         USUBJID = ID)
+covariates <- c("WEIGHTB", "SEX")
+check <- xgx_check_data(data, covariates)
+knitr::kable(check$summary)
+knitr::kable(head(check$data_subset))
+```
+
+You can also get an overview of the covariates in the dataset 
+with `xgx_summarize_covariates`.  The covariate summaries are also provided 
+in the `xgx_check_data` and `xgx_summarize_data` functions.
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+covar <- xgx_summarize_covariates(data,covariates)
+knitr::kable(covar$cts_covariates)
+knitr::kable(covar$cat_covariates)
+```

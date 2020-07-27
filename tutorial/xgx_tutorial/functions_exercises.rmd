@@ -1,0 +1,108 @@
+## Functions - Exercises
+
+
+Now that we have seen several examples of the xGx functions and how to use them,
+let's test our abilities and understanding of these functions.
+
+In these exercises, we will walk you through a few 
+[minimal, reproducible example (reprex)-like code snippets](https://stackoverflow.com/help/minimal-reproducible-example)
+displaying the use of xGx functions.
+
+### Summary Statistic Plot Functions
+
+Given the code snippet below, answer the following questions:
+
+```{r, eval=FALSE}
+# Setup 
+gg <- ggplot(data = pk_data, aes(x = NOMTIME,
+                                 y = LIDV,
+                                 group = DOSE,
+                                 color = TRTACT_high2low)) + theme_bw()
+
+
+# Relevant to Question
+####
+####
+
+gg <- gg + stat_summary(geom = "errorbar",
+                        width = 0.5,
+                        size = 1,
+                        fun.data = function(y){y <- stats::na.omit(y)
+                        data.frame(y = mean(y),
+                                   ymin = mean(y) - qt(0.975, length(y)) * sqrt(stats::var(y)/length(y)),
+                                   ymax = mean(y) + qt(0.975, length(y)) * sqrt(stats::var(y)/length(y)))})
+gg <- gg + stat_summary(geom = "point", size = 2, fun.y = mean)
+gg <- gg + stat_summary(geom = "line", size = 1, fun.y = mean)
+
+####
+####
+```
+```{r xgxr_question1, check=TRUE, echo=FALSE}
+question("What xGx function will perform all of the `ggplot2` code steps above?",
+answer("xgx_geom_ci(conf_level = 0.95)", correct = TRUE),
+answer("xgx_set_theme()"),
+answer("xgx_scale_x_time_units()"),
+answer("xgx_xgx_plot()"),
+allow_retry = TRUE)
+```
+
+Similarly, what xGx function can replace the following `ggplot2` code?
+
+```{r, eval=FALSE}
+gg <- gg + scale_y_log10(minor_breaks = (rep(seq(1,9), 21)) * 10^(rep(seq(-10,10),each=9)))
+```
+```{r xgxr_question2, check=TRUE, echo=FALSE}
+question("What xGx function will perform all of the `ggplot2` code steps above?",
+answer("xgx_xgx_plot()"),
+answer("xgx_scale_x_time_units()"),
+answer("xgx_scale_y_log10()", correct = TRUE),
+allow_retry = TRUE)
+```
+
+Finally, can this code be replaced with an xGx function as well? - Which one?
+
+```{r, eval=FALSE}
+gg <- gg + scale_x_continuous(breaks = seq(0,max(my.data$TIME/24)+1, 1))
+```
+```{r xgxr_question3, check=TRUE, echo=FALSE}
+question("What xGx function will perform all of the `ggplot2` code steps above?",
+answer("xgx_scale_x_time_units()", correct = TRUE),
+answer("xgx_scale_y_log10()"),
+answer("xgx_xgx_plot()"),
+answer("xgx_summarize_covariates()"),
+allow_retry = TRUE)
+```
+
+
+Now let's try to produce a plot using these functions we just discussed.
+
+```{r plotting_question1, check=TRUE}
+
+# Setup 
+gg <- ggplot(data = pk_data, aes(x = NOMTIME,
+                                 y = LIDV,
+                                 group = DOSE,
+                                 color = TRTACT_high2low)) + theme_bw()
+
+# What goes here?
+```
+```{r plotting_question1-hint, check=TRUE}
+# Use the plotting functions from the previous questions
+```
+```{r plotting_question1-solution, check=TRUE}
+
+# Setup 
+gg <- xgx_plot(data = pk_data, aes(x = NOMTIME,
+                                 y = LIDV,
+                                 group = DOSE,
+                                 color = TRTACT_high2low))
+gg <- gg + xgx_geom_ci(conf_level = 0.95)
+gg <- gg + xgx_scale_x_time_units()
+gg <- gg + xgx_scale_y_log10()
+print(gg)
+```
+
+### Annotations
+```{r annotation_question, check=TRUE}
+
+```

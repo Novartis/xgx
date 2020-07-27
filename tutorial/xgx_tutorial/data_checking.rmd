@@ -1,0 +1,100 @@
+## Data Checking
+
+
+<!-- START COPY/PASTE
+
+-->
+
+### Dataset
+The plots presented here are based on the "Multiple_Ascending_Dose_Dataset2" simulated data within our github repository.
+It has been pre-processed with the steps provided in the Orindal PKPD template 'Load Dataset' section.
+
+### Overview of number of patients
+Overview of number of patients at each dose
+```{r, error = TRUE}
+patient.summary = pkpd_data_wide %>%
+  distinct(ID, .keep_all=TRUE) %>%
+  group_by(DOSE) %>%
+  count() %>%
+  arrange(-DOSE)
+DT::datatable(patient.summary)
+```
+Overview of number of PK datapoints at each dose
+```{r, error = TRUE}
+pk.summary = pkpd_data_wide %>%
+  filter(CMT==2) %>%
+  group_by(DOSE) %>%
+  count() %>%
+  arrange(-DOSE)
+DT::datatable(pk.summary)
+```
+
+### Checking the data consistency of observations
+Plotting observations against ID can give a quick overview of the range of values that the observations take on. You can use this plot to check that observed values are consistent with what you expect. You can also check for any outliers or trends.
+For the example multiple ascending dose PKPD dataset, there are several different datatypes defined by different compartments. Let's plot LIDV vs ID for CMT 2 through 6 to see what range of values LIDV takes on for these different CMT.
+```{r, error = TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3, fig.width=8}
+## For this example we will subset to ID and LIDV, exploring different values for CMT
+for(icmt in seq(2,6)){
+  
+data_to_plot <-  pkpd_data_wide %>% dplyr::filter(CMT==icmt) %>% dplyr::select(ID, LIDV) ;
+gg <- ggplot(data_to_plot, aes(y=ID, x = LIDV)) 
+gg <- gg + geom_point(alpha=0.5)
+gg <- gg + xlab(paste0("LIDV[CMT==",icmt,"]"))
+gg1 <- gg
+gg2 <- gg + xgx_scale_x_log10()
+grid.arrange(gg1,gg2,ncol=2)
+}
+```
+By doing a simple ID checkout you can see that CMT = 2 and 3 represent continuous variables, while CMT = 4, 5 and 6 take on more restricted values. You can tell that CMT 4, 5 and 6 are not concentration but represent some other type of variable. 
+Let's checkout the descriptions for each compartment, and see if our conclusions about the observation values make sense.
+```{r, error = TRUE}
+DT::datatable(unique(pkpd_data_wide[order(my.data$CMT),c("CMT","NAME")]), rownames=FALSE)
+```
+### Checking timing of doses and observations
+#### Swimmer plot with ID vs Time of Event (e.g. Observation, Dose, Inferred Dose)
+The following plot displays observation and dosing events for each individual. This can be helpful in determining the ordering of events. For example, ensuring that trough concentrations occur prior to dosing. This plot also gives a nice overview of the subject visits, and if there are any subjects who dropped out before the end of the trial. 
+For the example PKPD dataset, you can tell that this is a simulated dataset by the uniform spacing of dosing and observation events, and the lack of dropouts.
+```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 8}
+data_to_plot <-  pkpd_data_wide 
+data_to_plot$EVID = factor(data_to_plot$EVID, levels = c(0,1))
+gg <- ggplot(data_to_plot, aes(x=TIME, y = ID)) 
+gg <- gg + geom_point(aes(shape=EVID, color = EVID))
+gg <- gg + geom_line(linetype="dashed", aes(group=ID), color = "grey")
+gg <- gg + scale_shape_manual(values=c(1,3))
+gg <- gg + scale_color_manual(values=c(rgb(0.75,0.25,0.25),rgb(0.25,0.25,0.75)))
+gg
+```
+### Nominal time vs Actual time
+In this case, time is in units of hours and so there is no more than one hour difference between actual and nominal time.  But if there is a large difference, there could be an error in how the actual time is calculated.
+```{r, error = TRUE}
+my.data = pkpd_data_wide %>%
+  mutate(DIFF = TIME-NOMTIME)
+g = ggplot(my.data,aes(x=TIME,y=DIFF))
+g = g + geom_point()
+g = g + labs(x="Actual Time",
+             y="Difference between Actual and Nominal Time")
+print(g)
+```
+#### Dot plot, ID vs Time between dose to first observation
+Plotting the ID vs time between dose and first observation can be informative to see if there are any surprises between the dose
+and the next observation.
+The complicated part about this plot is to efficiently generate the
+time between doses and observations.  It would be easy with a for
+loop, but for loops are terribly inefficient in R.  As a hack, you can
+use Rcpp to generate a highly efficient way to use for loops.  The
+"Data.cpp" file contains the function `dataEdaGen` to create a list of
+3 datasets:
+ - time between doses (`II`)
+ - time between dose and next observation (`DO`)
+ - time between dose and last observation (`OD`)
+ 
+This also assumes that all of your events are unrolled, that is:
+ - No steady state doses
+ - ADDL/II doses are expanded and added to the dataset.
+ 
+
+<!-- 
+
+END COPY/PASTE
+
+-->
