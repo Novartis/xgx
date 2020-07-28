@@ -18,6 +18,7 @@ and be connected to the website when you open the file `xgx/tutorial/xgx_tutoria
 Altering and adding content
 -------------------
 Open the R-markdown and change it as desired, or add a new R-markdown script.
+Several examples can be found [here](https://rstudio.github.io/learnr/) of how to 
 
 
 Publishing
