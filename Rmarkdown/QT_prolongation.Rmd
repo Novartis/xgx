@@ -3,9 +3,11 @@ title: "QT Analysis"
 author: "Chase Brown, Alison Margolskee, Fariba Khanshan, Andy Stein"
 output:
   html_document:
-    toc: true
-    toc_float: true
     code_folding: hide
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 #### Environment Setup Code
@@ -38,10 +40,13 @@ xgx_theme_set()
 <!--START_EXPLANATION-->
 This document contains exploratory plots for QT interval data 
 as well as the R code that generates these graphs.
-The plots presented here are based on 
-[sample data](Data/QT_Prolongation_dataset.csv), 
-and the Rmarkdown template to generate this page can be found on 
+The plots presented here are based on a
+[PKQT dataset](Data/QT_Prolongation_dataset.csv).
+Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown
+template to generate this page can be found on
 [Rmarkdown-Template](Rmarkdown/QT_prolongation.Rmd).
+You may also download the QT dataset for your reference
+([download dataset](Data/QT_Prolongation_dataset.csv)).
 <!--END_EXPLANATION-->
 
 ```{r load-dataset, error=TRUE, warning=FALSE}
@@ -82,7 +87,7 @@ qt_data$SEX <- as.factor(plyr::mapvalues(qt_data$SEX,
                                          from = c(1,2),
                                          to = c("M", "F")))
 qt_data$DOSE_FACTOR <- as.factor(qt_data$DOSE)
-qt_data$WEIGHT_GROUP <- factor(cut(qt_data$WEIGHT, 3), ordered = TRUE)
+
 qt_data$SC <- qt_data$LIDV / median(qt_data$LIDV)
 qt_data$AGE_GROUP = factor(cut(qt_data$AGE, 2), ordered = TRUE)
 
@@ -141,7 +146,7 @@ with the components of the ECG are:
   - Phase 3: $Ca^{2+}$ channels close while $K^+$ are still open, causing a repolarization of the cells. $Na^+/K^+$ pumps work to restore the baseline concentrations of intracellular/extracellular $Na^+/K^+$.
   - Phase 4: Sinus node causes trigger for $Na^+$ channels to open again
 
-![QT_image](https://ecgwaves.com/wp-content/uploads/2016/09/lqts1-610x488.jpg)
+![](https://ecgwaves.com/wp-content/uploads/2016/09/lqts1-610x488.jpg)
 
   
 <!--END_EXPLANATION-->
@@ -176,7 +181,9 @@ gg <- gg + geom_point(alpha = 0.5, aes(shape = DOSE_FACTOR))
 gg <- gg + geom_smooth(method = "loess", formula = "y ~ x")
 gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + guides(color = guide_legend(""),
+                  fill = guide_legend(""),
+                  shape = guide_legend("Dose (mg)"))
 
 gg <- gg + labs(x = conc_label, y = qt_label)
 print(gg)
@@ -197,7 +204,9 @@ gg <- gg + xgx_geom_smooth_emax()
 gg <- gg + geom_point(alpha = 0.5, aes(shape = DOSE_FACTOR))
 gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + guides(color = guide_legend(""),
+                  fill = guide_legend(""),
+                  shape = guide_legend("Dose (mg)"))
 gg <- gg + labs(x = conc_label, y = qt_label)
 gg
 ```
@@ -216,7 +225,14 @@ gg <- ggplot(data = qt_data,
              aes(x = LIDV,
                  y = DELTA_QT))
 
-gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),
+                       se = FALSE)
+gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),
+                       se = FALSE,
+                       color = "gray")
+gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),
+                       se = FALSE,
+                       color = "gray")
 gg <- gg + geom_point()
 
 gg <- gg + xgx_annotate_status(status)
@@ -236,7 +252,14 @@ gg <- ggplot(data = qt_data,
              aes(x = LIDV,
                  y = DELTA_QT))
 
-gg <- gg + geom_smooth(mapping = aes(y = predict(model)))
+gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),
+                       se = FALSE)
+gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),
+                       se = FALSE,
+                       color = "gray")
+gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),
+                       se = FALSE,
+                       color = "gray")
 gg <- gg + geom_point()
 
 gg <- gg + xgx_annotate_status(status)
@@ -251,7 +274,7 @@ print(gg)
 or
 #### $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + 1 + \beta_1 * AUC_{ij} + \epsilon_{ij}$
 
-```{r,  fig.height=6, fig.width=8, error=TRUE, warning=FALSE}
+```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
 model <- lm(formula = DELTA_QT ~ 1 + VALUE + ID,
             data = NCA)
 
@@ -260,14 +283,12 @@ gg <- ggplot(data = NCA,
                  y = DELTA_QT))
 
 gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
-gg <- gg + geom_point(aes(shape = factor(WEIGHT)))
+gg <- gg + geom_point()
 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + labs(x = latex2exp::TeX("AUC"), y = qt_label)
-gg <- gg + facet_grid(cols = vars(PARAM),
-                      rows = vars(factor(DOSE)),
-                      scales = "free")
+gg <- gg + facet_wrap("PARAM", scales = "free")
 gg <- gg + labs(x = "", y = qt_label)
 print(gg)
 ```
@@ -285,13 +306,12 @@ gg <- ggplot(data = qt_data,
                  color = SEX,
                  fill = SEX))
 gg <- gg + xgx_geom_smooth_emax()
-gg <- gg + geom_point(alpha = 0.5, aes(shape = WEIGHT_GROUP)) 
+gg <- gg + geom_point(alpha = 0.5, aes(shape = WEIGHT>70)) 
 gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + labs(x = conc_label, y = qt_label)
-gg <- gg + facet_grid(cols = vars(DOSE_FACTOR))
 print(gg)
 ```
 
@@ -309,7 +329,9 @@ gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
 gg <- gg + geom_point(aes(shape = factor(DOSE)))
 
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + guides(color = guide_legend(""),
+                  fill = guide_legend(""),
+                  shape = guide_legend("Dose (mg)"))
 gg <- gg + labs(x = latex2exp::TeX("AUC"), y = qt_label)
 gg <- gg + facet_wrap("PARAM", scales = "free")
 gg <- gg + labs(x = "", y = qt_label)
@@ -317,9 +339,11 @@ print(gg)
 ```
 
 ```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-gg <- ggplot(data = qt_data, 
+# Concentration and QTcF similar to PKPD plot side by side
+
+gg <- ggplot(data = qt_data,
              aes(x = TIME,
-                 y = DELTA_QT,
+                 y = LIDV,
                  color = DOSE_FACTOR,
                  fill = DOSE_FACTOR))
 
@@ -327,35 +351,14 @@ gg <- gg + xgx_stat_ci(conf_level = .95)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 
-gg <- gg + labs(y = qt_label)
-print(gg)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + labs(y = conc_label)
+print(gg + xgx_scale_y_log10()) 
+gg + aes(y = DELTA_QT) + labs(y = qt_label)
+
 ```
 
-#### Weight
-
-##### Weight vs $\Delta QTc_F$
-```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-
-gg <- ggplot(data = qt_data %>% filter(qt_data$TIME <= 24),
-             aes(x = TIME,
-                 y = DELTA_QT,
-                 color = WEIGHT_GROUP,
-                 fill = WEIGHT_GROUP))
-# gg <- gg + geom_line(alpha = 0.5)
-# gg <- gg + geom_point(alpha = 0.5)
-gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
-                                  units_plot    = time_units_plot)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
-gg <- gg + xgx_scale_y_log10()
-# gg <- gg + xgx_scale_x_log10()
-gg <- gg + facet_wrap("DOSE")
-gg <- gg + labs(y = qt_label)
-print(gg)
-```
 
 
 ### Hysteresis Plots
