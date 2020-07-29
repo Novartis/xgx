@@ -2,25 +2,78 @@
 
 In this first example, we will walk you through a few code snippets displaying the use of xGx functions.
 
+### Available Datasets Description
+
+The examples for this tutorial will use several different datasets, which have 
+been pre-processed for use in all of the R script examples.
+
+These datasets are:
+  - pkpd_data
+    - Non-filtered dataset. Contains all PD types (ordinal, continuous, count, binary) and PK data
+  - pk_data
+    - PK only dataset
+  - continuous_data
+    - Continuous PD only dataset
+  - continuous_pk_data_wide
+    - Continuous PD joined with PK data
+  - binary_data
+    - Binary PD only dataset
+  - binary_pk_data_wide
+    - Binary PD joined with PK data 
+  - ordinal_data
+    - Ordinal PD only dataset
+  - ordinal_pk_data_wide
+    - Ordinal PD joined with PK data
+  - count_data
+    - Count PD only dataset
+  - count_pk_data_wide
+    - Count PD joined with PK data
+  - NCA
+    - Non Compartmental Analysis PK data
+  - continuous_NCA
+    - Non Compartmental Analysis PK data combined with continuous PD data
+  - binary_NCA
+    - Non Compartmental Analysis PK data combined with binary PD data
+  - ordinal_NCA
+    - Non Compartmental Analysis PK data combined with ordinal PD data
+  - count_NCA
+    - Non Compartmental Analysis PK data combined with count PD data
+
 ### Confidence intervals
 
 The code for confidence intervals is a bit complex and hard to remember.
 
-Rather than copy-pasting this code we provide the function `xgx_stat_ci` 
-for calculating and plotting default confidence intervals and 
-also `xgx_geom_pi` for percentile intervals.
+Rather than copying and pasting code from sources over the internet,
+we provide the function `xgx_stat_ci()`, which calculates and plots
+default confidence intervals for different data types (continuous, binomial, ordinal).
+We also have a function for percentile intervals as well (`xgx_geom_pi()`).
 
-`xgx_stat_ci` allows the definition of multiple `geom` options in
+`xgx_stat_ci()` allows the definition of multiple `geom` options in
 one function call, defined through a list.
 The default is `geom = list("point","line","errorbar")`.
 
+#### Binning continuous values on discretized x axis with `xgx_stat_ci()`
 
-#### Binning non-discretized x axis with `xgx_stat_ci()`
+```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
+# PK data
+gg <- ggplot(data = pk_data,
+         aes(x = NOMTIME,
+             y = LIDV,
+             color = factor(DOSE),
+             fill = factor(DOSE)))
+gg <- gg + xgx_stat_ci()
+print(gg)
+```
+
+#### Binning ordinal values on non-discretized x axis with `xgx_stat_ci()`
 ```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
 # Example of binned x values by quantile
-gg <- xgx_plot(pkpd_data_wide,
-         aes(x = CONC, response = ORDINAL_LEVELS, color = ORDINAL_LEVELS))
-gg <- gg + xgx_stat_ci(bins = 6, distribution = "ordinal")
+gg <- xgx_plot(ordinal_pk_data_wide,
+         aes(x = CONC,
+             response = ORDINAL_LEVELS,
+             color = ORDINAL_LEVELS))
+gg <- gg + xgx_stat_ci(bins = 6,
+                       distribution = "ordinal")
 print(gg)
 ```
 
@@ -28,8 +81,11 @@ print(gg)
 ```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
 # Example of binned x values by quantile
 gg <- xgx_plot(pkpd_data_wide,
-         aes(x = CONC, response = ORDINAL_LEVELS))
-gg <- gg + xgx_stat_ci(breaks = c(0.1, 0.2, 0.5, 1, 3), distribution = "ordinal")
+         aes(x = CONC,
+             response = ORDINAL_LEVELS,
+             color = ORDINAL_LEVELS))
+gg <- gg + xgx_stat_ci(breaks = c(0.1, 0.2, 0.5, 1, 3),
+                       distribution = "ordinal")
 print(gg)
 ```
 

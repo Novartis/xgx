@@ -5,8 +5,8 @@ account: xgx-interactive
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2549353
-bundleId: 3421150
+bundleId: 3451524
 url: https://xgx-interactive.shinyapps.io/xgx_tutorial/
-when: 1595420976.95639
+when: 1596046483.71413
 asMultiple: FALSE
 asStatic: FALSE
