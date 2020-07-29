@@ -10,7 +10,22 @@ output:
     toc: yes
 ---
 
-#### Environment Setup Code
+## Overview
+
+<!--START_EXPLANATION-->
+This document contains exploratory plots for QT interval data 
+as well as the R code that generates these graphs.
+The plots presented here are based on a
+[PKQT dataset](Data/QT_Prolongation_dataset.csv).
+Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown
+template to generate this page can be found on
+[Rmarkdown-Template](Rmarkdown/QT_prolongation.Rmd).
+You may also download the QT dataset for your reference
+([download dataset](Data/QT_Prolongation_dataset.csv)).
+<!--END_EXPLANATION-->
+
+## Setup
+
 ```{r setup-environment, message=FALSE, error=TRUE, warning=FALSE, warn.conflicts = FALSE}
 # xgxr and xgx github raw script url location
 xgxr_master_url = "https://raw.githubusercontent.com/Novartis/xgxr/master/"
@@ -19,6 +34,7 @@ xgx_chase_url = "https://raw.githubusercontent.com/Novartis/xgx/chase/"
 
 # Standard packages and xgxr
 library(tidyverse)
+library(gridExtra)
 library(xgxr)
 library(minpack.lm)
 # Add new functions that have not yet been pushed to DaVinci system
@@ -36,18 +52,7 @@ status = "DRAFT"
 xgx_theme_set()
 ```
 
-#### Load Dataset
-<!--START_EXPLANATION-->
-This document contains exploratory plots for QT interval data 
-as well as the R code that generates these graphs.
-The plots presented here are based on a
-[PKQT dataset](Data/QT_Prolongation_dataset.csv).
-Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown
-template to generate this page can be found on
-[Rmarkdown-Template](Rmarkdown/QT_prolongation.Rmd).
-You may also download the QT dataset for your reference
-([download dataset](Data/QT_Prolongation_dataset.csv)).
-<!--END_EXPLANATION-->
+## Load Dataset
 
 ```{r load-dataset, error=TRUE, warning=FALSE}
 # Load Dataset
@@ -100,13 +105,13 @@ NCA = qt_data %>%
   filter(!is.na(LIDV)) %>%
   summarize(AUC_last = caTools::trapz(TIME, LIDV),
             Cmax     = max(LIDV),
-            DELTA_QT = max(DELTA_QT),
+            DELTA_QT_max = max(DELTA_QT),
             # this part just keeps the SEX and WEIGHTB covariates
             SEX      = SEX[1],
             WEIGHT  = WEIGHT[1]) %>%
   pivot_longer(names_to = "PARAM",
                values_to = "VALUE",
-               cols = -c(ID, DOSE, SEX, WEIGHT, DELTA_QT)) %>%
+               cols = -c(ID, DOSE, SEX, WEIGHT, DELTA_QT_max)) %>%
   ungroup() %>%
   mutate(VALUE_NORM = VALUE/DOSE)
 
@@ -124,154 +129,222 @@ qt_label           = latex2exp::TeX("$\\Delta QTc_F$ (ms)")
 cmax_label         = latex2exp::TeX(paste0("C_{max}(", conc_units, ")"))
 ```
 
-## Overview
-
 <!--START_EXPLANATION-->
+## Introduction to drug-induced QT Prolongation
 
-### Components of Electrocardiograms (ECGs)
+Drug-induced arrhythmias, such as Torsades de Pointes, are life-threatening 
+adverse events and are therefore important when considering certain aspects of 
+a drug's toxicity. These drug-induced arrhythmias can be studied with 
+QT interval data from an ECG.
 
-There are 3-4 primary components of the an ECG:
+There are 3-4 primary components of an ECG signal:
 
   * P wave (atrial depolarization)
   * QRS complex (ventricular depolarization)
   * T wave (ventricular repolarization)
   * U wave (papillary muscle repolarization - signal is not always clearly visible)
 
-These features of an ECG are associated with specific action potential components.  The phases of the action potential and their mapping
-with the components of the ECG are:
+![](https://ecgwaves.com/wp-content/uploads/2016/09/lqts1-610x488.jpg){ width=40% }
 
-  - Phase 0: Depolarization of the cell when $Na^+$ channels open, causing $Na^+$ to rush into the cell
-  - Phase 1: $Na^+$ close, $K^+$ channels open causing $K^+$ to flow out of the cell
-  - Phase 2: $Ca^{2+}$ inward current along with continuing $K^+$ outward current causes a plataeu in the voltage
-  - Phase 3: $Ca^{2+}$ channels close while $K^+$ are still open, causing a repolarization of the cells. $Na^+/K^+$ pumps work to restore the baseline concentrations of intracellular/extracellular $Na^+/K^+$.
-  - Phase 4: Sinus node causes trigger for $Na^+$ channels to open again
-
-![](https://ecgwaves.com/wp-content/uploads/2016/09/lqts1-610x488.jpg)
-
-  
+Changes to this QT interval after drug treatment, which we denote here as 
+$\Delta QT$ (and the heart rate corrected version $\Delta QTc_F$
+[read more here](https://www.sciencedirect.com/science/article/abs/pii/000291499290562D)), have a relationship with the drug concentration and 
+several covariates that we will explore in this PK-QT xGx template.
 <!--END_EXPLANATION-->
 
-## Mean and Confidence Intervals for $\Delta QTcF$ within each dosage
+## Provide an overview of the data
+
+<!--START_EXPLANATION-->
+Summarize the $\Delta QTc_F$ data for each dose with 
+a simple table.
+<!--END_EXPLANATION-->
+
+#### Mean and Confidence Intervals for $\Delta QTcF$ within each dosage
 
 ```{r, fig.height=3, fig.width=8}
+# Summary Table
+data_summary <- function(x, alpha = 0.05) {
+  n = length(x)
+  mean = mean(x)
+  lower = mean - qt(1- alpha/2, (n - 1))*sd(x)/sqrt(n)
+  upper = mean + qt(1- alpha/2, (n - 1))*sd(x)/sqrt(n)
+  std_dev = sd(x)
+  return(list(y = mean, ymin = lower, ymax = upper, 
+           mean = mean, lower = lower, upper = upper, std_dev = std_dev))
+}
 
-alpha <- 0.05
-DT::datatable(
-  qt_data %>% 
-    group_by(DOSE_FACTOR) %>% 
-    summarize(mean = mean(DELTA_QT),
-              lower = mean(DELTA_QT) - qt(1- alpha/2, (n() - 1))*sd(DELTA_QT)/sqrt(n()),
-              upper = mean(DELTA_QT) + qt(1- alpha/2, (n() - 1))*sd(DELTA_QT)/sqrt(n()),
-              std_dev = sd(DELTA_QT))
-  )
+
+DT::datatable(NCA %>%
+  group_by(DOSE) %>%
+  summarize(mean = signif(data_summary(DELTA_QT_max)$mean, 3),
+            lower = signif(data_summary(DELTA_QT_max)$lower, 3),
+            upper = signif(data_summary(DELTA_QT_max)$upper, 3),
+            std_dev = signif(data_summary(DELTA_QT_max)$std_dev, 3))
+)
+```
+
+<!--START_EXPLANATION-->
+Summarize the data in a way that is easy to visualize the general trend of QT
+over time and between doses. Using summary statistics can be helpful, 
+e.g. Mean +/- SE, or median, 5th & 95th percentiles. 
+Consider either coloring by dose or faceting by dose. 
+Depending on the amount of data one graph may be better than the other.
+<!--END_EXPLANATION-->
+
+### PK and QT marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
+
+<!--START_EXPLANATION-->
+Observe the overall shape of the average profiles.
+Does the effect appear to increase and decrease quickly on a short time scale, 
+or does is occur over a longer time scale? Do the PK and QT profiles appear 
+to be on the same time scale, or does the QT seem delayed compared to the PK? 
+Is there clear separation between the profiles for different doses? 
+Does the effect appear to increase with increasing dose? 
+Do you detect a saturation of the effect? 
+<!--END_EXPLANATION-->
+
+```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
+# PK Data
+gg <- ggplot(data = qt_data,
+             aes(x = TIME,
+                 y = LIDV,
+                 color = DOSE_FACTOR,
+                 fill = DOSE_FACTOR))
+gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + guides(color = guide_legend(dose_label),
+                  fill = guide_legend(dose_label))
+gg <- gg + labs(y = conc_label)
+print(gg + xgx_scale_y_log10()) 
+
+# QT Data
+gg + aes(y = DELTA_QT) + labs(y = qt_label)
 
 ```
+
+
+## Explore Exposure-Response Relationship
+
+<!--START_EXPLANATION-->
 
 ### Concentration vs $QTc_F$
 
-First, we look at the change in the QT interval against the concentration to see if there is a relationship.
-An asymptotic relationship is observed with the use of `xgx_stat_ci()`; however,
-this relationship is not well captured by the `geom_smooth()` loess function.
-```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-gg <- ggplot(data = qt_data, 
-             aes(x = LIDV,
-                 y = DELTA_QT))
+Do you see any relationship between $QTc_F$ and concentration? 
+Does response increase (decrease) with increasing dose? 
+Are you able to detect a plateau or emax (emin) on the effect? 
 
-gg <- gg + geom_point(alpha = 0.5, aes(shape = DOSE_FACTOR))
-gg <- gg + geom_smooth(method = "loess", formula = "y ~ x")
-gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""),
-                  fill = guide_legend(""),
-                  shape = guide_legend("Dose (mg)"))
+We have provided several different models here to view the relationship between 
+$\Delta QTc_F$ and concentration.
 
-gg <- gg + labs(x = conc_label, y = qt_label)
-print(gg)
-```
-
-## Modeling the $\Delta QTc_F$ relationship with concentration via $E_{max}$
-In order to better capture the asymptotic form of the data, we use a function 
-($y = E_0 + E_{max} \frac{x}{ED_{50} + x}$)
-well-suited for this task via `xgx_geom_smooth_emax()`.
+In many cases, the data will span dosages large enough to observe a plateau 
+in the $\Delta QTc_F$ with increasing concentration.
+In order to to better capture this quality of the data, 
+we use the Emax function ($y = E_0 + E_{max} \frac{x}{ED_{50} + x}$)
+which is well-suited for this task via `xgx_geom_smooth_emax()`.
 Note that the line adn confidence intervals now overlap with the `xgx_stat_ci()`
-means and error bars .
+means and error bars.
 
-```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-gg <- ggplot(data = qt_data, 
-             aes(x = LIDV,
-                 y = DELTA_QT))
-gg <- gg + xgx_geom_smooth_emax()
-gg <- gg + geom_point(alpha = 0.5, aes(shape = DOSE_FACTOR))
-gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""),
-                  fill = guide_legend(""),
-                  shape = guide_legend("Dose (mg)"))
-gg <- gg + labs(x = conc_label, y = qt_label)
-gg
-```
+We also have the mixed effects models:
 
-## Mixed Effects Models
-#### $\Delta QTc_{F_{ij}} = QTc_{F_{i}}^{Time j} - QTc_{F_i}^{BL}$
-##### Model 1: $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + \beta_1 * SC_{ij} + \epsilon_{ij}$
+$\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + \beta_1 * SC_{ij} + \epsilon_{ij}$
 
-Where $SC$ is the scaled concentration (scaled by the median concentration)
+and
 
-```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-model <- lm(formula = DELTA_QT ~ 1 + LIDV + ID,
+$\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + log(1 + \beta_1 * SC_{ij}) + \epsilon_{ij}$
+
+to model the relationship between $\Delta QTc_F$ and concentration available for exploration.
+
+<!--END_EXPLANATION-->
+
+```{r,  fig.height=7, fig.width=10, error=TRUE, warning=FALSE}
+
+# Same plot with several models
+qt_conc_plot <- function(model_num){
+
+  # Same QT vs Concentration for each plot
+  gg <- ggplot(data = qt_data,
+               aes(x = LIDV,
+                   y = DELTA_QT))
+  gg <- gg + geom_point(alpha = 0.5)
+  gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
+  gg <- gg + xgx_annotate_status(status)
+  gg <- gg + guides(color = guide_legend(""),
+                    fill = guide_legend(""),
+                    shape = guide_legend(dose_label))
+  gg <- gg + labs(x = conc_label,
+                  y = qt_label)
+
+
+  # Add a different model for each plot
+  if(model_num == 1){
+    gg <- gg + geom_smooth(method = "loess", formula = "y ~ x")
+    
+    title <- latex2exp::TeX("Simple LOESS Fit$_{}$")
+    subtitle <- latex2exp::TeX("y ~ x$_{}^{}$")
+  }
+  else if(model_num == 2){
+    gg <- gg + xgx_geom_smooth_emax()
+    
+    title <- latex2exp::TeX("E_{max}")
+    subtitle <- latex2exp::TeX("$y = E_0 + (E_{max} * x)(ED_{50} + x)^{-1}$")
+  }
+  else if(model_num == 3){
+    model <- lm(formula = DELTA_QT ~ 1 + LIDV + ID,
             data = qt_data)
 
-gg <- ggplot(data = qt_data, 
-             aes(x = LIDV,
-                 y = DELTA_QT))
+    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),
+                           se = FALSE)
+    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),
+                           se = FALSE,
+                           color = "gray")
+    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),
+                           se = FALSE,
+                           color = "gray")
+    
 
-gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),
-                       se = FALSE)
-gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),
-                       se = FALSE,
-                       color = "gray")
-gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),
-                       se = FALSE,
-                       color = "gray")
-gg <- gg + geom_point()
+    title = "Mixed Effects"
+    subtitle <- latex2exp::TeX("$\\Delta QTc_{F, ij} = (\\beta_0 + b_{0i}) + \\beta_1 * Conc_{ij} + \\epsilon_{ij}$")
+  }
+  else if(model_num == 4){
+    model <- lm(formula = DELTA_QT ~ 1 + log(1 + LIDV) + ID,
+                data = qt_data)
 
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),
+                           se = FALSE)
+    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),
+                           se = FALSE,
+                           color = "gray")
+    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),
+                           se = FALSE,
+                           color = "gray")
+    title <- "Mixed Effects (log)"
+    subtitle <- latex2exp::TeX("$\\Delta QTc_{F, ij} = (\\beta_0 + b_{0i}) + log(1 + \\beta_1 * Conc_{ij}) + \\epsilon_{ij}$")
+    
+  }
+  gg <- gg + ggtitle(label = title,
+                     subtitle = subtitle)
+  gg <- gg+ theme(legend.position="none")
+  return(gg)
+}
 
-gg <- gg + labs(x = conc_label, y = qt_label)
-print(gg)
+
+grid.arrange(qt_conc_plot(1),
+             qt_conc_plot(2),
+             qt_conc_plot(3),
+             qt_conc_plot(4),
+             ncol = 2)
 ```
 
-##### Model 2: $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + log(1 + \beta_1 * SC_{ij}) + \epsilon_{ij}$
-
-```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-model <- lm(formula = DELTA_QT ~ 1 + log(1 + LIDV) + ID,
-            data = qt_data)
-
-gg <- ggplot(data = qt_data, 
-             aes(x = LIDV,
-                 y = DELTA_QT))
-
-gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),
-                       se = FALSE)
-gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),
-                       se = FALSE,
-                       color = "gray")
-gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),
-                       se = FALSE,
-                       color = "gray")
-gg <- gg + geom_point()
-
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
-gg <- gg + labs(x = conc_label, y = qt_label)
-print(gg)
-```
 
 
 ### Mixed Effects model with $C_{max}$ and AUC
+
 #### $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + log(1 + \beta_1 * C_{max,ij}) + \epsilon_{ij}$
+
 or
+
 #### $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + 1 + \beta_1 * AUC_{ij} + \epsilon_{ij}$
 
 ```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
@@ -295,10 +368,13 @@ print(gg)
 
 
 ### Which covariates are related to the $\Delta QTcF$?
+
 #### Sex
+
 <!--START_EXPLANATION-->
 One interesting or important note for QT prolongation studies is the statistically significant difference in QT intervals between sexes.  Due to hormonal upregulation or downregulation of inward-rectifier potassium channels, the QT interval is divergent between the sexes.  Therefore, this is an important covariate to consider within these QT prolongation analysis, along with the patient age distribution.
 <!--END_EXPLANATION-->
+
 ```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
 gg <- ggplot(data = qt_data,
              aes(x = LIDV,
@@ -331,32 +407,11 @@ gg <- gg + geom_point(aes(shape = factor(DOSE)))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + guides(color = guide_legend(""),
                   fill = guide_legend(""),
-                  shape = guide_legend("Dose (mg)"))
+                  shape = guide_legend(dose_label))
 gg <- gg + labs(x = latex2exp::TeX("AUC"), y = qt_label)
 gg <- gg + facet_wrap("PARAM", scales = "free")
 gg <- gg + labs(x = "", y = qt_label)
 print(gg)
-```
-
-```{r,  fig.height=3, fig.width=8, error=TRUE, warning=FALSE}
-# Concentration and QTcF similar to PKPD plot side by side
-
-gg <- ggplot(data = qt_data,
-             aes(x = TIME,
-                 y = LIDV,
-                 color = DOSE_FACTOR,
-                 fill = DOSE_FACTOR))
-
-gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + xgx_annotate_status(status)
-gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
-                                  units_plot    = time_units_plot)
-
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
-gg <- gg + labs(y = conc_label)
-print(gg + xgx_scale_y_log10()) 
-gg + aes(y = DELTA_QT) + labs(y = qt_label)
-
 ```
 
 
@@ -385,14 +440,8 @@ gg + facet_wrap(~ID, ncol = 5)
 gg <- gg + labs(x = conc_label, y = qt_label)
 ```
 
-<!-- <img src=https://www.google.com/url?sa=i&url=https%3A%2F%2Fjournals.plos.org%2Fplosone%2Farticle%2Ffigure%3Fid%3D10.1371%2Fjournal.pone.0139873.g005&psig=AOvVaw13z514Blqgsfwf796b0lsp&ust=1593192390767000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCLihrKm-neoCFQAAAAAdAAAAABAD> -->
 
-<!-- ### References: -->
-<!--   - [Sagie, Alex, Martin G. Larson, Robert J. Goldberg, James R. Bengtson, and Daniel Levy. "An improved method for adjusting the QT interval for heart rate (the Framingham Heart Study)." The American journal of cardiology 70, no. 7 (1992): 797-801.](https://www.sciencedirect.com/science/article/abs/pii/000291499290562D) -->
-
-<!--   - Einthoven, W. Ueber die Form des menschlichen Electrocardiogramms. Pflüger, Arch. 60, 101–123 (1895).  https://link.springer.com/article/10.1007%2FBF01662582 -->
-
-<!--   - https://watermark.silverchair.com/181.pdf?token=AQECAHi208BE49Ooan9kkhW_Ercy7Dm3ZL_9Cf3qfKAc485ysgAAAqkwggKlBgkqhkiG9w0BBwagggKWMIICkgIBADCCAosGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMS0SvvERW8lnkB0TtAgEQgIICXPJbpHg-0Wq_AaeCxrhDkZp7_LiRQl9a2Iqo_2pPgvZJ6UVSdGTDhtVv5CabtJsdLBK29uWi_X2wcnAukvQ1lhqPKM0S-vR-Pt5BVLlbZiFlPAgm_iyRYj-kC3oKeqPuueYjapMOzyxMry5dJDeB_l9WU-fANFsGWhVEU1TlVogq6UPY8urQ2k4wyFnk1QgcJEiSoh01ACICOkQzdm-dedP24Lg1yka91VHqa-Fc4JQx5dvaNxMLzfzc6Jny58Yljopc2SygoEBTPMg5hboSTlJKZ8BkbALEBIFiOJJyejDqz4q0AQDULiXseRLq2nr00RHVttM9jdlWnA3VmL6kRQvZr7SAv1AUlAZRnm-DsTbFTXFEKG7UJxnyISuQZKtGocK4WVfdeoR50yhrmRzxjHQOrTgZSCS80Kr-pWUQFE2W2C0AtcDJlx0MV78Ol4EhF06ZQEEVQmSGljqumupVBfCMBXQeDyAuFmkoabEen35EQ6-l_HMDDmMfpVtn-wJX0uKd-Uk0a07uATYH50crHD41Tzr2-_TkCxkKfC6FDqBszPnMXFaNqqmfm73J5vulhv-y63Rh26uYgGcaGvll84v4Qdf9K29utVqk3P9LPcqjofwmo2K0uj5otiDIlwHJepZPQ7bJln5-5veFxVscDUJdl7pE8muXLA0BEp0XDDPDcn7njGBWdSHNUWbjfzxmcxEzT5swv31Li81bqw1XMb6GLcz2ifrgoCuQufw8-ICRdKXSVGx6BPOcuXc0TJ_EW9S8kPfsKC6UhrXuDPrZYZn3si1EYkAAFoCITFY -->
-
-<!--   - https://www.ahajournals.org/doi/10.1161/01.CIR.98.18.1937 -->
-
+## R Session Info
+```{r}
+sessionInfo()
+```
