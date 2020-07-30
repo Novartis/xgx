@@ -9,9 +9,9 @@ output:
 ---
 
 ## Overview
-
+<!--START_EXPLANATION-->
 This document contains exploratory plots for binary response data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
-
+<!--END_EXPLANATION-->
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -41,8 +41,9 @@ dirs = list(
 ```
 
 ## Load Dataset
+<!--START_EXPLANATION-->
 The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, warning = FALSE, message = FALSE}
 data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
 
@@ -90,7 +91,7 @@ pd_data <- data %>%
   pd2_label          = "Response"
 
 ```
-
+<!--START_EXPLANATION-->
 Binary data is data that can take on one of two values. This often happens when there is a characteristic/event/response, etc. of interest that subjects either have/achieve or they don't. Binary response data can also come out of dichotomizing continuous data. For example in the psoriasis indication the binary response variable PASI90 (yes/no) is defined as subjects achieving a PASI score of at least 90.
 
 There are two broad categories of PK/PD exploratory plots covered on this page
@@ -118,7 +119,7 @@ Questions to ask when looking at these plots
 **Warning:** Even if you don't see a plateau in response, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 
 When overlaying individual binomial data, it is often helpful to stagger the dots and use transparency, so that it is easier to see individual data points.  If you do so, this should be clearly stated.  
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE} 
 
   gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
@@ -156,11 +157,11 @@ When overlaying individual binomial data, it is often helpful to stagger the dot
 ## Explore variability
 
 ### Spaghetti plots of binary response over time, faceted by dose
-
+<!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. 
 
 Binary spaghetti plots may not be as informative as spaghetti plots for continuous data, however you can pick out the transition states from 0 to 1 and back. By looking at the transition states, ask yourself these questions: For each dose group, at what time have most of the subjects "responded"? How wide is the spread of "response time"" across subjects (do all of them respond at the exact same time, or over a range of time?) Do you detect any dampening, or transitioning of response back to no response?
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
 gg <- ggplot(data = pd_data, 
              aes(x = DAY_jitter, y = LIDV_jitter))
@@ -181,9 +182,9 @@ print(gg)
 ```
 
 ## Explore irregularities in profiles
-
+<!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any unusual profiles. Look at the pattern of response/non-response over time and whether individuals switch from responder back to non-responder.  
-
+<!--END_EXPLANATION-->
 ### Response over time, faceted by individual, individual line plots
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message = FALSE}
@@ -206,7 +207,7 @@ print(gg)
 ```
 
 ## Explore covariate effects on PD
-
+<!--START_EXPLANATION-->
 Stratify by covariates of interest to explore whether any key covariates impact response. For examples of plots and code startifying by covariate, see [Single Ascending Dose Covariate Section](Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk)
 
 **Warning** Be careful of interpreting covariate effects on PD. Covariate effects on PD could be the result of covariate effects on PK transfering to PD through the PK/PD relationship.
@@ -226,7 +227,7 @@ Questions to consider
 * Is there a plateau (Emax or Emin) with drug effect? At what dose?
 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
 pd_data_to_plot <- pd_data %>% subset(PROFDAY == SS_PROFDAY)
 
@@ -239,20 +240,20 @@ gg <- gg + labs(x = dose_label, y = pd_label)
 gg <- gg + xgx_annotate_status(status)
 
 pp1 <- gg + ggtitle("Dose on Linear Scale")
-#print(pp1)
+
 
 ## Same plot but on a log scale
 pp2 <- gg + scale_x_log10(breaks = unique(pd_data_to_plot$DOSE))+ ggtitle("Dose on Log Scale")
-#print(pp2)
+
 grid.arrange(pp1,pp2,nrow = 1)
 
 ```
 
 
 ### Responder rate (95% CI) by dose, faceted by visit
-
+<!--START_EXPLANATION-->
 The crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. In addtion to looking at longitudinal PD over time (as in previous sections above), plotting the cross-sectional Dose-Response curves for different time points throughout the study can also be helpful. In the figure below, we plot the exposure response relationship at a number of different visits to see how the relationsihp might change over time.
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message = FALSE} 
 pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 
