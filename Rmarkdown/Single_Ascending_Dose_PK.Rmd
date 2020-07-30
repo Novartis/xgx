@@ -3,9 +3,11 @@ title: "PK - Single Ascending Dose"
 author: "Alison Margolskee, Andy Stein"
 output:
   html_document:
-    toc: true
+    toc: yes
     toc_float: true
     code_folding: hide
+  pdf_document:
+    toc: yes
 ---
 
 ## Overview
