@@ -52,7 +52,7 @@ We also have a function for percentile intervals as well (`xgx_geom_pi()`).
 one function call, defined through a list.
 The default is `geom = list("point","line","errorbar")`.
 
-#### Binning continuous values on discretized x axis with `xgx_stat_ci()`
+##### Binning continuous values on discretized x axis with `xgx_stat_ci()`
 
 ```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
 # PK data
@@ -65,30 +65,7 @@ gg <- gg + xgx_stat_ci()
 print(gg)
 ```
 
-#### Binning ordinal values on non-discretized x axis with `xgx_stat_ci()`
-```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
-# Example of binned x values by quantile
-gg <- xgx_plot(ordinal_pk_data_wide,
-         aes(x = CONC,
-             response = ORDINAL_LEVELS,
-             color = ORDINAL_LEVELS))
-gg <- gg + xgx_stat_ci(bins = 6,
-                       distribution = "ordinal")
-print(gg)
-```
-
-#### Binning with custom (non-quantile) *breaks* parameter
-```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
-# Example of binned x values by quantile
-gg <- xgx_plot(pkpd_data_wide,
-         aes(x = CONC,
-             response = ORDINAL_LEVELS,
-             color = ORDINAL_LEVELS))
-gg <- gg + xgx_stat_ci(breaks = c(0.1, 0.2, 0.5, 1, 3),
-                       distribution = "ordinal")
-print(gg)
-```
-
+#### Multinomial and other distributions
 
 The default settings calculate the confidence interval based on the 
 Student t Distribution (assuming normally distributed data). You can also 
@@ -100,23 +77,41 @@ third uses `MultinomCI` from the `DescTools` package.
 Note: you DO NOT need to use both `distribution = "lognormal"` 
 and `scale_y_log10()`, choose only one of these.
 
+##### Lognormally distributed data
+
 ```{r, fig.width=4, fig.height=2, warning=FALSE, error=FALSE, message=FALSE}
-# plotting lognormally distributed data
+# Plotting lognormally distributed data
 data <- data.frame(x = rep(c(1, 2, 3), each = 20),
                    y = 10^(rep(c(1, 2, 3), each = 20) + stats::rnorm(60)),
                    group = rep(1:3, 20))
-xgx_plot(data, aes(x = x, y = y)) + 
+gg <- xgx_plot(data, aes(x = x, y = y)) + 
  xgx_stat_ci(conf_level = 0.95, distribution = "lognormal")
- 
+
+print(gg)
+
 # note: you DO NOT need to use both distribution = "lognormal" and scale_y_log10()
-xgx_plot(data,aes(x = x, y = y)) + 
+gg <- xgx_plot(data,aes(x = x, y = y)) + 
  xgx_stat_ci(conf_level = 0.95) + xgx_scale_y_log10()
+
+print(gg)
+```
+
+##### Binomially distributed data
+
+```{r}
 # plotting binomial data
 data <- data.frame(x = rep(c(1, 2, 3), each = 20),
                   y = rbinom(60, 1, rep(c(0.2, 0.6, 0.8), each = 20)),
                   group = rep(1:3, 20))
-xgx_plot(data, aes(x = x, y = y)) + 
+gg <- xgx_plot(data, aes(x = x, y = y)) + 
  xgx_stat_ci(conf_level = 0.95, distribution = "binomial")
+
+print(gg)
+```
+
+##### Multinomial data
+
+```{r}
 # Example plotting the percent of subjects in a categorical covariate group by treatment.
 set.seed(12345)
 data = data.frame(x = 120*exp(rnorm(100,0,1)),
@@ -131,6 +126,33 @@ xgx_plot(data = data) +
  scale_y_continuous(labels = scales::percent_format()) + 
  facet_wrap(~covariate) + 
  xlab("Treatment group") + ylab("Percent of subjects by category")
+```
+
+
+##### Binning ordinal values on non-discretized x axis with `xgx_stat_ci()`
+
+```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
+# Example of binned x values by quantile
+gg <- xgx_plot(ordinal_pk_data_wide,
+         aes(x = CONC,
+             response = ORDINAL_LEVELS,
+             color = ORDINAL_LEVELS))
+gg <- gg + xgx_stat_ci(bins = 6,
+                       distribution = "ordinal")
+print(gg)
+```
+
+##### Binning with custom (non-quantile) *breaks* parameter
+
+```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
+# Example of binned x values by quantile
+gg <- xgx_plot(pkpd_data_wide,
+         aes(x = CONC,
+             response = ORDINAL_LEVELS,
+             color = ORDINAL_LEVELS))
+gg <- gg + xgx_stat_ci(breaks = c(0.1, 0.2, 0.5, 1, 3),
+                       distribution = "ordinal")
+print(gg)
 ```
 
 `xgx_stat_ci` can now also cut data by quantiles of `x` using the `bins` option, e.g. `bins = 4` will cut the data by quartiles of `x`. You can also supply your own breaks to cut the data. 

@@ -231,7 +231,6 @@ binary_response_label = paste0("Responder Rate (%)")
 ordinal_label   = paste0("Ordinal PD Marker (", ordinal_pd_units, ")")
 ordinal_response_label = paste0("Responder Rate (%)") 
 count_label        = paste0("Count PD Marker (", count_pd_units, ")")
-
 ```
 
 
