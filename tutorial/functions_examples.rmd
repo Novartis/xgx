@@ -1,43 +1,9 @@
-## Functions - Examples
+## Functions - Examples {data-progressive=TRUE}
 
 In this first example, we will walk you through a few code snippets displaying the use of xGx functions.
-
-### Available Datasets Description
-
-The examples for this tutorial will use several different datasets, which have 
-been pre-processed for use in all of the R script examples.
-
-These datasets are:
-  - pkpd_data
-    - Non-filtered dataset. Contains all PD types (ordinal, continuous, count, binary) and PK data
-  - pk_data
-    - PK only dataset
-  - continuous_data
-    - Continuous PD only dataset
-  - continuous_pk_data_wide
-    - Continuous PD joined with PK data
-  - binary_data
-    - Binary PD only dataset
-  - binary_pk_data_wide
-    - Binary PD joined with PK data 
-  - ordinal_data
-    - Ordinal PD only dataset
-  - ordinal_pk_data_wide
-    - Ordinal PD joined with PK data
-  - count_data
-    - Count PD only dataset
-  - count_pk_data_wide
-    - Count PD joined with PK data
-  - NCA
-    - Non Compartmental Analysis PK data
-  - continuous_NCA
-    - Non Compartmental Analysis PK data combined with continuous PD data
-  - binary_NCA
-    - Non Compartmental Analysis PK data combined with binary PD data
-  - ordinal_NCA
-    - Non Compartmental Analysis PK data combined with ordinal PD data
-  - count_NCA
-    - Non Compartmental Analysis PK data combined with count PD data
+Our objective for this section is to introduce the new xGx user to typical plotting 
+scripts such that they become more familiar with the xgxr functions and their 
+syntax.
 
 ### Confidence intervals
 
@@ -52,7 +18,7 @@ We also have a function for percentile intervals as well (`xgx_geom_pi()`).
 one function call, defined through a list.
 The default is `geom = list("point","line","errorbar")`.
 
-##### Binning continuous values on discretized x axis with `xgx_stat_ci()`
+### Binning continuous values on discretized x axis with `xgx_stat_ci()`
 
 ```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
 # PK data
@@ -65,7 +31,7 @@ gg <- gg + xgx_stat_ci()
 print(gg)
 ```
 
-#### Multinomial and other distributions
+### Multinomial and other distributions
 
 The default settings calculate the confidence interval based on the 
 Student t Distribution (assuming normally distributed data). You can also 
@@ -77,7 +43,7 @@ third uses `MultinomCI` from the `DescTools` package.
 Note: you DO NOT need to use both `distribution = "lognormal"` 
 and `scale_y_log10()`, choose only one of these.
 
-##### Lognormally distributed data
+### Lognormally distributed data
 
 ```{r, fig.width=4, fig.height=2, warning=FALSE, error=FALSE, message=FALSE}
 # Plotting lognormally distributed data
@@ -96,7 +62,7 @@ gg <- xgx_plot(data,aes(x = x, y = y)) +
 print(gg)
 ```
 
-##### Binomially distributed data
+### Binomially distributed data
 
 ```{r}
 # plotting binomial data
@@ -109,7 +75,7 @@ gg <- xgx_plot(data, aes(x = x, y = y)) +
 print(gg)
 ```
 
-##### Multinomial data
+### Multinomial data
 
 ```{r}
 # Example plotting the percent of subjects in a categorical covariate group by treatment.
@@ -129,7 +95,7 @@ xgx_plot(data = data) +
 ```
 
 
-##### Binning ordinal values on non-discretized x axis with `xgx_stat_ci()`
+### Binning ordinal values on non-discretized x axis with `xgx_stat_ci()`
 
 ```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
 # Example of binned x values by quantile
@@ -142,11 +108,11 @@ gg <- gg + xgx_stat_ci(bins = 6,
 print(gg)
 ```
 
-##### Binning with custom (non-quantile) *breaks* parameter
+### Binning with custom (non-quantile) *breaks* parameter
 
 ```{r, fig.width=5, fig.height=3, warning=FALSE, error=FALSE, message=FALSE}
 # Example of binned x values by quantile
-gg <- xgx_plot(pkpd_data_wide,
+gg <- xgx_plot(ordinal_pk_data_wide,
          aes(x = CONC,
              response = ORDINAL_LEVELS,
              color = ORDINAL_LEVELS))
@@ -155,7 +121,7 @@ gg <- gg + xgx_stat_ci(breaks = c(0.1, 0.2, 0.5, 1, 3),
 print(gg)
 ```
 
-#### Nonlinear smoothing (e.g. Emax)
+### Nonlinear smoothing (e.g. Emax)
 
 The current ggplot2::geom_smooth does not allow for plotting confidence bands for method = "nls", as ggplot2 does not supply a `predictdf` for an object of class `nls`, which geom_smooth silently calls to calculate the ymin and ymax for the confidence bands. The xgxr package includes a definition of `predictdf.nls`, allowing for confidence bands for method = "nls". xgxr also includes an Emax smooth function called `xgx_geom_smooth_emax` which utilizes the "nlsLM" method, and silently calls the `predictdf.nls` defined by xgxr.
 
@@ -185,7 +151,7 @@ gg +
   xgx_geom_smooth_emax(geom = "line", color = "red")
 ```
 
-#### Nice log scale
+### Nice log scale
 
 This version of the log scale function shows the tick marks between the 
 major breaks (i.e. at 1, 2, 3, ... 10, instead of just 1 and 10).  It also 
@@ -201,7 +167,7 @@ xgx_plot(data = df, aes(x = x, y = y)) +
   xgx_scale_y_log10()
 ```
 
-#### Reverse log transform
+### Reverse log transform
 
 This transform is useful for plotting data on a percentage scale that can 
 approach 100% (such as receptor occupancy data).
@@ -224,7 +190,7 @@ gx <- xgx_plot(data, aes(x = bound_receptor, y = concentration)) +
 gridExtra::grid.arrange(gy, gx, nrow = 1)
 ```
 
-#### Nice scale for percent change data
+### Nice scale for percent change data
 
 This transform is useful for plotting percent change from baseline data. 
 Percent change data can range from -100% to +Inf%, and depending on the range
@@ -286,7 +252,7 @@ ggplot2::ggplot(dat2,
   ylab("Percent Change from Baseline")
 ```
 
-#### Scaling x-axis as a time scale
+### Scaling x-axis as a time scale
 
 For time, it's often good for the x ticks to be spaced in a particular way. 
 For instance, for hours, subdividing in increments by 24, 12, 6, and 3 hours 
@@ -303,34 +269,4 @@ g2 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "days")
 g3 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "weeks")
 g4 <- g + xgx_scale_x_time_units(units_dataset = "hours", units_plot = "months")
 gridExtra::grid.arrange(g1, g2, g3, g4, nrow = 2)
-```
-
-### Data checking
-
-#### Numerical check
-
-We've found that during exploration, it can be extremely important to 
-check the dataset for issues.  This can be done using the `xgx_check_data` 
-or `xgx_summarize_data` function (the two functions are identical).
-
-```{r, warning=FALSE, error=FALSE, message=FALSE}
-data <- mad_missing_duplicates %>%
-  filter(CMT %in% c(1, 2, 3)) %>%
-  rename(DV      = LIDV,
-         YTYPE   = CMT,
-         USUBJID = ID)
-covariates <- c("WEIGHTB", "SEX")
-check <- xgx_check_data(data, covariates)
-knitr::kable(check$summary)
-knitr::kable(head(check$data_subset))
-```
-
-You can also get an overview of the covariates in the dataset 
-with `xgx_summarize_covariates`.  The covariate summaries are also provided 
-in the `xgx_check_data` and `xgx_summarize_data` functions.
-
-```{r, warning=FALSE, error=FALSE, message=FALSE}
-covar <- xgx_summarize_covariates(data,covariates)
-knitr::kable(covar$cts_covariates)
-knitr::kable(covar$cat_covariates)
 ```

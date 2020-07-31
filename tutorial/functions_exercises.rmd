@@ -1,5 +1,7 @@
 ## Functions - Exercises
 
+<p style="font-weight:300; font-size:24px">
+Objective: Test the new xGx user's understanding of xgxr functions</p>
 
 Now that we have seen several examples of the xGx functions and how to use them,
 let's test our abilities and understanding of these functions.
@@ -18,14 +20,10 @@ gg <- ggplot(data = pk_data, aes(x = NOMTIME,
                                  y = LIDV,
                                  group = DOSE,
                                  color = TRTACT_high2low)) + theme_bw()
-
-
 # Relevant to Question
 ####
-####
-
 gg <- gg + stat_summary(geom = "errorbar",
-                        width = 0.5,
+                        # width = 0.5,
                         size = 1,
                         fun.data = function(y){y <- stats::na.omit(y)
                         data.frame(y = mean(y),
@@ -33,8 +31,6 @@ gg <- gg + stat_summary(geom = "errorbar",
                                    ymax = mean(y) + qt(0.975, length(y)) * sqrt(stats::var(y)/length(y)))})
 gg <- gg + stat_summary(geom = "point", size = 2, fun.y = mean)
 gg <- gg + stat_summary(geom = "line", size = 1, fun.y = mean)
-
-####
 ####
 ```
 ```{r xgxr_question1, check=TRUE, echo=FALSE}
@@ -76,15 +72,15 @@ allow_retry = TRUE)
 
 Now let's try to produce a plot using these functions we just discussed.
 
-```{r plotting_question1, check=TRUE}
-
+```{r plotting_question1, exercise=TRUE, check=TRUE}
 # Setup 
 gg <- ggplot(data = pk_data, aes(x = NOMTIME,
                                  y = LIDV,
                                  group = DOSE,
-                                 color = TRTACT_high2low)) + theme_bw()
+                                 color = factor(DOSE))) + theme_bw()
 
 # What goes here?
+print(gg)
 ```
 ```{r plotting_question1-hint, check=TRUE}
 # Use the plotting functions from the previous questions
@@ -95,14 +91,42 @@ gg <- ggplot(data = pk_data, aes(x = NOMTIME,
 gg <- xgx_plot(data = pk_data, aes(x = NOMTIME,
                                  y = LIDV,
                                  group = DOSE,
-                                 color = TRTACT_high2low))
+                                 color = factor(DOSE)))
 gg <- gg + xgx_geom_ci(conf_level = 0.95)
 gg <- gg + xgx_scale_x_time_units()
 gg <- gg + xgx_scale_y_log10()
 print(gg)
 ```
 
-### Annotations
-```{r annotation_question, check=TRUE}
+Can you add an Emax model fit to this data as well?
 
+```{r plotting_question2, exercise=TRUE, check=TRUE}
+# Setup
+gg <- ggplot(data = continuous_pk_data_wide, aes(x = NOMTIME,
+                                 y = PD,
+                                 group = DOSE,
+                                 color = factor(DOSE))) + theme_bw()
+
+
+gg <- gg + xgx_geom_ci(conf_level = 0.95)
+# What goes here?
+print(gg)
+```
+```{r plotting_question2-hint, check=TRUE}
+# Use the plotting functions from the previous questions
+# (xgx_geom_smooth_emax)
+```
+
+```{r plotting_question2-solution, check=TRUE}
+# Setup 
+# Setup 
+gg <- ggplot(data = continuous_pk_data_wide, aes(x = NOMTIME,
+                                 y = PD,
+                                 group = DOSE,
+                                 color = factor(DOSE))) + theme_bw()
+
+
+gg <- gg + xgx_geom_ci(conf_level = 0.95)
+gg <- gg + xgx_geom_smooth_emax()
+print(gg)
 ```

@@ -6,3 +6,6 @@ Rmarkdown/*_cache/*
 .Ruserdata
 xGx.Rproj
 .DS_Store
+tutorial/xgx_auto_explore/*
+tutorial/*_files/*
+tutorial/*_cache/*

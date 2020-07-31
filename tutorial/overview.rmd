@@ -38,7 +38,24 @@ grouped by does or assigned treatment.
 An example of a PK plot used to answer these question is given in our 
 [PK - Multiple Ascending Dose template](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci):
 
-![](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-1.png){ width=100% }
+```{r PK_plot1, exercise=TRUE, exercise.lines = 6, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+gg <- ggplot(data = pk_data, 
+             aes(x = NOMTIME,
+                 y = LIDV, 
+                 group = interaction(TRTACT_high2low, PROFDAY),
+                 color = TRTACT_high2low)) 
+gg <- gg + xgx_theme()
+gg <- gg + xgx_geom_ci(conf_level = 0.95,
+                       alpha = 0.5)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + labs(y = conc_label, color = trtact_label) 
+gg <- gg + xgx_annotate_status(status)
+print(gg)
+```
+
+<!-- ![](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-1.png){ width=100% } -->
 
 
 #### Dosage trends

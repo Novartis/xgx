@@ -8,10 +8,6 @@ output:
   html_document:
     toc: true
     toc_float: true
-    include:
-      in_header: ./SiteResources/header.html
-      before_body: ./SiteResources/body.html
-    lib_dir: site_libs
     self_contained: no
 
 runtime: shiny_prerendered
@@ -30,6 +26,7 @@ library(tidyverse)
 library(xgxr)
 library(DescTools)
 library(minpack.lm)
+library(Deriv)
 # Add new functions that have not yet been pushed to DaVinci system
 source(paste0(xgxr_master_url, "R/xgx_stat_ci.R"))
 source(paste0(xgxr_master_url, "R/xgx_stat_smooth.R"))
@@ -237,6 +234,9 @@ count_label        = paste0("Count PD Marker (", count_pd_units, ")")
 ```{r child = 'overview.rmd'}
 ```
 
+```{r child='available_datasets.rmd'}
+```
+
 ```{r child='functions_overview.rmd'}
 ```
 
@@ -250,9 +250,6 @@ count_label        = paste0("Count PD Marker (", count_pd_units, ")")
 ```
 
 ```{r child='templates_examples.rmd'}
-```
-
-```{r child='templates_exercises.rmd'}
 ```
 
 ```{r child='templates_autoexplore_example.rmd'}
