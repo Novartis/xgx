@@ -38,7 +38,7 @@ grouped by does or assigned treatment.
 An example of a PK plot used to answer these question is given in our 
 [PK - Multiple Ascending Dose template](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PK.html#concentration_over_time,_colored_by_dose,_mean_+-_95%_ci):
 
-```{r PK_plot1, exercise=TRUE, exercise.lines = 6, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+```{r overview_plot1, exercise=TRUE, exercise.lines = 6, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME,
                  y = LIDV, 
@@ -72,7 +72,7 @@ signal to noise ratio is low
 An example of the type of plot which is helpful to answer these questions is 
 given in our [PK - Single Ascending Dose template](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_and_cmax_vs_dose):
 
-```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+```{r overview_plot2, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
 gg <- ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM))
 gg <- gg + geom_boxplot(aes(group = DOSE)) 
 gg <- gg + geom_smooth(method = "lm", color = "black")
@@ -101,7 +101,7 @@ upon the PD data type (e.g. continuous, binary, or ordinal)
 An example of the type of plot which is helpful to answer these questions is 
 given in our [PD, Dose-Response - Binary Response template](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PD_binary.html#responder-rate-95-ci-by-dose-for-endpoint-of-interest"):
 
-```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+```{r overview_plot3, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
 pd_data_to_plot <- binary_data %>% subset(PROFDAY == SS_PROFDAY)
 
 gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE,y = LIDV))
@@ -129,7 +129,7 @@ grid.arrange(pp1,pp2,nrow = 1)
 Between-subject variability can be easily visualized as a spaghetti plot, 
 as we have shown in our [Single Ascending Dose PK template](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk)
 
-```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+```{r overview_plot4, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
 gg <- gg + xgx_stat_ci(conf_level = 0.95)
 
@@ -149,7 +149,7 @@ print(gg)
 Within-subject variability is most simply viewed as a spaghetti plot, that 
 has been faceted by the individual, such as the one shown below:
 
-```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=7, fig.width=8, warning=FALSE}
+```{r overview_plot5, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=7, fig.width=8, warning=FALSE}
 # In order to plot grayed out spaghetti plots by dose with individuals highlighted, 
 # a new dataset needs to be defined that groups the individuals by dose
 pk_data_rep_by_trt <- list()
