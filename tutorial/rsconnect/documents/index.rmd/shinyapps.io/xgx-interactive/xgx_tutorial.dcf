@@ -1,0 +1,12 @@
+name: xgx_tutorial
+title: xgx_tutorial
+username:
+account: xgx-interactive
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2549353
+bundleId: 3460523
+url: https://xgx-interactive.shinyapps.io/xgx_tutorial/
+when: 1596221039.57029
+asMultiple: FALSE
+asStatic: FALSE

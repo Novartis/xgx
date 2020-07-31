@@ -1,6 +1,11 @@
+Rmarkdown/*_files/*
+Rmarkdown/*_cache/*
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 xGx.Rproj
 .DS_Store
+tutorial/xgx_auto_explore/*
+tutorial/*_files/*
+tutorial/*_cache/*

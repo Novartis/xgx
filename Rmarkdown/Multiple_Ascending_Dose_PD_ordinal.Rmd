@@ -9,11 +9,11 @@ output:
 ---
 
 ## Overview
-
+<!--START_EXPLANATION-->
 This document contains exploratory plots for ordinal response data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_ordinal.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
 Ordinal data can be thought of as categorical data that has a natural order. For example, mild, moderate or severe. Another example could be Grade 1, Grade 2, Grade 3. Ordinal data can also come out of stratifying continuous data, for example binning a continuous variable into quartiles, or defining (arbitrary or meaningful) cutoffs for a continuous variable. Since ordinal data has a natural order, it is important to preserve that order when creating plots. 
-
+<!--END_EXPLANATION-->
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -116,9 +116,9 @@ gg
 
 
 ## Explore variability
-
+<!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations?
-
+<!--END_EXPLANATION-->
 ### Spaghetti plots of ordinal response over time, faceted by dose
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
@@ -136,9 +136,9 @@ gg
 
 
 ## Explore irregularities in profiles
-
+<!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions.
-
+<!--END_EXPLANATION-->
 ### Ordinal response over time, faceted by individual, individual line plots
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message = FALSE}

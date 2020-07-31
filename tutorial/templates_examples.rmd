@@ -1,0 +1,85 @@
+## Template - Example {data-progressive=TRUE}
+
+#### Overview
+
+In this example, we will go through the steps of how to alter the xGx R-markdown 
+templates provided within the [xGx github](https://github.com/Novartis/xgx)
+in order to adhere to a new dataset of interest.
+
+### Finding the desired xGx template
+
+We will first go to the xGx website, find the desired xGx template from browsing the 
+differnt webpages provided there, and then find the corresponding xGx template 
+on the github website.
+
+Here, we have chosen to view the data to answer questions about the *continuous* PD responses.
+Specifically, we will be following the [PK/PD, Exposure-Response - Continuous Rmd template](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PKPD_continuous.html), 
+for which the Rmd script can be downloaded [here](https://raw.githubusercontent.com/Novartis/xgx/master/Rmarkdown/Multiple_Ascending_Dose_PKPD_continuous.Rmd).
+
+After that, we need to download the R-markdown file, and alter it's code such that 
+it will analyze our dataset.
+
+#### Downloading from Github
+
+There are a few different ways in which you can download the data, so choose 
+whichever method is most convenient for you.  A few options are listed here:
+
+  * xGx website $\rightarrow$ github (via browswer)
+  * wget / curl (linux command line)
+  * download.file(url,file_path) (R console)
+
+
+### Editing the template
+
+Now after downloading our R-markdown script using the command 
+`download.file("https://raw.githubusercontent.com/Novartis/xgx/master/Rmarkdown/Multiple_Ascending_Dose_PKPD_continuous.Rmd", "MAD_PKPD_continuous_mydata.Rmd")`, we edit the file by replacing the 
+column names and file paths with our dataset's file path and 
+column names relevant to our dataset.
+
+#### Example Rmd file snippet after editing
+
+```{r, error = TRUE, warning = FALSE, message = FALSE}
+pkpd_data <- read.csv("https://raw.githubusercontent.com/Novartis/xgxr/chase/data_create/raw/nonlinear_pkpd.csv")
+DOSE_CMT = 1
+PK_CMT = 5
+PD_CMT = 4
+SS_PROFDAY = 6 # steady state prof day
+PD_PROFDAYS <- c(0, 2, 4, 6)
+TAU = 24 # time between doses, units should match units of TIME, e.g. 24 for QD, 12 for BID, 7*24 for Q1W (when units of TIME are h)
+
+#ensure dataset has all the necessary columns
+pkpd_data = pkpd_data %>%
+  mutate(ID      = ID,                 # ID   column
+         TIME    = TIM2,               # TIME column name
+         NOMTIME = NT,                 # NOMINAL TIME column name
+         PROFDAY = 1 + floor(NT / 24), # PROFILE DAY day associated with profile,
+                                       #   e.g. day of dose administration
+         LIDV    = LIDV,               # DEPENDENT VARIABLE column name
+         CENS    = 0,                  # CENSORING column name
+         CMT     = CMT,                # COMPARTMENT column
+         DOSE    = MGKG,               # DOSE column here (numeric value)
+         TRTACT  = TRT,                # DOSE REGIMEN column here
+                                       #   (character, with units),
+         LIDV_NORM = LIDV/MGKG,
+         LIDV_UNIT = UNIT,
+         DAY_label = ifelse(PROFDAY > 0, paste("Day", PROFDAY), "Baseline"),
+         SEX       = 0,
+         WEIGHTB = 0
+         )
+
+#create a factor for the treatment variable for plotting
+pkpd_data = pkpd_data %>%
+  arrange(DOSE) %>%
+  mutate(TRTACT_low2high = factor(TRTACT, levels = unique(TRTACT)),
+         TRTACT_high2low = factor(TRTACT, levels = rev(unique(TRTACT))))
+```
+
+You may notice that some of the columns have identical mappings, while others do not.
+Here, we have kept the same structure that is used within the xGx R-markdown 
+script to indicate the column name mappings. However, our new dataset has 
+column names that are different than the dataset 
+from the dataset provided in the [R-markdown on our xGx website](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PKPD_continuous.html)
+
+This figure describes what we have done, and the same process can be applied to any new dataset for which you may be interested.
+
+![](images/column_name_matching.png){width=100%}

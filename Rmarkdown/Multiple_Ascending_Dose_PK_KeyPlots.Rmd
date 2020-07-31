@@ -9,13 +9,14 @@ output:
 ---
 
 ### Overview
+<!--START_EXPLANATION-->
 This document contains PK exploratory graphs and also the R code that generates these graphs, starting from the `dzz` and `PPtmp` files that are stored at the links below.  For detailed thougths on how to interpret these graphs, please consult the other xGx PK pages for [Single Ascending Dose](Single_Ascending_Dose_PK.html) and [Multiple Ascending Dose](Multiple_Ascending_Dose_PK.html)
 
 * [dzz blinded dataset of drug concentrations](Data/dzz_PKConc.csv)
 * [PPtmp blinded dataset of NCA parameters](Data/PPtmp_NCA.csv)
 
 Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PK_KeyPlots.Rmd).
-
+<!--END_EXPLANATION-->
 ### Setup
 ```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 
@@ -118,11 +119,11 @@ nca = nca %>%
 ```
 
 ## Provide an overview of the data
-
+<!--START_EXPLANATION-->
 Summarize the data in a way that is easy to visualize the general trend of PK over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
 
 When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?
-
+<!--END_EXPLANATION-->
 ### Concentration over time, faceted by regimen, colored by dose
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
@@ -174,9 +175,9 @@ print(gg)
 ```
 
 ### Noncompartmental Analysis
-
+<!--START_EXPLANATION-->
 Observe the dose normalized AUC over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to CENS observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose?
-
+<!--END_EXPLANATION-->
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 6, fig.height = 8}
 nca.filter = nca %>% 
@@ -198,9 +199,9 @@ print(gg)
 ```
 
 ## Explore variability
-
+<!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?
-
+<!--END_EXPLANATION-->
 ### Spaghetti, grouped by dose
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
@@ -221,8 +222,9 @@ print(gg)
 ```
 
 ## Explore irregularities in profiles
+<!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)?
-
+<!--END_EXPLANATION-->
 ### Individual profiles
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 18}
 gg <- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))

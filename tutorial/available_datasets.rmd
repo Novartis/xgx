@@ -1,0 +1,111 @@
+## Available Datasets Description {data-progressive=FALSE}
+
+The examples for this tutorial will use several different datasets, which have 
+been pre-processed for use in all of the R script examples.
+
+These datasets are:
+
+### pkpd_data
+  - Non-filtered dataset. Contains all PD types (ordinal, continuous, count, binary) and PK data
+```{r, echo=FALSE}
+DT::datatable(head(pkpd_data),
+              options = list(dom = 't'))
+```
+
+### pk_data
+  - PK only dataset
+```{r, echo=FALSE}
+DT::datatable(head(pk_data),
+              options = list(dom = 't'))
+```
+
+### continuous_data
+  - Continuous PD only dataset
+```{r, echo=FALSE}
+DT::datatable(head(continuous_data),
+              options = list(dom = 't'))
+```
+
+### continuous_pk_data_wide
+  - Continuous PD joined with PK data
+```{r, echo=FALSE}
+DT::datatable(head(continuous_pk_data_wide),
+              options = list(dom = 't'))
+```
+
+### binary_data
+  - Binary PD only dataset
+```{r, echo=FALSE}
+DT::datatable(head(binary_data),
+              options = list(dom = 't'))
+```
+
+### binary_pk_data_wide
+  - Binary PD joined with PK data 
+```{r, echo=FALSE}
+DT::datatable(head(binary_pk_data_wide),
+              options = list(dom = 't'))
+```
+
+### ordinal_data
+  - Ordinal PD only dataset
+```{r, echo=FALSE}
+DT::datatable(head(ordinal_data),
+              options = list(dom = 't'))
+```
+
+### ordinal_pk_data_wide
+  - Ordinal PD joined with PK data
+```{r, echo=FALSE}
+DT::datatable(head(ordinal_pk_data_wide),
+              options = list(dom = 't'))
+```
+
+### count_data
+  - Count PD only dataset
+```{r, echo=FALSE}
+DT::datatable(head(count_data),
+              options = list(dom = 't'))
+```
+
+### count_pk_data_wide
+  - Count PD joined with PK data
+```{r, echo=FALSE}
+DT::datatable(head(count_pk_data_wide),
+              options = list(dom = 't'))
+```
+
+### NCA
+  - Non Compartmental Analysis PK data
+```{r, echo=FALSE}
+DT::datatable(head(NCA),
+              options = list(dom = 't'))
+```
+
+### continuous_NCA
+  - Non Compartmental Analysis PK data combined with continuous PD data
+```{r, echo=FALSE}
+DT::datatable(head(continuous_NCA),
+              options = list(dom = 't'))
+```
+
+### binary_NCA
+  - Non Compartmental Analysis PK data combined with binary PD data
+```{r, echo=FALSE}
+DT::datatable(head(binary_NCA),
+              options = list(dom = 't'))
+```
+
+### ordinal_NCA
+  - Non Compartmental Analysis PK data combined with ordinal PD data
+```{r, echo=FALSE}
+DT::datatable(head(ordinal_NCA),
+              options = list(dom = 't'))
+```
+
+### count_NCA
+  - Non Compartmental Analysis PK data combined with count PD data
+```{r, echo=FALSE}
+DT::datatable(head(count_NCA),
+              options = list(dom = 't'))
+```

@@ -1,0 +1,116 @@
+## Templates - AutoExplore Exercise
+
+
+Given the code example from the examples before,
+let's go through some exercises to learn about how to alter this code
+to produce an xGx rmd template for SAD PK on this dataset.
+
+#### Code from [Templates - AutoExplore Example](Templates - AutoExplore Example) Section
+<!--
+Due to `grader` package not being included on evaluating systems, 
+the long calculation time of xgx_autoexplore, and 
+the creation of directory strucutures which are hard to manage on shinyapps.io,
+we will simply use a multiple choice question/answering system here.
+-->
+
+```{r eval=FALSE}
+# Include the new xgx_autoexplore function in the environment
+devtools::source_url("https://raw.githubusercontent.com/Novartis/xgxr/chase/R/xgx_auto_explore.R", echo=FALSE)
+
+author_name = "Your Name Here"
+
+# Do you want text explaining the figures?
+show_explanation = FALSE
+
+# Your path to the data goes here
+data_path <- "https://raw.githubusercontent.com/Novartis/xgxr/master/data_create/raw/nonlinear_pkpd.csv"
+
+# Change your column names (left) to the column names that
+#   have been standardized in the template (left)
+mapping <- list(
+  "TIME" = "TIM2",
+  "NOMTIME" = "NT",
+  "EVID" = 0,
+  "CENS" = 0,
+  "DOSE" = "MGKG",
+  "TRTACT" = "TRT",
+  "LIDV_NORM" = "LIDV/MGKG",
+  "LIDV_UNIT" = "UNIT",
+  "PROFDAY" = 1,
+  "SEX" = 0,
+  "WEIGHTB" = 0)
+
+# SAD PK Parameters specific to your dataset
+pk_cmt = 5 # Pk Concentration
+pd_cmt = 4 # PD Continuous
+pd_data_type = "continuous"
+dose_cmt = 1
+steady_state_day = c(0, 6)
+time_between_doses = 24
+multiple_dosing = TRUE
+
+xgx_auto_explore(data_path = data_path,
+                 mapping = mapping,
+                 author_name = author_name,
+                 pk_cmt = pk_cmt,
+                 pd_cmt = pd_cmt,
+                 dose_cmt = dose_cmt,
+                 steady_state_day = steady_state_day,
+                 time_between_doses = time_between_doses,
+                 multiple_dosing = multiple_dosing,
+                 pd_data_type = pd_data_type,
+                 show_explanation = show_explanation)
+```
+
+
+#### Performing a Single Ascending Dose Pharmacokinetics Analysis
+
+```{r sad_pk_question, echo=FALSE}
+question("To recieve a SAD PK analysis of your data - 
+         how would you alter the code above?
+         (Select all that apply)",
+  answer("Change: Either `pd_cmt = 4` to `pd_cmt = NULL`, or `pd_data_type = \"continuous\"` to `pd_data_type = NULL`", correct = TRUE),
+  answer("Change: `mapping = ...` to `mapping = NULL`"),
+  answer("Change: `multiple_dosing = TRUE` to `multiple_dosing = FALSE`", correct = TRUE),
+  answer("Change: `pd_data_type = \"continuous\"` to pd_data_type = \"binary\""),
+  allow_retry = TRUE
+)
+```
+
+#### Probability of Severe Response
+
+Let's say that we have a dataset in our home directory, `~/my_pkpd_dataset.csv`, 
+which contains categorical responses for an individual's severity of response
+for each time point, drug concentration, and treatment dosage.
+The PD ordinal response is held within compartment = 3, while PK data is within
+compartment = 1 for this dataset. The compartment column name is "COMPNT".
+
+
+
+```{r ordinal_question, echo=FALSE}
+question("What xGx template might we want to use to get information regarding the 
+probability for a severe response given a specific treatment dosage and drug
+concentration within a patient?",
+  answer("PK - Single Ascending Dose"),
+  answer("PD, Dose-Response - Time to Event"),
+  answer("PK/PD, Exposure-Response - Ordinal Response", correct = TRUE),
+  answer("PK/PD, Exposure-Response - Continuous"),
+  answer("PK - Multiple Ascending Dose"),
+  allow_retry = TRUE
+)
+```
+
+```{r ordinal_question2, echo=FALSE}
+question("What would you change from the `xgx_autoexplore()` parameters
+         code above in order to produce this analysis?",
+  answer("Change: `pd_cmt = 4` to `pd_cmt = 3`", correct = TRUE),
+  answer("Change: `mapping = list(...)` to `mapping = list(..., COMPNT = CMT, ..)`"),
+  answer("Change: `pd_data_type = \"continuous\"` to pd_data_type = \"ordinal\"", correct = TRUE),
+  answer("Change: `multiple_dosing = TRUE` to `multiple_dosing = FALSE`"),
+  answer("Change: `pd_data_type = \"continuous\"` to pd_data_type = \"binary\""),
+  answer("Change: `pk_cmt = 5` to `pk_cmt = 1`", correct = TRUE),
+  answer("Change: `mapping = list(...)` to `mapping = list(..., CMT = COMPNT, ..)`", correct = TRUE),
+  answer("Change: `data_path = ...` to `data_path = \"~/my_pkpd_dataset.csv\"`", correct = TRUE),
+  allow_retry = TRUE
+)
+```
