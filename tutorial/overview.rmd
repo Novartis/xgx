@@ -72,7 +72,16 @@ signal to noise ratio is low
 An example of the type of plot which is helpful to answer these questions is 
 given in our [PK - Single Ascending Dose template](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK.html#nca_of_dose_normalized_auc_and_cmax_vs_dose):
 
-![](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-6-1.png){ width=100% }
+```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+gg <- ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM))
+gg <- gg + geom_boxplot(aes(group = DOSE)) 
+gg <- gg + geom_smooth(method = "lm", color = "black")
+gg <- gg + facet_wrap(~PARAM, scales = "free_y", ncol = 4)
+gg <- gg + labs(x = dose_label, y = concnorm_label)
+gg <- gg + xgx_annotate_status(status)
+print(gg)
+```
+<!-- ![](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-6-1.png){ width=100% } -->
 
 
 ### Pharmacodynamic Relevant Questions
@@ -92,7 +101,27 @@ upon the PD data type (e.g. continuous, binary, or ordinal)
 An example of the type of plot which is helpful to answer these questions is 
 given in our [PD, Dose-Response - Binary Response template](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PD_binary.html#responder-rate-95-ci-by-dose-for-endpoint-of-interest"):
 
-![](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PD_binary_files/figure-html/unnamed-chunk-7-1.png){ width=100% }
+```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+pd_data_to_plot <- binary_data %>% subset(PROFDAY == SS_PROFDAY)
+
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE,y = LIDV))
+gg <- gg + xgx_stat_ci(conf_level = .95,distribution = "binomial", geom = list("point","errorbar"))
+gg <- gg + geom_smooth(method = "glm", method.args = list(family = binomial(link = logit)), color = "black")
+gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25), labels = scales::percent)
+gg <- gg + coord_cartesian(ylim = c(0, 1))
+gg <- gg + labs(x = dose_label, y = binary_label)
+gg <- gg + xgx_annotate_status(status)
+
+pp1 <- gg + ggtitle("Dose on Linear Scale")
+#print(pp1)
+
+## Same plot but on a log scale
+pp2 <- gg + scale_x_log10(breaks = unique(pd_data_to_plot$DOSE))+ ggtitle("Dose on Log Scale")
+#print(pp2)
+grid.arrange(pp1,pp2,nrow = 1)
+```
+
+<!-- ![](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PD_binary_files/figure-html/unnamed-chunk-7-1.png){ width=100% } -->
 
 ### Questions about Sources of Variablility
 
@@ -100,15 +129,67 @@ given in our [PD, Dose-Response - Binary Response template](https://opensource.n
 Between-subject variability can be easily visualized as a spaghetti plot, 
 as we have shown in our [Single Ascending Dose PK template](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk)
 
-Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk
-![](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-1.png){ width=100% }
+```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=3, fig.width=8, warning=FALSE}
+gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
+gg <- gg + xgx_stat_ci(conf_level = 0.95)
+
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + labs(y = conc_label)
+
+gg <- gg + facet_grid(.~TRTACT_low2high) 
+gg <- gg + xgx_annotate_status(status)
+print(gg)
+```
+<!-- ![](https://opensource.nibr.com/xgx/Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-1.png){ width=100% } -->
 
 #### Intra-subject variability
 
 Within-subject variability is most simply viewed as a spaghetti plot, that 
 has been faceted by the individual, such as the one shown below:
 
-![](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PK_files/figure-html/unnamed-chunk-15-1.png){ width=100% }
+```{r PK_plot1, exercise=TRUE, exercise.lines = 5, exercise.eval=TRUE, fig.height=7, fig.width=8, warning=FALSE}
+# In order to plot grayed out spaghetti plots by dose with individuals highlighted, 
+# a new dataset needs to be defined that groups the individuals by dose
+pk_data_rep_by_trt <- list()
+for(id in unique(pk_data$ID)){
+  indiv_data <- pk_data %>% subset(ID == id)
+  itrtact = unique(indiv_data$TRTACT_low2high)
+  
+  pk_data_rep_by_trt[[as.character(id)]] <- pk_data %>% 
+        subset(TRTACT_low2high == itrtact) %>% 
+        mutate(ID_rep_by_trt = ID, ID = id)
+}
+pk_data_rep_by_trt <- bind_rows(pk_data_rep_by_trt)
+
+gg <- ggplot(mapping = aes(x = TIME, y = LIDV)) 
+# Plot gray underlaid spaghettis
+gg <- gg + geom_line(data = pk_data_rep_by_trt, 
+                     aes(group = interaction(ID_rep_by_trt, PROFDAY)), 
+                     size = 1, color = rgb(0.5, 0.5, 0.5), alpha = 0.3)
+gg <- gg + geom_point(data = pk_data_rep_by_trt, 
+                     size = 1, color = rgb(0.5, 0.5, 0.5), alpha = 0.3)
+# plot overlaid individuals
+gg <- gg + geom_line(data = pk_data, 
+                     aes(group = interaction(ID, PROFDAY)), size = 1)
+gg <- gg + geom_point(data = pk_data %>% filter(CENS == 0), size = 1)
+gg <- gg + geom_point(data = pk_data %>% filter(CENS == 1), 
+                      color = "red",  shape = 8, size = 2)
+gg <- gg + xgx_scale_y_log10()
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)
+gg <- gg + labs(y = conc_label)
+gg <- gg + theme(legend.position = "none")
+gg <- gg + facet_wrap(~ID + TRTACT_low2high, 
+                ncol = 10 )
+gg <- gg + xgx_annotate_status(status, fontsize = 4, color = rgb(0.5, 0.5, 1))
+gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
+      panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
+print(gg)
+```
+
+<!-- ![](https://opensource.nibr.com/xgx/Multiple_Ascending_Dose_PK_files/figure-html/unnamed-chunk-15-1.png){ width=100% } -->
 
 #### Explained vs Unexplained Variability
   * Explained variability

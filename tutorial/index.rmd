@@ -22,6 +22,7 @@ xgx_chase_url = "https://raw.githubusercontent.com/Novartis/xgx/chase/"
 
 # Standard packages and xgxr
 library(learnr)
+library(gridExtra)
 library(tidyverse)
 library(xgxr)
 library(DescTools)
