@@ -82,9 +82,6 @@ In this data only a few variables are available, so variable selection isn't nee
 km_cox <- coxph(Surv(time) ~ dose + sex,
              data =km_data)
 km_cox_summary <- broom::tidy(km_cox) %>%
-  mutate(HR.chg20pct = (1.2)^estimate,
-         HR.chg20pct.conf.low  = 1.2^conf.low,
-         HR.chg20pct.conf.high = 1.2^conf.high) %>%
   mutate_at(vars(-term),signif,2)
 kable(km_cox_summary)  
 ```
