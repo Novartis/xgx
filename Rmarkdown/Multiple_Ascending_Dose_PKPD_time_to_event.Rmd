@@ -106,7 +106,7 @@ print(gg)
 ```
 
 ## Performing Cox regression on the above data. 
-In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported.  Look for small p values or large hazard ratios to identify covariates that have a large effect.
+In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. Look for small p values or large hazard ratios to identify covariates that have a large effect.
 
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_cox <- coxph(Surv(time) ~ fake_AUC + fake_Cmax,
