@@ -1,3 +1,5 @@
+Rmarkdown/*_files/*
+Rmarkdown/*_cache/*
 .Rproj.user
 .Rhistory
 .RData
