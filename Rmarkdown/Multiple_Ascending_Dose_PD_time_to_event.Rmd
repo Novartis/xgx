@@ -9,7 +9,7 @@ output:
 ---
 <!--START_EXPLANATION-->
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_time_to_event.Rmd).
-
+<!--END_EXPLANATION-->
 
 ```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
