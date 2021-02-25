@@ -58,14 +58,16 @@ navbar:
       href: Adverse_Events.html
   - text: Resources
     menu:
-      - text: Presentation Checklist
-        href: Resources/Presentation_Checklist_v2.03.pdf
+      - text: PKPD Cheat Sheet
+        href: Resources/PKPD_Exploratory_Graphics_(xGx)_Cheat_Sheet.pdf
       - text: Graphics Principles Cheat Sheet
         href: Resources/Graphics_Principles_Cheat_Sheet_v1.1.pdf
       - text: Fundamental PK Principles Introduction
         href: Resources/FundamentalPK_AndyStein_Hackathon_2019.pptx      
       - text: Fundamental PD Principles Introduction
         href: Resources/FundamentalPD_AndyStein_Hackathon_2019.pptx 
+      - text: Presentation Checklist
+        href: Resources/Presentation_Checklist_v2.03.pdf
       - text: Uncertainty Assessment - Pedigree Table
         href: Resources/Uncertainty_Assessment_Pedigree_Table.pdf
 output:
