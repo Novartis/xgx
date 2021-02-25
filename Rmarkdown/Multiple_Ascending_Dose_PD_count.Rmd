@@ -9,9 +9,9 @@ output:
 ---
 
 ## Overview
-
+<!--START_EXPLANATION-->
 This document contains exploratory plots for count PD data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_count.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
-
+<!--END_EXPLANATION-->
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -91,9 +91,9 @@ pd_data <- pkpd_data %>%
 
 
 ## Provide an overview of the data
-
+<!--START_EXPLANATION-->
 Summarize the data in a way that is easy to visualize the general trend of PD over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles.
-
+<!--END_EXPLANATION-->
 ### Count over time, colored by Dose, median, 5th & 95th percentiles by nominal time
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message = FALSE} 
@@ -146,9 +146,9 @@ gg
 ```
 
 ## Explore variability
-
+<!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations?
-
+<!--END_EXPLANATION-->
 ### Spaghetti plots of Count over time, faceted by dose
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
@@ -170,9 +170,9 @@ gg
 
 
 ## Explore irregularities in profiles
-
+<!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions.
-
+<!--END_EXPLANATION-->
 ### Count over time, faceted by individual, individual line plots
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message = FALSE}
@@ -195,11 +195,11 @@ gg
 ```
 
 ## Explore covariate effects on PD
-
+<!--START_EXPLANATION-->
 Stratify by covariates of interest to explore whether any key covariates impact response. For examples of plots and code startifying by covariate, see [Single Ascending Dose Covariate Section](Single_Ascending_Dose_PK.html#explore_covariate_effects_on_pk)
 
 **Warning** Be careful of interpreting covariate effects on PD. Covariate effects on PD could be the result of covariate effects on PK transfering to PD through the PK/PD relationship.
-
+<!--END_EXPLANATION-->
 ## Explore Dose-Response Relationship
 
 ### Count vs Dose, colored by time, median, 5th & 95th percentiles by nominal time
