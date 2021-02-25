@@ -7,9 +7,9 @@ output:
     toc_float: true
     code_folding: hide
 ---
-
+<!--START_EXPLANATION-->
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_time_to_event.Rmd).
-
+<!--END_EXPLANATION-->
 
 ```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
@@ -55,11 +55,11 @@ km_data_Cmax_AUC <- km_data %>%
 ```
 
 ## Plot Kaplan Meier with Confidence Intervals using only Cmax
-
+<!--START_EXPLANATION-->
 Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by exposure quartile to give an overview of the dose-response.  To see if there's an effect on exposure vs response, look to see if there is separation between the quartiles.  However note that it may be that there are factors that impact both exposure and response and so a more careful model-based analysis may be needed to formally assess any causal relationship, as described in the reference below.
 
 Yang, Jun, et al. "The combination of exposure‐response and case‐control analyses in regulatory decision making." The Journal of Clinical Pharmacology 53.2 (2013): 160-166.
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_fit <- survfit(Surv(time, status) ~ exposure, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
@@ -69,9 +69,9 @@ print(gg)
 
 
 ## Plot Kaplan Meier faceted by exposure metric
-
+<!--START_EXPLANATION-->
 Using the `ggsurvplot_facet` command, one can look at many exposure metrics at once.  Again, look for separation in the quartiles, but be aware that something like a case-control analysis may be needed to assess whether exposure causes reduced response or whether other factors may affect both exposure and response.
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_fit_Cmax_AUC <- survfit(Surv(time, status) ~ NCAvalue, data = km_data_Cmax_AUC, conf.int = 0.95)
 gg <- ggsurvplot_facet(km_fit_Cmax_AUC, 
@@ -84,12 +84,12 @@ print(gg)
 ```
 
 ## Plot Kaplan Meier faceted by exposure quartile for assessing covariates
-
+<!--START_EXPLANATION-->
 This plot can help in assessing the impact of a covariate (ECOG) on outcome.
 
 Note, `ph.ecog == 3` patient are removed from dataset because there is only one patient
 with ECOG = 3 and this causes an error when generating the confidence interval.  This bug was [reported to the survminer developer and fixed in the github version](https://github.com/kassambara/survminer/issues/443).
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_data_noecog3 <- km_data %>% filter (ph.ecog != 3)
 km_fit_ecog <- survfit(Surv(time, status) ~ ph.ecog, 
@@ -106,8 +106,9 @@ print(gg)
 ```
 
 ## Performing Cox regression on the above data. 
+<!--START_EXPLANATION-->
 In this data only 2 variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. Look for small p values or large hazard ratios to identify covariates that have a large effect.
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 km_cox <- coxph(Surv(time) ~ fake_AUC + fake_Cmax,
              data =km_data)

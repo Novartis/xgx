@@ -7,7 +7,7 @@ output:
     toc_float: true
     code_folding: hide
 ---
-
+<!--START_EXPLANATION-->
 Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_time_to_event.Rmd).
 
 
@@ -47,9 +47,9 @@ km_data <- km_data %>%
 ```
 
 ## Plot Kaplan Meier with Confidence Intervals stratifying by dose
-
+<!--START_EXPLANATION-->
 Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by dose to give an overview of the dose-response.  To see if there's an effect on exposure vs response, look to see if there is separation between the doses.
-
+<!--END_EXPLANATION-->
 ```{r warning=FALSE, message=FALSE}
 km_fit <- survfit(Surv(time, status) ~ dose_label, data = km_data, conf.int = 0.95)
 gg <- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
@@ -58,9 +58,9 @@ print(gg)
 ```
 
 ## Plot Kaplan Meier faceted by exposure quartile for assessing covariates
-
+<!--START_EXPLANATION-->
 This plot can help in assessing the impact of a covariate (sex) on outcome.
-
+<!--END_EXPLANATION-->
 ```{r warning=FALSE, message=FALSE}
 km_fit_sex <- survfit(Surv(time, status) ~ sex, 
                        data = km_data, 
@@ -76,8 +76,9 @@ print(gg)
 ```
 
 ## Performing Cox regression on the above data. 
+<!--START_EXPLANATION-->
 In this data only a few variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. Look for small p values or large hazard ratios to identify covariates that have a large effect.
-
+<!--END_EXPLANATION-->
 ```{r warning=FALSE, message=FALSE}
 km_cox <- coxph(Surv(time) ~ dose + sex,
              data =km_data)
@@ -87,13 +88,13 @@ kable(km_cox_summary)
 ```
 
 ## Mean Event Rate over time
-
+<!--START_EXPLANATION-->
 For repeated time to event data, the rate of occurance of the events can be plotted. The observed average rate of occurance would be related to the Hazard rate in a time-to-event model. 
 
 Calculate the rate of occurance of an event as the number of events occuring within specific time intervals, average over the number of subjects being observed. 
 
 Observe the mean event rate, do you see any patterns? Does the event rate increase or decrease over time, or at specific time points (e.g. dosing intervals, circadian rhythms)?
-
+<!--END_EXPLANATION-->
 
 ```{r}
 # (coming soon)
@@ -103,11 +104,11 @@ Observe the mean event rate, do you see any patterns? Does the event rate increa
 
 
 ## Mean Cumulative Function
-
+<!--START_EXPLANATION-->
 The mean cumulative function is another way of looking at repeated time-to-event data. The mean cumulative function is the population average of the cumulative number of events over time, and would be related to the Cumulative Hazard in a time-to-event model. 
 
 Calculate the mean cumulative function by ordering all of the events by increasing time, calculate the cumulative number of occurances up to each time point, and take the average over the number of subjects being observed. For repeated time-to-event data, the mean cumulative function can achieve values greater than 1.
-
+<!--END_EXPLANATION-->
 ```{r}
 # (coming soon)
 ```

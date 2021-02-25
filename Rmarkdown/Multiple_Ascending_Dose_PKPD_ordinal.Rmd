@@ -9,11 +9,11 @@ output:
 ---
 
 ## Overview
-
+<!--START_EXPLANATION-->
 This document contains exploratory plots for ordinal response data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_ordinal.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 
 Ordinal data can be thought of as categorical data that has a natural order. For example, mild, moderate or severe. Another example could be Grade 1, Grade 2, Grade 3. Ordinal data can also come out of stratifying continuous data, for example binning a continuous variable into quartiles, or defining (arbitrary or meaningful) cutoffs for a continuous variable. Since ordinal data has a natural order, it is important to preserve that order when creating plots. 
-
+<!--END_EXPLANATION-->
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -120,13 +120,13 @@ pd_ordinal_label   = paste0("Ordinal PD Marker (", pd_units, ")")
 
 
 ## Provide an overview of the data
-
+<!--START_EXPLANATION-->
 Summarize the data in a way that is easy to visualize the general trend of PD over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
-
+<!--END_EXPLANATION-->
 ### PK and PD marker over time, colored by Dose, median, 5th, 95th percentiles by nominal time
-
+<!--START_EXPLANATION-->
 Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect?
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
 #PK data
 gg1 <- ggplot(data = pk_data, 
@@ -281,11 +281,11 @@ gg
 
 
 ### Explore covariate effects on Exposure-Response Relationship
-
+<!--START_EXPLANATION-->
 Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. For examples of plots and code startifying by covariate, see [Continuous PKPD Covariate Section](Multiple_Ascending_Dose_PKPD_continuous.html#explore_covariate_effects_on_exposure-response_relationship)
-
+<!--END_EXPLANATION-->
 ### Individual response vs exposure hysteresis plots
-
+<!--START_EXPLANATION-->
 Using geom_path you can create hysteresis plots of response vs exposure. Including details like arrows or colors can be helpful to indicate the direction of time.
 
 If most of the arrows point up and to the right or down and to the left, this indicates a positive relationship between exposure and response (i.e. increasing exposure -> increasing response). Arrows pointing down and to the right or up and to the left indicate a negative relationship.
@@ -293,7 +293,7 @@ If most of the arrows point up and to the right or down and to the left, this in
 In a hysteresis plot, you want to determine whether the path is curving, and if so in what direction. If you detect a curve in the hysteresis plot, this indicates there is a delay between the exposure and the response. Normally, a clockwise turn indicates that increasing exposure is associated with (a delayed) increasing response, while a counter clockwise turn indicates increasing concentration gives (a delayed) decreasing response.
 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
-
+<!--END_EXPLANATION-->
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message = FALSE}
 pkpd_data_wide<- pkpd_data_wide %>% arrange(ID, TIME)
 
