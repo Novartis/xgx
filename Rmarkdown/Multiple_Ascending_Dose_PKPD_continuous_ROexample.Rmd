@@ -100,7 +100,7 @@ print(g)
 
 ## try nlsLM with Alison code
 ```{r}
-source("xgx_stat_smooth.R") #WILL NEED TO BE CORRECTED IN XGXR
+source("./xgx_stat_smooth.R") #WILL NEED TO BE CORRECTED IN XGXR
 
 binding_data = pkpd_data %>%
   rename(Ctot = CTOT, Tfreefrac = T_FREEFRAC) %>%
