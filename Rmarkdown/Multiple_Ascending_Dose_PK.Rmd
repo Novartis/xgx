@@ -332,7 +332,9 @@ gg %+%
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 4}
 gg %+% 
   (NCA %>% subset(PARAM %in% c("Cmax_0", "Cmax_tau"))) + 
-  facet_grid(.~DAY_label)
+  facet_grid(.~DAY_label) +
+  ylab("Dose normalized Cmax (ng/mL)/mg") 
+
 ```
 <!--START_EXPLANATION-->
 For multiple ascending dose studies, plot the ratio between the steady state Cmax and the Cmax from the first dose administration. Is there any accumulation?
