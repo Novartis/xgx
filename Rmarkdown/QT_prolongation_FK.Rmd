@@ -1,6 +1,6 @@
 ---
 title: "QT Prolongation Exploratory Plots"
-author: "Chase Brown, Alison Margolskee, Fariba Khanshan, Andy Stein"
+author: "Chase Brown, Fariba Khanshan, Alison Margolskee, Andy Stein"
 output:
   html_document:
     toc: true
@@ -22,10 +22,12 @@ library(dplyr)
 library(tidyr)
 library(xgxr)
 library(gridExtra)
+library(minpack.lm)
 # using old version of xgxr
 xgxr_master_url = "https://raw.githubusercontent.com/Novartis/xgxr/master/"
 source(paste0(xgxr_master_url, "R/xgx_stat_smooth.R"))
 source(paste0(xgxr_master_url, "R/xgx_stat_ci.R"))
+source(paste0(xgxr_master_url, "R/predict.nls.R"))
 
 #flag for labeling figures as draft
 status = "DRAFT"
@@ -232,72 +234,75 @@ to model the relationship between $\Delta QTc_F$ and concentration available for
 
 <!--END_EXPLANATION-->
 
-```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 7}
-# Same plot with several models
-qt_conc_plot <- function(model_num){
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3.5}
 
-  # Same QT vs Concentration for each plot
-  gg <- ggplot(data = qt_data,aes(x = LIDV,y = DELTA_QT))
-  gg <- gg + geom_point(alpha = 0.5)
-  gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
-  gg <- gg + xgx_annotate_status(status)
-  gg <- gg + guides(color = guide_legend(""),
-                    fill = guide_legend(""),
-                    shape = guide_legend(dose_label))
-  gg <- gg + labs(x = conc_label,y = qt_label)
+# Same QT vs Concentration for each plot
+gg <- ggplot(data = qt_data,aes(x = LIDV,y = DELTA_QT))
+gg <- gg + geom_point(alpha = 0.25)
+gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + guides(color = guide_legend(""),
+                  fill = guide_legend(""),
+                  shape = guide_legend(dose_label))
+gg <- gg + labs(x = conc_label,y = qt_label)
 
 
-  # Add a different model for each plot
-  if(model_num == 1){
-    gg <- gg + geom_smooth(method = "loess", formula = "y ~ x")
-    
-    title <- latex2exp::TeX("Simple LOESS Fit$_{}$")
-    subtitle <- latex2exp::TeX("y ~ x$_{}^{}$")
-  }
-  else if(model_num == 2){
-    gg <- gg + xgx_geom_smooth_emax()
-    
-    title <- latex2exp::TeX("E_{max}")
-    subtitle <- latex2exp::TeX("$y = E_0 + (E_{max} * x)(ED_{50} + x)^{-1}$")
-  }
-  else if(model_num == 3){
-    model <- lm(formula = DELTA_QT ~ 1 + LIDV + ID, data = qt_data)
+# Loess smooth
+gg1 <- gg + geom_smooth(method = "loess", formula = "y ~ x")
+title <- latex2exp::TeX("Simple LOESS Fit$_{}$")
+subtitle <- latex2exp::TeX("y ~ x$_{}^{}$")
+gg1 <- gg1 + ggtitle(label = title, subtitle = subtitle)
+gg1 <- gg1 + theme(legend.position="none")
 
-    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),se = FALSE)
-    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),se = FALSE, color = "gray")
-    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),se = FALSE,color = "gray")
-    
-    title = "Mixed Effects"
-    subtitle <- latex2exp::TeX("$\\Delta QTc_{F, ij} = (\\beta_0 + b_{0i}) + \\beta_1 * Conc_{ij} + \\epsilon_{ij}$")
-  }
-  else if(model_num == 4){
-    model <- lm(formula = DELTA_QT ~ 1 + log(1 + LIDV) + ID, data = qt_data)
+# Emax fit
+gg2 <- gg + xgx_geom_smooth_emax()
+title <- latex2exp::TeX("E_{max}")
+subtitle <- latex2exp::TeX("$y = E_0 + (E_{max} * x)(ED_{50} + x)^{-1}$")
+gg2 <- gg2 + ggtitle(label = title, subtitle = subtitle)
+gg2 <- gg2 + theme(legend.position="none")
 
-    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$fit),se = FALSE)
-    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$lwr),se = FALSE,color = "gray")
-    gg <- gg + geom_smooth(mapping = aes(y = data.frame(predict(model, interval = "confidence"))$upr),se = FALSE,color = "gray")
-    title <- "Mixed Effects (log)"
-    subtitle <- latex2exp::TeX("$\\Delta QTc_{F, ij} = (\\beta_0 + b_{0i}) + log(1 + \\beta_1 * Conc_{ij}) + \\epsilon_{ij}$")
-  }
-  gg <- gg + ggtitle(label = title, subtitle = subtitle)
-  gg <- gg+ theme(legend.position="none")
-  return(gg)
-}
+grid.arrange(
+  gg1,
+  gg2,
+  ncol = 2)
 
-
-grid.arrange(qt_conc_plot(1),
-             qt_conc_plot(2),
-             qt_conc_plot(3),
-             qt_conc_plot(4),
-             ncol = 2)
 ```
 
+Note that `geom_smooth` can only recognize `y` and `x` variables in formulas. If you want to include additional variables, e.g. covariates or subject ID (e.g. for repeated measures), this requires the model to be fit outside of geom_smooth. Below we include two examples of mixed effects models using `lmer` from the `lme4` package, and `predictInterval` from the `merTools` package.
 
+```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 3.5}
+model <- lme4::lmer(formula = DELTA_QT ~ 1 + LIDV + (1 | ID), data = qt_data)
+
+gg3 <- gg + geom_smooth(mapping = aes(y = data.frame(merTools::predictInterval(model))$fit),se = FALSE)
+gg3 <- gg3 + geom_smooth(mapping = aes(y = data.frame(merTools::predictInterval(model))$lwr),se = FALSE, linetype = "dotted")
+gg3 <- gg3 + geom_smooth(mapping = aes(y = data.frame(merTools::predictInterval(model))$upr),se = FALSE, linetype = "dotted")
+title = "Mixed Effects"
+subtitle <- latex2exp::TeX("$\\Delta QTc_{F, ij} = (\\beta_0 + b_{0i}) + \\beta_1 * Conc_{ij} + \\epsilon_{ij}$")
+gg3 <- gg3 + ggtitle(label = title, subtitle = subtitle)
+gg3 <- gg3+ theme(legend.position="none")
+
+
+model <- lme4::lmer(formula = DELTA_QT ~ 1 + logLIDV + (1 | ID), data = qt_data %>% mutate(logLIDV = log(LIDV + 1)))
+
+gg4 <- gg + geom_smooth(mapping = aes(y = data.frame(merTools::predictInterval(model))$fit),se = FALSE)
+gg4 <- gg4 + geom_smooth(mapping = aes(y = data.frame(merTools::predictInterval(model))$lwr),se = FALSE, linetype = "dotted")
+gg4 <- gg4 + geom_smooth(mapping = aes(y = data.frame(merTools::predictInterval(model))$upr),se = FALSE, linetype = "dotted")
+title <- "Mixed Effects (log)"
+subtitle <- latex2exp::TeX("$\\Delta QTc_{F, ij} = (\\beta_0 + b_{0i}) + log(1 + \\beta_1 * Conc_{ij}) + \\epsilon_{ij}$")
+gg4 <- gg4 + ggtitle(label = title, subtitle = subtitle)
+gg4 <- gg4 + theme(legend.position="none")
+
+grid.arrange(
+  gg3,
+  gg4,
+  ncol = 2)
+    
+```
 
 ### Mixed Effects model with $C_{max}$ and AUC
 
 <!--START_EXPLANATION-->
-In addition to observing teh relationship between $\Delta QTc_F$ and concentration 
+In addition to observing the relationship between $\Delta QTc_F$ and concentration 
 for all data points, we can look at the relationship with summaries of the profile, 
 such as $C_{max}$ and $AUC$. The plots below use the mixed effects models, 
 $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + log(1 + \beta_1 * C_{max,ij}) + \epsilon_{ij}$
@@ -307,10 +312,12 @@ to fit the data.
 <!--END_EXPLANATION-->
 
 ```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
-model <- lm(formula = DELTA_QT_max ~ 1 + VALUE + ID,data = NCA)
+model <- lme4::lmer(formula = DELTA_QT_max ~ 1 + VALUE + (1 | ID), data = NCA)
 
 gg <- ggplot(data = NCA,aes(x = VALUE, y = DELTA_QT_max))
-gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = data.frame(merTools::predictInterval(model))$fit), se = FALSE)
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = data.frame(merTools::predictInterval(model))$lwr), se = FALSE, linetype = "dotted")
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = data.frame(merTools::predictInterval(model))$upr), se = FALSE, linetype = "dotted")
 gg <- gg + geom_point()
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
@@ -335,7 +342,7 @@ One interesting or important note for QT prolongation studies is the statistical
 ```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 4}
 gg <- ggplot(data = qt_data,aes(x = LIDV,y = DELTA_QT, color = SEX, fill = SEX))
 gg <- gg + xgx_geom_smooth_emax()
-gg <- gg + geom_point(alpha = 0.5, aes(shape = WEIGHT>70)) 
+gg <- gg + geom_point(alpha = 0.25, aes(shape = WEIGHT>70)) 
 gg <- gg + xgx_stat_ci(conf_level = .95, bins = 5, geom = c("errorbar", "point"))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
@@ -355,10 +362,12 @@ and $\Delta QTc_{F, ij} = (\beta_0 + b_{0i}) + 1 + \beta_1 * AUC_{ij} + \epsilon
 <!--END_EXPLANATION-->
 
 ```{r, error = TRUE , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5}
-model <- lm(formula = DELTA_QT_max ~ 1 + VALUE + ID,data = NCA)
+model <- lme4::lmer(formula = DELTA_QT_max ~ 1 + VALUE + (1 | ID) + SEX, data = NCA)
 
 gg <- ggplot(data = NCA,aes(x = VALUE,y = DELTA_QT_max,fill = SEX,color = SEX))
-gg <- gg + geom_smooth(method = "lm", mapping = aes(y = predict(model)))
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = data.frame(merTools::predictInterval(model))$fit), se = FALSE)
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = data.frame(merTools::predictInterval(model))$lwr), se = FALSE, linetype = "dotted")
+gg <- gg + geom_smooth(method = "lm", mapping = aes(y = data.frame(merTools::predictInterval(model))$upr), se = FALSE, linetype = "dotted")
 gg <- gg + geom_point(aes(shape = factor(DOSE)))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + guides(color = guide_legend(""),
