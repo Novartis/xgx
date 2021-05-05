@@ -56,6 +56,9 @@ navbar:
       href: Multiple_Ascending_Dose_PKPD_time_to_event.html
     - text: Adverse Events
       href: Adverse_Events.html
+    - text: QT-Interval Prolongation
+      href: QT_Prolongation.html
+      
   - text: Resources
     menu:
       - text: PKPD Cheat Sheet
