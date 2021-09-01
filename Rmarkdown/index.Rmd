@@ -14,7 +14,7 @@ Visit the [Guiding Principles](GuidingPrinciples.html) page to get an overview o
 
 This website is composed of Rmarkdown documents, which could be used as templates for generating exploratory plots. The Rmarkdown documents can be accessed on [GitHub](https://github.com/Novartis/xgx/tree/master/Rmarkdown).
 
-Many of the codes on this website use functions that we have found to be helpful while exploring PK/PD data. We compiled these helpful functions into the xgxr R-package, which is available on [CRAN](https://cran.r-project.org/web/packages/xgxr/index.html), and [GitHub](https://github.com/Novartis/xgxr).
+Many of the codes on this website use functions that we have found to be helpful while exploring PK/PD data. We compiled these helpful functions into the xgxr R-package, which is available on [CRAN](https://cran.r-project.org/web/packages/xgxr/index.html), and [GitHub](https://github.com/Novartis/xgxr). Check out the [xgxr package website](https://opensource.nibr.com/xgxr/) for more information and examples on how to use the xgxr package functions.
 
 This website displays suggested plots to pursue when exploring different PK/PD datasets, with a focus on exploring the Dose-Exposure-Response relationship. This site is a collection of exploratory plots and code, and could serve as a checklist of graphs someone might create for certain projects.
 
