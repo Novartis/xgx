@@ -1,396 +1,351 @@
 ---
 title: "Data Checking"
+author: "Andy Stein, Siyan Xu"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
     toc: true
     toc_float: true
     code_folding: hide
 ---
+## Intro
 
-## Overview
+Example of plots and tables to create for data checking.  
 
-This document contains exploratory plots for checking integrity of
-PKPD datasets as well as the R code that generates these graphs. The
-plots presented here are based on simulated data ([see: PKPD
-Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Data_Checking.Rmd). You may also download the Multiple
-Ascending Dose PK/PD dataset for your reference 
-([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
+For a dataset that is much larger that the example one used here, the default figure size may be too small for all plots to be readable.  In that case, add or edit the `fig.height` and `fig.width` in the top of each chunk.  For example: `{r, fig.height = 6, fig.width = 8}` 
 
 ## Setup
 
-```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
-# remove reference to home directory in libPaths
-.libPaths(grep("home", .libPaths(), value=TRUE, invert=TRUE))
-.libPaths(grep("usr", .libPaths(), value=TRUE, invert=TRUE))
-
-# add localLib to libPaths for locally installed packages
-.libPaths(c("localLib", .libPaths()))
-
-# will load from first filepath first, then look in .libPaths for more packages not in first path
-# version matches package in first filepath, in the case of multiple instances of a package
-
-# library(rmarkdown)
-library(gridExtra)
-library(grid)
-library(ggplot2)
-library(dplyr)
-library(RxODE)
-library(caTools)
+```{r, message = FALSE}
+library(tidyverse)
 library(DT)
+library(xgxr)
 
-#flag for labeling figures as draft
-  draft.flag      = TRUE
+#set chunk default options
+xgx_theme_set()
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4)
+options(DT.options = list(pageLength = 20)) #pageLength = number of entries per page
 
-## ggplot settings
-theme_set(theme_bw(base_size=12))
+#specify the time units and your covariates 
+covariates = c("WEIGHT0","AGE0","SEX","WEIGHT0_CAT")
+time_units_dataset = "days"
+```
+
+## Load Data
+
+```{r}
+filename = "../Data/Data_Checking.csv"
+data_in = read.csv(filename, stringsAsFactors = FALSE)
+
+data = data_in %>%
+  # in this mutate command are all columns that are required for this check
+  # if your dataset has different naming convention, 
+  # then rename the right hand side of the equality
+  mutate(USUBJID = paste0("PAT",USUBJID), # Unique subject identifier
+         TIME    = TIME,    # Actual Time
+         NOMTIME = NOMTIME, # Nominal Time
+         AMT     = AMT,     # Dose Amount
+         LIDV    = LIDV,    # Dependent variable
+         YTYPE   = YTYPE,   # Number for type of dependent variable
+         NAME    = NAME,    # Name for the type of dependent variable (e.g. PK)
+         MDV     = MDV,     # Missing Dependent Varibale (0 = no, 1 = yes)
+         CENS    = CENS,    # Censored Data (0 = no, 1 = yes)
+         EVID    = EVID,    # Event ID.  0 = Dependent Variabale, 1 = dose
+         TRT     = TRT,     # Treatment Arm character description
+         TRTN    = TRTN) %>%# Treatment Arm numeric description (used for sorting)
+  arrange(TRTN) %>%
+  mutate(TRT_low2high = factor(TRT, levels = unique(TRT)),
+         TRT_high2low = factor(TRT, levels = rev(unique(TRT)))) %>%
+  mutate(WEIGHT0_CAT = case_when(WEIGHT0 < 60 ~ "WT<60", #creating 2nd categorical var
+                                 WEIGHT0 > 80 ~ "WT>80",
+                                 TRUE         ~ "WT:60-80"))
+
+empty_row = data[1,] %>%
+  mutate(ID = 23,
+         USUBJID = paste0("PAT",ID),
+         LIDV = 0,
+         YTYPE = 0,
+         ADM = 1,
+         CMT = 0,
+         NAME = "Dose", 
+         EVENTU = "mg",
+         UNIT = "mg",
+         MDV = 1,
+         CENS = 0,
+         EVID = 1)
+
+data  = bind_rows(data, empty_row)
+data1 = data %>%
+  filter(!duplicated(USUBJID))
+```
+
+## Number of Patients per Treatment Arm
+
+Check to see the number of patients in the dataset is what you expect.
+
+```{r}
+total_patients = data %>%
+  filter(!duplicated(USUBJID)) %>%
+  tally() %>%
+  rename(n_patients = n) %>%
+  mutate(TRT_low2high = "TOTAL NUMBER")
+
+summary_by_trt = data %>% 
+  filter(!duplicated(USUBJID)) %>%
+  group_by(TRT_low2high) %>%
+  tally() %>%
+  rename(n_patients = n) %>% 
+  bind_rows(total_patients)
+datatable(summary_by_trt)
+```
+
+## Number of Data Points per Treatment Arm and YTYPE
+
+This is another quick way to see if there is way more or way less data than you expected.
+
+```{r}
+summary_by_trt_ytype = data %>% 
+  group_by(YTYPE, NAME, TRT_low2high) %>%
+  tally() %>%
+  rename(n_data_points = n) %>%
+  mutate(YTYPE_NAME = paste0(YTYPE, ":", NAME)) %>%
+  ungroup() %>%
+  select(-YTYPE, -NAME) %>%
+  spread(YTYPE_NAME, n_data_points)
+
+datatable(summary_by_trt_ytype)
+```
+
+## Dosing Summary
+
+Summary of the dosing information.  It can be useful to know if there are patients in the database that never received a dose of the drug.  Also, usually AMT usually should not equal 0, and so 
+
+```{r}
+dose = data %>%
+  filter(EVID == 1)
+
+dose_summ = data %>%
+  group_by(USUBJID) %>%
+  summarize(total_dose = sum(AMT))
+
+dose_summary = data.frame(
+  patients_that_never_received_drug = sum(dose_summ$total_dose == 0),
+  entries_where_AMT_equals_0        = sum(dose$AMT == 0),
+  entries_where_AMT_greater_than_0  = sum(dose$AMT > 0)) %>%
+  t() %>%
+  as.data.frame() %>%
+  rename(N = V1)
+
+datatable(dose_summary)
 
 ```
 
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(cache = TRUE)
+## Dependent Variable (DV) Summary
+
+```{r}
+
+# compute number of DV by YTYPE and by patient
+# with this method, NAs also mean 0
+# here we do not remove EVID == 0 records, 
+# so that patients with a dose but no DV values will be included in the count
+dv_number_by_patient = data %>%
+  group_by(YTYPE, USUBJID) %>%
+  summarize(n_obs = sum(MDV == 0 & !is.na(LIDV))) %>%
+  ungroup() %>%
+  spread(YTYPE, n_obs)
+  
+# count total number of patients missing any DV of each type
+dv_number_summary = dv_number_by_patient %>%  
+  select(-USUBJID) %>%
+  summarize_all(c(Nnone   = function(x) sum(x == 0 | is.na(x)), 
+                  Nmin    = function(x) min(x, na.rm = TRUE),
+                  Nmedian = function(x) round(median(x, na.rm = TRUE)),
+                  Nmax    = function(x) max(x, na.rm = TRUE))) %>%
+  t() %>%
+  as.data.frame() %>%
+  rename(N = V1)
+dv_number_summary$YTYPE_SUMM = row.names(dv_number_summary)
+dv_number_summary = dv_number_summary %>%
+  mutate(YTYPE = as.numeric(str_extract(YTYPE_SUMM, "^\\d+")),
+         SUMM  = str_extract(YTYPE_SUMM, "[A-Za-z]+$")) %>%
+  select(-YTYPE_SUMM) %>%
+  spread(SUMM, N)
+
+# create an overall summary table
+dv_summary_overall = data %>%
+  filter(EVID == 0) %>%
+  group_by(YTYPE, NAME) %>%
+  summarize(n_total           = n(),
+            n_missing_or_NA   = sum(is.na(LIDV) | MDV == 1),
+            n_zeroes          = sum(LIDV == 0),
+            n_censored        = sum(CENS == 1),
+            n_negative        = sum(LIDV < 0),
+            n_duplicate_times = sum(duplicated(paste(USUBJID,TIME))),
+            min               = min     (LIDV,       na.rm = TRUE),
+            Q1                = quantile(LIDV, 0.25, na.rm = TRUE),
+            median            = median  (LIDV,       na.rm = TRUE),
+            Q3                = quantile(LIDV, 0.75, na.rm = TRUE),
+            max               = max     (LIDV,       na.rm = TRUE)) %>%
+  left_join(dv_number_summary, by = "YTYPE") %>%
+  mutate(YTYPE_NAME = paste0(YTYPE,":",NAME)) %>%
+  ungroup() %>%
+  select(-YTYPE, -NAME) %>%
+  t() %>%
+  as.data.frame()
+names(dv_summary_overall) = as.matrix(dv_summary_overall["YTYPE_NAME",])
+dv_summary_overall$Value = row.names(dv_summary_overall)
+row.names(dv_summary_overall) = c()
+
+dv_summary_overall = dv_summary_overall %>%
+  filter(Value != "YTYPE_NAME") %>%
+  mutate(Type = case_when(str_detect(Value, "^n_") ~ "Number of data points",
+                          str_detect(Value, "^N")  ~ "Number of data points per patient",
+                          TRUE                     ~ "Value of data points")) %>%
+  mutate(Value = str_replace(Value, "^n_", ""), 
+         Value = str_replace(Value, "^N", "")) %>%
+  select(Type, Value, everything()) %>%
+  arrange(Type)
+
+datatable(dv_summary_overall)
+  
 ```
 
-## Define Useful Graphics Functions
+## Covariate Summary
 
-```{r, error = TRUE}
+Provide overview of the covariates. Check to see in particular that the distributions (along the diagonals) make sense.
 
-# annotation of plots with status of code
-AnnotateStatus <- function(draft.flag, log.y=FALSE, log.x=FALSE, fontsize=7, color="grey") {
-  
-  x.pos <- -Inf
-  if (log.x)
-    x.pos <- 0
-  
-  y.pos <- -Inf
-  if (log.y)
-    y.pos <- 0
-  
-  if(draft.flag) {
-    annotateStatus <- annotate("text",
-                               label="DRAFT",
-                               x=x.pos, y=y.pos,
-                               hjust=-0.1, vjust=-1.0,
-                               cex=fontsize,
-                               col=color, alpha=0.7, fontface="bold")
-  } else {
-    annotateStatus <- NULL
+```{r, fig.height = 8, fig.width = 8}
+num_unique_vals = data1[,covariates] %>%
+  summarise_all(function(x){length(unique(x))}) %>%
+  as.numeric()
+
+cts_cov = data1[,covariates[num_unique_vals >= 8]]
+cat_cov = data1[,covariates[num_unique_vals <  8]]
+
+cts_cov_summary = cts_cov %>%
+  gather() %>%
+  group_by(key) %>%
+  summarise(n_missing_or_NA   = sum(is.na(value)),
+            min               = min     (value,       na.rm = TRUE),
+            Q1                = quantile(value, 0.25, na.rm = TRUE),
+            median            = median  (value,       na.rm = TRUE),
+            Q3                = quantile(value, 0.75, na.rm = TRUE),
+            max               = max     (value,       na.rm = TRUE))
+datatable(cts_cov_summary)
+
+cat_summary = function(x) {
+  unique_x = sort(unique(x))
+  str = 1:length(unique_x)
+  for(i in 1:length(unique_x))
+  {
+    str[i] = paste0(unique_x[i], "=", sum(x == unique_x[i]))
   }
-  
-  return(annotateStatus)
+  output = paste(str, collapse = ", ")
 }
 
-# Function to add nicely spaced breaks on log scale (x-axis)
-xgx_scale_x_log10 <-  function(breaks = xgx_log_breaks_major, minor_breaks=  xgx_log_breaks_minor,...){
-  ## xgx_scale_x_log10() modifies ggplot2's scale_x_log10(), 
-  ## adding nicely spaced breaks on log scale. xgx_scale_x_log10()
-  ## can be used in much the same was as scale_x_log10(), 
-  ## e.g.: ggplot(data=data.frame(x=exp(rnorm(1000)),y=rnorm(1000)),aes(x=x,y=y)) + geom_point() + xgx_scale_x_log10()
-  xgx_log_breaks_minor <-  function(x){
-    r1 <- range(log10(x));
-    r <-  r1;
-    r[1] <-  floor(r[1])
-    r[2] <-  ceiling(r[2])+1;
-    breaks <- c()
-    for (i in seq(r[1],r[2])){
-      breaks <-  c(breaks,seq(2*10^(i-1),10^i-10^(i-1),by=10^(i-1)));
-    }
-    breaks <-  breaks[breaks <= 10^r1[2]]
-    breaks <-  breaks[breaks >= 10^r1[1]]
-    return(breaks)
-  }
-  xgx_log_breaks_major <-  function(x){
-    r1 <- range(log10(x));
-    r <-  r1;
-    r[1] <-  floor(r[1])
-    r[2] <-  ceiling(r[2])+1;
-    breaks <- 10^seq(r[1],r[2])
-    breaks <-  breaks[breaks <= 10^r1[2]]
-    breaks <-  breaks[breaks >= 10^r1[1]]
-    return(breaks)
-  }
-  ret <- try(list(scale_x_log10(...,breaks=breaks,minor_breaks = minor_breaks), 
-                  theme(panel.grid.minor.x=element_line(color=rgb(0.75,0.75,0.75)),
-                        panel.grid.major.x=element_line(color=rgb(0.65,0.65,0.65)))),silent=TRUE)
-  if  (inherits(ret, "try-error")) return(scale_x_log10(...))
-  return(ret);
-}
-
-# Function to add nicely spaced breaks on log scale (y-axis)
-xgx_scale_y_log10 <-  function(breaks = xgx_log_breaks_major, minor_breaks=  xgx_log_breaks_minor,...){
-  ## xgx_scale_y_log10() modifies ggplot2's scale_x_log10(), 
-  ## adding nicely spaced breaks on log scale. xgx_scale_y_log10()
-  ## can be used in much the same was as scale_x_log10(), 
-  ## e.g.: ggplot(data=data.frame(x=rnorm(1000),y=exp(rnorm(1000))),aes(x=x,y=y)) + geom_point() + xgx_scale_y_log10()
-  xgx_log_breaks_minor <-  function(y){
-    r1 <- range(log10(y));
-    r <-  r1;
-    r[1] <-  floor(r[1])
-    r[2] <-  ceiling(r[2])+1;
-    breaks <- c()
-    for (i in seq(r[1],r[2])){
-      breaks <-  c(breaks,seq(2*10^(i-1),10^i-10^(i-1),by=10^(i-1)));
-    }
-    breaks <-  breaks[breaks <= 10^r1[2]]
-    breaks <-  breaks[breaks >= 10^r1[1]]
-    return(breaks)
-  }
-  xgx_log_breaks_major <-  function(y){
-    r1 <- range(log10(y));
-    r <-  r1;
-    r[1] <-  floor(r[1])
-    r[2] <-  ceiling(r[2])+1;
-    breaks <- 10^seq(r[1],r[2])
-    breaks <-  breaks[breaks <= 10^r1[2]]
-    breaks <-  breaks[breaks >= 10^r1[1]]
-    return(breaks)
-  }
-  ret <- try(list(scale_y_log10(...,breaks=breaks,minor_breaks = minor_breaks), 
-                  theme(panel.grid.minor.y=element_line(color=rgb(0.75,0.75,0.75)),
-                        panel.grid.major.y=element_line(color=rgb(0.65,0.65,0.65)))),silent=TRUE)
-  if  (inherits(ret, "try-error")) return(scale_y_log10(...))
-  return(ret);
-}
+cat_cov_summary = cat_cov %>%
+  gather() %>%
+  group_by(key) %>%
+  summarise(n_missing_or_NA   = sum(is.na(value)),
+            n_distinct        = n_distinct(value),
+            count_summary     = cat_summary(value))
+datatable(cat_cov_summary)
 
 
+GGally::ggpairs(data1, 
+                columns = covariates,
+                diag = list(continuous = "barDiag"))
 ```
 
-## Load Dataset
-The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
+## Columns that contains NAs (and the number they contain)
 
-```{r, error = TRUE, warning=FALSE, message=FALSE}
-my.data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+Often, a dataset is not supposed to contain any NAs.  This section highlights where the NAs occur.  If the table below is empty, then there are no NAs in the dataset.
 
-PK.indices = which(my.data$CMT==2 & my.data$TIME > 0)
+```{r}
+na_summary = data %>%
+  dplyr::summarise_all(function(x) {sum(is.na(x))}) %>%
+  t() %>%
+  as.data.frame() %>%
+  rename(N_NA = V1) 
+na_summary$Column = names(data)
+na_summary = na_summary %>%
+  select(Column, N_NA) %>%
+  filter(N_NA > 0)
 
-#add some missing PK data for realism
-ind.missing = sample(PK.indices,7)
-my.data$LIDV[ind.missing] = NA
-
-#add some duplicated time points for realism
-ind.duplicate = sample(PK.indices,8)
-my.data = bind_rows(my.data,my.data[ind.duplicate,])
-my.data = my.data %>%
-  arrange(ID,TIME,CMT)
-
-# Define order for factors
-my.data$TRTACT <- factor(my.data$TRTACT, levels = unique(my.data$TRTACT[order(my.data$DOSE)]))
-
+datatable(na_summary)
 ```
 
-## Overview of number of patients
-Overview of number of patients at each dose
-```{r, error = TRUE}
-patient.summary = my.data %>%
-  distinct(ID, .keep_all=TRUE) %>%
-  group_by(DOSE) %>%
-  count() %>%
-  arrange(-DOSE)
-DT::datatable(patient.summary)
-```
+## Dose and PK/PD Data Collection Times
 
-Overview of number of PK datapoints at each dose
-```{r, error = TRUE}
-pk.summary = my.data %>%
-  filter(CMT==2) %>%
-  group_by(DOSE) %>%
-  count() %>%
-  arrange(-DOSE)
-DT::datatable(pk.summary)
-```
+Get an overview of the timing of the dose, PK, and PD data collection for all patients and make sure it's in line with expectations.  Each "x" denotes a record, i.e. a dose time or a PK or PD assessment time.  Each red circle denotes what may be a dose interruption, when the time between doses is greater than `DT_flag` and `NAME == "Dose"`
 
-## Check for duplicated time points
-```{r, error = TRUE}
-duplicated.check = my.data %>%
-  filter(duplicated(paste(ID,CMT,TIME))) %>%
-  select(ID, TIME, CMT, LIDV)
-n.duplicated = nrow(duplicated.check)
-```
-There are `r n.duplicated` duplicated time points that should be investigated.  They are summarized in the list below.
-``` {r, error = TRUE}
-DT::datatable(duplicated.check)
-```
+You might need to adjust the figure height and width in the line below, depending on how many different YTYPEs and how many patients your dataset has.
 
-## Check for any missing PK data at positive time points
-```{r, error = TRUE}
-missing.check = my.data %>%
-  filter(CMT>=2, TIME > 0) %>%
-  filter(is.na(LIDV)) %>%
-  select(ID, TIME, CMT, LIDV)
-n.missing = nrow(missing.check)
-```
-There are `r n.missing` cases of missing LIDV values.  These should be explored.
+```{r, fig.width = 8}
 
-## Checking the data consistency of observations
+DT_flag = 10   # >10 days between doses is flagged
+NAME_DOSE = "Dose" # NAME == NAME_DOSE is flagged
 
-Plotting observations against ID can give a quick overview of the range of values that the observations take on. You can use this plot to check that observed values are consistent with what you expect. You can also check for any outliers or trends.
+data_dose_interruption = data %>%
+  group_by(USUBJID, NAME) %>%
+  mutate(DT   = lead(TIME, default = max(TIME)) - TIME,
+         TMID = TIME + DT/2) %>%
+  ungroup() %>%
+  filter(DT > DT_flag, NAME == NAME_DOSE)
 
-For the example multiple ascending dose PKPD dataset, there are several different datatypes defined by different compartments. Let's plot LIDV vs ID for CMT 2 through 6 to see what range of values LIDV takes on for these different CMT.
-
-```{r, error = TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.height=3, fig.width=8}
-
-## For this example we will subset to ID and LIDV, exploring different values for CMT
-
-for(icmt in seq(2,6)){
-  
-data_to_plot <-  my.data %>% dplyr::filter(CMT==icmt) %>% dplyr::select(ID, LIDV) ;
-
-gg <- ggplot(data_to_plot, aes(y=ID, x = LIDV)) 
-gg <- gg + geom_point(alpha=0.5)
-gg <- gg + xlab(paste0("LIDV[CMT==",icmt,"]"))
-gg1 <- gg
-gg2 <- gg + xgx_scale_x_log10()
-grid.arrange(gg1,gg2,ncol=2)
-
-}
-
-```
-
-By doing a simple ID checkout you can see that CMT = 2 and 3 represent continuous variables, while CMT = 4, 5 and 6 take on more restricted values. You can tell that CMT 4, 5 and 6 are not concentration but represent some other type of variable. 
-
-Let's checkout the descriptions for each compartment, and see if our conclusions about the observation values make sense.
-
-```{r, error = TRUE}
-DT::datatable(unique(my.data[order(my.data$CMT),c("CMT","NAME")]), rownames=FALSE)
-```
-
-
-## Checking timing of doses and observations
-
-### Swimmer plot with ID vs Time of Event (e.g. Observation, Dose, Inferred Dose)
-
-The following plot displays observation and dosing events for each individual. This can be helpful in determining the ordering of events. For example, ensuring that trough concentrations occur prior to dosing. This plot also gives a nice overview of the subject visits, and if there are any subjects who dropped out before the end of the trial. 
-
-For the example PKPD dataset, you can tell that this is a simulated dataset by the uniform spacing of dosing and observation events, and the lack of dropouts.
-
-```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 8}
-
-data_to_plot <-  my.data 
-data_to_plot$EVID = factor(data_to_plot$EVID, levels = c(0,1))
-
-gg <- ggplot(data_to_plot, aes(x=TIME, y = ID)) 
-gg <- gg + geom_point(aes(shape=EVID, color = EVID))
-gg <- gg + geom_line(linetype="dashed", aes(group=ID), color = "grey")
-gg <- gg + scale_shape_manual(values=c(1,3))
-gg <- gg + scale_color_manual(values=c(rgb(0.75,0.25,0.25),rgb(0.25,0.25,0.75)))
-gg
-```
-
-## Nominal time vs Actual time
-In this case, time is in units of hours and so there is no more than one hour difference between actual and nominal time.  But if there is a large difference, there could be an error in how the actual time is calculated.
-
-```{r, error = TRUE}
-my.data = my.data %>%
-  mutate(DIFF = TIME-NOMTIME)
-
-g = ggplot(my.data,aes(x=TIME,y=DIFF))
-g = g + geom_point()
-g = g + labs(x="Actual Time",
-             y="Difference between Actual and Nominal Time")
+g = ggplot(data, aes(x = TIME, y = USUBJID)) 
+g = g + geom_point(shape = 4)
+g = g + geom_point(data = data_dose_interruption,
+                   aes(x = TMID, y = USUBJID),
+                   color = "red", alpha = 0.2, size = 5)
+g = g + xgx_scale_x_time_units(units_dataset = time_units_dataset)
+g = g + facet_wrap(~YTYPE+NAME, labeller = label_both)
 print(g)
-
 ```
 
+## Nominal vs Actual Time Discrepancies + Nominal Time Summary
 
-### Dot plot, ID vs Time between dose to first observation
+A common error is that either the nominal or actual time were derived incorrectly.  Thus a quick sanity check is to plot nominal vs actual time. Any points that don't lie near the identity line require further investigation.
 
-Plotting the ID vs time between dose and first observation can be informative to see if there are any surprises between the dose
-and the next observation.
+```{r}
 
-The complicated part about this plot is to efficiently generate the
-time between doses and observations.  It would be easy with a for
-loop, but for loops are terribly inefficient in R.  As a hack, you can
-use Rcpp to generate a highly efficient way to use for loops.  The
-"Data.cpp" file contains the function `dataEdaGen` to create a list of
-3 datasets:
- - time between doses (`II`)
- - time between dose and next observation (`DO`)
- - time between dose and last observation (`OD`)
- 
-This also assumes that all of your events are unrolled, that is:
- - No steady state doses
- - ADDL/II doses are expanded and added to the dataset.
- 
- 
- To use this with modesim, you will have to make sure your `~/.bashrc` has the following lines:
+xymin = min(c(data$NOMTIME, data$TIME), na.rm = TRUE)
+xymax = max(c(data$NOMTIME, data$TIME), na.rm = TRUE)
 
-```{sh} 
- export TMPDIR=/modesim/scratch/$(whoami) # Change R's temporary directory
- export XDG_RUNTIME_DIR=/modesim/scratch/$(whoami) # Fix all the warnings for starting apps in modesim
-```
- 
-You can [download the Data.cpp file to examine the code and use the function](Data.cpp).
- 
-```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
-##' This function "unrolls" the ADDL/II dose specification in NONMEM doses.
-##'
-##' The function adds ADDL/II to the dataset and adds a flag about if the dose is imputed.
-##' 
-##' @param data Data 
-##' @return Unrolled dataset
-##' @author Yuan Xiong and Matthew L. Fidler
-unroll.addl <- function(data){
-    d <- data;
-    col.names <- toupper(names(data));
-    names(d) <- col.names;
-    d$.ImputedDose <- 0;
-    if (any(col.names == "II") && any(col.names == "ADDL")) {
-        ds.addl <- d[d$II>0 & d$ADDL>0, ]
-        ds.exp <- ds.addl[rep(row.names(ds.addl), ds.addl$ADDL), 1:ncol(ds.addl)]
-        ## expand dosing records
-        ds.exp$TIME <- unlist(sapply(1:nrow(ds.addl),
-                                     function(idx) {
-            seq(ds.addl$ADDL[idx])*ds.addl$II[idx]+ds.addl$TIME[idx]
-        }))
-        ds.exp$.InputedDose <- 1;
-        ## attach expanded dosing records to the original dataset
-        d <- rbind(d, ds.exp)
-        
-        ## sort data and remove II/ADDL to avoid confusion
-        d <- d[order(d$ID, d$TIME, -d$EVID), -which(names(d) %in% c("II","ADDL"))]
-    }
-    d <- d %>% mutate(EVID=ifelse(is.na(EVID),0L,EVID)) %>% mutate(Event=factor(ifelse(EVID>0, ifelse(.ImputedDose==1, 2L, 1L), 0L),c(0L,1L,2L),c("Observation", "Dosing","Inputed Dosing")))
-}
-
-
-Rcpp::sourceCpp("Data.cpp")
-d2<- my.data
-d2$TIME <- d2$TIME
-lst <- dataEdaGen(unroll.addl(d2));
-
-ggplot(lst$DO,aes(DO, ID)) + geom_point() + xlab("Time between dose and next observation")
-
+g = ggplot(data = data, aes(x = TIME, y = NOMTIME))
+g = g + geom_point()
+g = g + annotate("segment", x = xymin, xend = xymax, y = xymin, yend = xymax, color = "blue")
+g = g + xlim(c(xymin, xymax))
+g = g + ylim(c(xymin, xymax))
+print(g)
 ```
 
-With this plot you can see there is either around 24 or 0 hours
-between the dose and the next observation.
+### Unique Nominal Time values
 
-### Dot plot, ID vs Time between last observation to next dose
+Look at the nominal times in the dataset, just to make sure they're correct.  In this case, there is a mistake because nominal time has units of days and the 5m, 1h, 2h, 4h, and 8h nominal time values were all set to "1" rather than having unique values (i.e. 1 hour should be 1/24 = 0.041 rather than 1).
 
-Plotting the ID vs time between last observation and next dose can be informative to see if there are any surprises between the dose
-and the prior observation.
-
-```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
-ggplot(lst$OD,aes(OD, ID)) + geom_point() + xlab("Time between dose and prior observation")
+```{r}
+cat(sort(unique(data$NOMTIME)))
 ```
 
-This shows that there is very little time between dose and prior
-observation (less than half an hour). If this was a real dataset, this would be quite fishy.
+## List of things to do and to consider
 
-### Dot plot, ID vs Time between doses
+Features/plots/tables to add
 
-The following plot shows the dosing interval between the doses.
+* Create and display a summary of the data points with potential issues to help the user more quickly resolve them. 
+* Better understand Matt Fidler's dose and observation plots that use `II` and `ADDL`.  Andy still doesn't really get it.  It might be more for "Gen Med" than for Oncology.
 
-```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
-ggplot(lst$II,aes(II, ID)) + geom_point() + xlab("Time between doses")
-```
+Make some clunky things a bit nicer
 
-In this case, the doses are approximately 24 hours apart.  There is
-some variability around this so it could have come from
-actual dosing information.
+* See if there's a nicer, cleaner way to transpose a data.table and get the column names right.
+* See if there's a better option for doing the categorical covariate summary other than defining the `cat_summary` function. 
 
+xGx website
 
-## R Session Info
+* Rename the "Data checking" header to "Data"
+* Update the core and extended team
 
+## R session info
 ```{r}
 sessionInfo()
 ```
