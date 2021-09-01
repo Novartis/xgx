@@ -8,11 +8,13 @@ output:
     toc_float: true
     code_folding: hide
 ---
-## Intro
+## Overview
 
 Example of plots and tables to create for data checking.  
 
 For a dataset that is much larger that the example one used here, the default figure size may be too small for all plots to be readable.  In that case, add or edit the `fig.height` and `fig.width` in the top of each chunk.  For example: `{r, fig.height = 6, fig.width = 8}` 
+
+Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Data_Checking.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Data_Checking.csv)).
 
 ## Setup
 
