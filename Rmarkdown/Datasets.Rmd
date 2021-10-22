@@ -31,6 +31,11 @@ htmltools::includeMarkdown("../Data/AUC_Safety.md")
 ```
 
 ```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/Data_Checking.md")
+
+```
+
+```{r, warning = FALSE, message = FALSE}
 htmltools::includeMarkdown("../Data/dzz_PKConc.md")
 
 ```
@@ -50,6 +55,12 @@ htmltools::includeMarkdown("../Data/Multiple_Ascending_Dose_Dataset2.md")
 htmltools::includeMarkdown("../Data/PPtmp_NCA.md")
 
 ```
+
+```{r, warning = FALSE, message = FALSE}
+htmltools::includeMarkdown("../Data/RO_BCMA.md")
+
+```
+
 
 ```{r, warning = FALSE, message = FALSE}
 htmltools::includeMarkdown("../Data/Single_Ascending_Dose_Dataset2.md")

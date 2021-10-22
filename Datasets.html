@@ -368,7 +368,7 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Data Checking
+    Data
      
     <span class="caret"></span>
   </a>
@@ -702,6 +702,163 @@ xgx_theme_set()</code></pre>
 </tr>
 </tbody></table>
 
+<pre class="r"><code>htmltools::includeMarkdown(&quot;../Data/Data_Checking.md&quot;)</code></pre>
+<h1>Data_Checking</h1>
+
+<h2>Description of Data</h2>
+
+<p>Simulated PK and PD data with weekly dosing, to use for data checking</p>
+
+<h2>Data specifications</h2>
+
+<table><thead>
+<tr>
+<th>Column name</th>
+<th>description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ID</td>
+<td>Unique subject id (numeric)</td>
+</tr>
+<tr>
+<td>USUBJID</td>
+<td>Unique subject id - same as ID column</td>
+</tr>
+<tr>
+<td>TIME</td>
+<td>Time relative to first drug administration</td>
+</tr>
+<tr>
+<td>NOMTIME</td>
+<td>Nominal time</td>
+</tr>
+<tr>
+<td>TIMEUNIT</td>
+<td>unit of TIME</td>
+</tr>
+<tr>
+<td>AMT</td>
+<td>Dosing amount (for dosing events) in mg (numeric)</td>
+</tr>
+<tr>
+<td>LIDV</td>
+<td>Observation on a linear scale (Observation type determined by CMT),</td>
+</tr>
+<tr>
+<td></td>
+<td>units determined by EVENTU column (numeric)</td>
+</tr>
+<tr>
+<td>YTYPE</td>
+<td>Type of dependent variable</td>
+</tr>
+<tr>
+<td></td>
+<td>YTYPE 0 = Dosing Event</td>
+</tr>
+<tr>
+<td></td>
+<td>YTYPE 1 = PK concentration</td>
+</tr>
+<tr>
+<td></td>
+<td>YTYPE 2 = PD response value (continuous)</td>
+</tr>
+<tr>
+<td>ADM</td>
+<td>Route of administration.  1 = IV, 0 for non dosing records</td>
+</tr>
+<tr>
+<td>CMT</td>
+<td>Compartment number (determines observation type) (integer)</td>
+</tr>
+<tr>
+<td></td>
+<td>CMT 0 = Dosing event</td>
+</tr>
+<tr>
+<td></td>
+<td>CMT 1 = PK concentration</td>
+</tr>
+<tr>
+<td></td>
+<td>CMT 2 = PD response value (continuous)</td>
+</tr>
+<tr>
+<td>NAME</td>
+<td>description of event</td>
+</tr>
+<tr>
+<td>EVENTU</td>
+<td>unit for observation</td>
+</tr>
+<tr>
+<td>UNIT</td>
+<td>unit for observation (same as EVENTU)</td>
+</tr>
+<tr>
+<td>MDV</td>
+<td>missing dependent variable (0 = not missing, 1 = missing)</td>
+</tr>
+<tr>
+<td>CENS</td>
+<td>censored values (0 = not censored, 1 = censored) (integer)</td>
+</tr>
+<tr>
+<td>EVID</td>
+<td>event ID  (0 = observation, 1 = dosing event) (integer)</td>
+</tr>
+<tr>
+<td>AGEB</td>
+<td>baseline age (years)</td>
+</tr>
+<tr>
+<td>AGE0</td>
+<td>age at start of dosing (years)</td>
+</tr>
+<tr>
+<td>WEIGHTB</td>
+<td>baseline bodyweight (kg)</td>
+</tr>
+<tr>
+<td>WEIGHT0</td>
+<td>weight at start of dosing</td>
+</tr>
+<tr>
+<td>SEXN</td>
+<td>sex numeric: 1 = male, 2 = female</td>
+</tr>
+<tr>
+<td>SEX</td>
+<td>sex character: &ldquo;Male&rdquo; or &ldquo;Female&rdquo;</td>
+</tr>
+<tr>
+<td>TRTN</td>
+<td>treatment numeric (mg)</td>
+</tr>
+<tr>
+<td>TRT</td>
+<td>treatment character</td>
+</tr>
+<tr>
+<td>PROFDAY</td>
+<td>Day of profile</td>
+</tr>
+<tr>
+<td>VISNAME</td>
+<td>Cycle and Day number of the visit</td>
+</tr>
+<tr>
+<td>CYCLE</td>
+<td>Starts from 1.  Every 4 weeks is a new cycle (increment by 1)</td>
+</tr>
+<tr>
+<td>LLOQ</td>
+<td>lower limit of quantification of the assay</td>
+</tr>
+</tbody></table>
+
 <pre class="r"><code>htmltools::includeMarkdown(&quot;../Data/dzz_PKConc.md&quot;)</code></pre>
 <h1>dzz_PKConc</h1>
 
@@ -999,6 +1156,43 @@ xgx_theme_set()</code></pre>
 <tr>
 <td>PPORRESU</td>
 <td>NCA parameter unit</td>
+</tr>
+</tbody></table>
+
+<pre class="r"><code>htmltools::includeMarkdown(&quot;../Data/RO_BCMA.md&quot;)</code></pre>
+<h1>PPtmp_NCA</h1>
+
+<h2>Description of Data</h2>
+
+<p>Target occupancy data that was digitized from [1]</p>
+
+<ol>
+<li>Raje, Noopur S., et al. &ldquo;Safety, clinical activity, pharmacokinetics, and pharmacodynamics from a phase I study of PF-06863135, a B-cell maturation antigen (BCMA)-CD3 bispecific antibody, in patients with relapsed/refractory multiple myeloma (RRMM).&rdquo; (2019): 1869-1869.</li>
+</ol>
+
+<h2>Data specifications</h2>
+
+<table><thead>
+<tr>
+<th>Column name</th>
+<th>description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>DOSE</td>
+<td>dose in ug/kg</td>
+</tr>
+<tr>
+<td>TIME</td>
+<td>time post dose in days</td>
+</tr>
+<tr>
+<td>CTOT</td>
+<td>total drug concentration, converted to nanomolar (assuming molecular weight of drug was 145 kDa)</td>
+</tr>
+<tr>
+<td>T_FREEFRAC</td>
+<td>free fraction of soluble target (soluble BCMA)</td>
 </tr>
 </tbody></table>
 
