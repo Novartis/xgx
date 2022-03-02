@@ -127,7 +127,7 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 <!--START_EXPLANATION-->
 Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect?
 <!--END_EXPLANATION-->
-```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 6, warning = FALSE, message = FALSE}
 #PK data
 gg1 <- ggplot(data = pk_data, 
                aes(x = NOMTIME,y = LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
@@ -140,8 +140,8 @@ gg1 <- gg1 + xgx_scale_y_log10()
 gg1 <- gg1 + labs(y = conc_label)
 
 #PD data
-gg2 <- ggplot(data = pd_data, aes(x = factor(PROFDAY), fill = ORDINAL_LEVELS_high2low)) 
-gg2 <- gg2 + geom_bar(position = "fill") + scale_y_continuous(labels = scales::percent)
+gg2 <- ggplot(data = pd_data, aes(x = PROFDAY, response = ORDINAL_LEVELS_high2low, color = ORDINAL_LEVELS_high2low)) 
+gg2 <- gg2 + xgx_stat_ci(distribution = "ordinal", geom = list("line", "point","errorbar")) + scale_y_continuous(labels = scales::percent)
 gg2 <- gg2 + labs(x = time_label, y = pd_response_label)
 gg2 <- gg2 + facet_grid(TRTACT_high2low~.)
 gg2 <- gg2 + scale_fill_brewer(palette = 6)
@@ -169,13 +169,12 @@ gg
 
 #PD data
 gg <- ggplot(data = pd_data %>% subset(DOSE>0,),
-             aes(x = factor(PROFDAY), fill = ORDINAL_LEVELS_high2low))
-gg <- gg + geom_bar(position = "fill")
+             aes(x = PROFDAY, response = ORDINAL_LEVELS_high2low, color = ORDINAL_LEVELS_high2low))
+gg <- gg + xgx_stat_ci(distribution = "ordinal", geom = list("line", "point","errorbar"))
 gg <- gg + facet_grid(~TRTACT_low2high)
-gg <- gg + scale_fill_brewer(palette = 6)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + scale_y_continuous(labels = scales::percent)
-gg <- gg + guides(fill = guide_legend("")) + theme(legend.position = "bottom")
+gg <- gg + guides(color = guide_legend("")) + theme(legend.position = "bottom")
 gg <- gg + labs(x = time_label, y = pd_response_label)
 gg
 ```
@@ -262,7 +261,7 @@ gg
 
 ## Explore Exposure-Response Relationship
 
-```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 2, warning = FALSE, message = FALSE}
+```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 3, warning = FALSE, message = FALSE}
 data_to_plot <- pkpd_data_wide %>% subset(PROFDAY == SS_PROFDAY,)
 
 gg <- ggplot(data = data_to_plot, aes(y = CONC,x = ORDINAL_LEVELS_low2high))
@@ -275,6 +274,15 @@ gg <- gg + xgx_scale_y_log10()
 gg <- gg + guides(color = guide_legend(""),fill = guide_legend(""))
 gg <- gg + labs(x = pd_ordinal_label, y = conc_label)
 gg <- gg + coord_flip()
+gg <- gg + xgx_annotate_status(status)
+gg
+
+gg <- ggplot(data = data_to_plot, aes(x = CONC, response = ORDINAL_LEVELS_low2high, color = ORDINAL_LEVELS_low2high))
+gg <- gg + xgx_stat_smooth(method = "polr")
+gg <- gg + xgx_scale_x_log10()
+gg <- gg + scale_y_continuous(labels = scales::percent)
+gg <- gg + guides(color = guide_legend(""),fill = guide_legend(""))
+gg <- gg + labs(y = pd_ordinal_label, x = conc_label)
 gg <- gg + xgx_annotate_status(status)
 gg
 ```
@@ -304,7 +312,7 @@ gg <- gg + labs(x = conc_label , y = pd_ordinal_label)
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,0.9)),
                  panel.grid.minor.y = ggplot2::element_line(color = rgb(0.9,0.9,0.9)))
-gg+facet_wrap(~ID+TRTACT_low2high, ncol = 5)
+gg + facet_wrap(~ID+TRTACT_low2high, ncol = 5)
 ```
 
 ## R Session Info

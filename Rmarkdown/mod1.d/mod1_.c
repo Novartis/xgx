@@ -1,6 +1,291 @@
+#define _getRxSolve_ _rxmod1_46d109881dae9f72bc8fb762467bd5df0
+#define simeps _rxmod1_46d109881dae9f72bc8fb762467bd5df1
+#define simeta _rxmod1_46d109881dae9f72bc8fb762467bd5df2
+#define _solveData _rxmod1_46d109881dae9f72bc8fb762467bd5df3
+#define _assign_ptr _rxmod1_46d109881dae9f72bc8fb762467bd5df4
+#define _rxRmModelLib _rxmod1_46d109881dae9f72bc8fb762467bd5df5
+#define _rxGetModelLib _rxmod1_46d109881dae9f72bc8fb762467bd5df6
+#define _old_c _rxmod1_46d109881dae9f72bc8fb762467bd5df7
+#define _ptrid _rxmod1_46d109881dae9f72bc8fb762467bd5df8
+#define _rxIsCurrentC _rxmod1_46d109881dae9f72bc8fb762467bd5df9
+#define _sumPS _rxmod1_46d109881dae9f72bc8fb762467bd5df10
+#define _prodPS _rxmod1_46d109881dae9f72bc8fb762467bd5df11
+#define _prodType _rxmod1_46d109881dae9f72bc8fb762467bd5df12
+#define _sumType _rxmod1_46d109881dae9f72bc8fb762467bd5df13
+#define _update_par_ptr _rxmod1_46d109881dae9f72bc8fb762467bd5df14
+#define _getParCov _rxmod1_46d109881dae9f72bc8fb762467bd5df15
+#define linCmtA _rxmod1_46d109881dae9f72bc8fb762467bd5df16
+#define linCmtC _rxmod1_46d109881dae9f72bc8fb762467bd5df17
+#define linCmtB _rxmod1_46d109881dae9f72bc8fb762467bd5df18
+#define _RxODE_rxAssignPtr _rxmod1_46d109881dae9f72bc8fb762467bd5df19
+#define _rxQr _rxmod1_46d109881dae9f72bc8fb762467bd5df20
+#define phi _rxmod1_46d109881dae9f72bc8fb762467bd5df21
+#define logit _rxmod1_46d109881dae9f72bc8fb762467bd5df22
+#define expit _rxmod1_46d109881dae9f72bc8fb762467bd5df23
+#define gammap _rxmod1_46d109881dae9f72bc8fb762467bd5df24
+#define gammaq _rxmod1_46d109881dae9f72bc8fb762467bd5df25
+#define lowergamma _rxmod1_46d109881dae9f72bc8fb762467bd5df26
+#define uppergamma _rxmod1_46d109881dae9f72bc8fb762467bd5df27
+#define gammapInv _rxmod1_46d109881dae9f72bc8fb762467bd5df28
+#define gammapDer _rxmod1_46d109881dae9f72bc8fb762467bd5df29
+#define gammapInva _rxmod1_46d109881dae9f72bc8fb762467bd5df30
+#define gammaqInv _rxmod1_46d109881dae9f72bc8fb762467bd5df31
+#define gammaqInva _rxmod1_46d109881dae9f72bc8fb762467bd5df32
+#define rxnorm _rxmod1_46d109881dae9f72bc8fb762467bd5df33
+#define rxnormV _rxmod1_46d109881dae9f72bc8fb762467bd5df34
+#define rxbinom _rxmod1_46d109881dae9f72bc8fb762467bd5df35
+#define rxcauchy _rxmod1_46d109881dae9f72bc8fb762467bd5df36
+#define rxchisq _rxmod1_46d109881dae9f72bc8fb762467bd5df37
+#define rxexp _rxmod1_46d109881dae9f72bc8fb762467bd5df38
+#define rxf _rxmod1_46d109881dae9f72bc8fb762467bd5df39
+#define rxgeom _rxmod1_46d109881dae9f72bc8fb762467bd5df40
+#define rxgamma _rxmod1_46d109881dae9f72bc8fb762467bd5df41
+#define rxbeta _rxmod1_46d109881dae9f72bc8fb762467bd5df42
+#define rxpois _rxmod1_46d109881dae9f72bc8fb762467bd5df43
+#define rxt_ _rxmod1_46d109881dae9f72bc8fb762467bd5df44
+#define rxunif _rxmod1_46d109881dae9f72bc8fb762467bd5df45
+#define rxweibull _rxmod1_46d109881dae9f72bc8fb762467bd5df46
+#define rinorm _rxmod1_46d109881dae9f72bc8fb762467bd5df47
+#define rinormV _rxmod1_46d109881dae9f72bc8fb762467bd5df48
+#define ribinom _rxmod1_46d109881dae9f72bc8fb762467bd5df49
+#define ricauchy _rxmod1_46d109881dae9f72bc8fb762467bd5df50
+#define richisq _rxmod1_46d109881dae9f72bc8fb762467bd5df51
+#define riexp _rxmod1_46d109881dae9f72bc8fb762467bd5df52
+#define rif _rxmod1_46d109881dae9f72bc8fb762467bd5df53
+#define rigeom _rxmod1_46d109881dae9f72bc8fb762467bd5df54
+#define rigamma _rxmod1_46d109881dae9f72bc8fb762467bd5df55
+#define ribeta _rxmod1_46d109881dae9f72bc8fb762467bd5df56
+#define ripois _rxmod1_46d109881dae9f72bc8fb762467bd5df57
+#define rit_ _rxmod1_46d109881dae9f72bc8fb762467bd5df58
+#define riunif _rxmod1_46d109881dae9f72bc8fb762467bd5df59
+#define riweibull _rxmod1_46d109881dae9f72bc8fb762467bd5df60
+#define _compareFactorVal _rxmod1_46d109881dae9f72bc8fb762467bd5df61
+#define _sum _rxmod1_46d109881dae9f72bc8fb762467bd5df62
+#define _sign _rxmod1_46d109881dae9f72bc8fb762467bd5df63
+#define _prod _rxmod1_46d109881dae9f72bc8fb762467bd5df64
+#define _max _rxmod1_46d109881dae9f72bc8fb762467bd5df65
+#define _min _rxmod1_46d109881dae9f72bc8fb762467bd5df66
+#define _transit4P _rxmod1_46d109881dae9f72bc8fb762467bd5df67
+#define _transit3P _rxmod1_46d109881dae9f72bc8fb762467bd5df68
+#define _assignFuns0 _rxmod1_46d109881dae9f72bc8fb762467bd5df69
+#define _assignFuns _rxmod1_46d109881dae9f72bc8fb762467bd5df70
 #include <RxODE_model_shared.h>
 #define __MAX_PROD__ 0
 #define _CMT CMT
+#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){  if (_solveData->svar[_svari] == 0) {V2 = _PP[0];};   if (_solveData->svar[_svari] == 1) {V3 = _PP[1];};   if (_solveData->svar[_svari] == 2) {V4 = _PP[2];};   if (_solveData->svar[_svari] == 3) {KA = _PP[3];};   if (_solveData->svar[_svari] == 4) {CL = _PP[4];};   if (_solveData->svar[_svari] == 5) {Q = _PP[5];};   if (_solveData->svar[_svari] == 6) {Q2 = _PP[6];};   if (_solveData->svar[_svari] == 7) {Kin = _PP[7];};   if (_solveData->svar[_svari] == 8) {Emax = _PP[8];};   if (_solveData->svar[_svari] == 9) {EC50 = _PP[9];};   if (_solveData->svar[_svari] == 10) {Kout = _PP[10];}; }
+#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){  if (_solveData->ovar[_ovari] == 0) {V2 = _PP[0];};   if (_solveData->ovar[_ovari] == 1) {V3 = _PP[1];};   if (_solveData->ovar[_ovari] == 2) {V4 = _PP[2];};   if (_solveData->ovar[_ovari] == 3) {KA = _PP[3];};   if (_solveData->ovar[_ovari] == 4) {CL = _PP[4];};   if (_solveData->ovar[_ovari] == 5) {Q = _PP[5];};   if (_solveData->ovar[_ovari] == 6) {Q2 = _PP[6];};   if (_solveData->ovar[_ovari] == 7) {Kin = _PP[7];};   if (_solveData->ovar[_ovari] == 8) {Emax = _PP[8];};   if (_solveData->ovar[_ovari] == 9) {EC50 = _PP[9];};   if (_solveData->ovar[_ovari] == 10) {Kout = _PP[10];}; }
+#include "extraC.h"
+_getRxSolve_t _getRxSolve_;
+_simfun simeps;
+_simfun simeta;
+rx_solve *_solveData=NULL;
+RxODE_assign_ptr _assign_ptr=NULL;
+_rxRmModelLibType _rxRmModelLib=NULL;
+_rxGetModelLibType _rxGetModelLib=NULL;
+RxODE_ode_solver_old_c _old_c=NULL;
+RxODE_fn0i _ptrid=NULL;
+_rxIsCurrentC_type _rxIsCurrentC=NULL;
+_rxSumType _sumPS=NULL;
+_rxProdType _prodPS=NULL;
+RxODE_fn0i _prodType=NULL;
+RxODE_fn0i _sumType=NULL;
+_update_par_ptr_p _update_par_ptr=NULL;
+_getParCov_p _getParCov=NULL;
+linCmtA_p linCmtA;
+linCmtA_p linCmtC;
+linCmtB_p linCmtB;
+_rx_asgn _RxODE_rxAssignPtr=NULL;
+_rx_asgn _rxQr=NULL;
+RxODE_fn phi;
+RxODE_fn3 logit;
+RxODE_fn3 expit;
+RxODE_fn2 gammap;
+RxODE_fn2 gammaq;
+RxODE_fn2 lowergamma;
+RxODE_fn2 uppergamma;
+RxODE_fn2 gammapInv;
+RxODE_fn2 gammapDer;
+RxODE_fn2 gammapInva;
+RxODE_fn2 gammaqInv;
+RxODE_fn2 gammaqInva;
+RxODEi_fn2 rxnorm;
+RxODEi_fn2 rxnormV;
+RxODEi_rxbinom rxbinom;
+RxODEi_fn2 rxcauchy;
+RxODEi_fn rxchisq;
+RxODEi_fn rxexp;
+RxODEi_fn2 rxf;
+RxODEi_ifn rxgeom;
+RxODEi_fn2 rxgamma;
+RxODEi_fn2 rxbeta;
+RxODEi_ifn rxpois;
+RxODEi_fn rxt_;
+RxODEi_fn2 rxunif;
+RxODEi_fn2 rxweibull;
+RxODEi2_fn2 rinorm;
+RxODEi2_fn2 rinormV;
+RxODEi2_ribinom ribinom;
+RxODEi2_fn2 ricauchy;
+RxODEi2_fn richisq;
+RxODEi2_fn riexp;
+RxODEi2_fn2 rif;
+RxODEi2_ifn rigeom;
+RxODEi2_fn2 rigamma;
+RxODEi2_fn2 ribeta;
+RxODEi2_ifn ripois;
+RxODEi2_fn rit_;
+RxODEi2_fn2 riunif;
+RxODEi2_fn2 riweibull;
+RxODE_compareFactorVal_fn _compareFactorVal;
+double _prod(double *input, double *p, int type, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (unsigned int i = 0; i < n; i++){
+    input[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  return _prodPS(input, p, n, type);
+}
+double _sum(double *input, double *pld, int m, int type, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (unsigned int i = 0; i < n; i++){
+    input[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  double ret = _sumPS(input, n, pld, m, type);
+  if (type == 2 && m < 0){
+    for (int i = -m; i--;){
+      pld[i] = 0.0;
+    }
+  }
+  return ret;
+}
+double _sign(unsigned int n, ...) {
+  va_list valist;
+  va_start(valist, n);
+  double s = 1;
+  for (unsigned int i = 0; i < n; i++) {
+    s = sign(va_arg(valist, double))*s;
+    if (s == 0){
+      break;
+    }
+  }
+  va_end(valist);
+  return s;
+}
+double _max(unsigned int n, ...) {
+  va_list valist;
+  va_start(valist, n);
+  double mx = NA_REAL;
+  double tmp = 0;
+  if (n >= 1){
+    mx = va_arg(valist, double);
+    for (unsigned int i = 1; i < n; i++) {
+      tmp = va_arg(valist, double);
+      if (tmp>mx) mx=tmp;
+    }
+    va_end(valist);
+  }
+  return mx;
+}
+double _min(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double mn = NA_REAL;
+  double tmp = 0;
+  if (n >= 1){
+    mn = va_arg(valist, double);
+    for (unsigned int i = 1; i < n; i++){
+      tmp = va_arg(valist, double);
+      if (tmp<mn) mn=tmp;
+    }
+    va_end(valist);
+  }
+  return mn;
+}
+double _transit4P(double t, unsigned int id, double n, double mtt, double bio){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  double tc = (t-(_solveData->subjects[id].tlast));
+  return exp(log(bio*(_solveData->subjects[id].podo))+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
+}
+double _transit3P(double t, unsigned int id, double n, double mtt){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  double tc = (t-(_solveData->subjects[id].tlast));
+  return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
+}
+void _assignFuns0() {
+  _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
+  _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
+  _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
+  _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
+  _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
+  _rxQr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxQr");
+  _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
+  _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
+  _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
+  _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
+  _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
+  _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
+  linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
+  linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
+  linCmtC=(linCmtA_p)R_GetCCallable("RxODE", "linCmtC");
+    
+  rxnorm = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnorm");
+  rxnormV = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnormV");
+  rxbinom = (RxODEi_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
+  rxcauchy = (RxODEi_fn2)R_GetCCallable("RxODE","rxcauchy") ;
+  rxchisq = (RxODEi_fn)R_GetCCallable("RxODE","rxchisq") ;
+  rxexp = (RxODEi_fn)R_GetCCallable("RxODE","rxexp");
+  rxf = (RxODEi_fn2)R_GetCCallable("RxODE","rxf") ;
+  rxgeom = (RxODEi_ifn)R_GetCCallable("RxODE","rxgeom") ;
+  rxgamma = (RxODEi_fn2)R_GetCCallable("RxODE","rxgamma") ;
+  rxbeta = (RxODEi_fn2)R_GetCCallable("RxODE","rxbeta") ;
+  rxpois = (RxODEi_ifn)R_GetCCallable("RxODE","rxpois") ;
+  rxt_ = (RxODEi_fn)R_GetCCallable("RxODE","rxt_") ;
+  rxunif = (RxODEi_fn2)R_GetCCallable("RxODE","rxunif") ;
+  rxweibull = (RxODEi_fn2)R_GetCCallable("RxODE","rxweibull");
+  rinorm = (RxODEi2_fn2)R_GetCCallable("RxODE", "rinorm");
+  rinormV = (RxODEi2_fn2)R_GetCCallable("RxODE", "rinormV");
+  ribinom = (RxODEi2_ribinom)R_GetCCallable("RxODE","ribinom") ;
+  ricauchy = (RxODEi2_fn2)R_GetCCallable("RxODE","ricauchy") ;
+  richisq = (RxODEi2_fn)R_GetCCallable("RxODE","richisq") ;
+  riexp = (RxODEi2_fn)R_GetCCallable("RxODE","riexp");
+  rif = (RxODEi2_fn2)R_GetCCallable("RxODE","rif") ;
+  rigeom = (RxODEi2_ifn)R_GetCCallable("RxODE","rigeom") ;
+  rigamma = (RxODEi2_fn2)R_GetCCallable("RxODE","rigamma") ;
+  ribeta = (RxODEi2_fn2)R_GetCCallable("RxODE","ribeta") ;
+  ripois = (RxODEi2_ifn)R_GetCCallable("RxODE","ripois") ;
+  rit_ = (RxODEi2_fn)R_GetCCallable("RxODE","rit_") ;
+  riunif = (RxODEi2_fn2)R_GetCCallable("RxODE","riunif") ;
+  riweibull = (RxODEi2_fn2)R_GetCCallable("RxODE","riweibull");
+    
+  phi = (RxODE_fn)R_GetCCallable("RxODE","phi");
+  gammap = (RxODE_fn2) R_GetCCallable("RxODE","gammap");
+  gammaq = (RxODE_fn2) R_GetCCallable("RxODE","gammaq");
+  gammapInv = (RxODE_fn2) R_GetCCallable("RxODE","gammapInv");
+  gammapInva = (RxODE_fn2) R_GetCCallable("RxODE","gammapInva");
+  gammaqInv = (RxODE_fn2) R_GetCCallable("RxODE","gammaqInv");
+  gammaqInva = (RxODE_fn2) R_GetCCallable("RxODE","gammaqInva");
+  uppergamma = (RxODE_fn2) R_GetCCallable("RxODE","uppergamma");
+  lowergamma = (RxODE_fn2) R_GetCCallable("RxODE","lowergamma");
+  gammapDer  = (RxODE_fn2) R_GetCCallable("RxODE","gammapDer");
+  logit = (RxODE_fn3) R_GetCCallable("RxODE", "logit");
+  expit = (RxODE_fn3) R_GetCCallable("RxODE", "expit");
+  simeta =(_simfun) R_GetCCallable("RxODE", "simeta");
+  simeps =(_simfun) R_GetCCallable("RxODE", "simeps");
+  _compareFactorVal=(RxODE_compareFactorVal_fn) R_GetCCallable("RxODE", "compareFactorVal");
+  _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
+  _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
+  _solveData = _getRxSolve_();
+}
+void _assignFuns() {
+  if (_assign_ptr == NULL){
+    _assignFuns0();
+  }
+}
 extern void  mod1__ode_solver_solvedata (rx_solve *solve){
   _solveData = solve;
 }
@@ -8,46 +293,35 @@ extern rx_solve *mod1__ode_solver_get_solvedata(){
   return _solveData;
 }
 SEXP mod1__model_vars();
-double _theta[11];
-extern double* mod1__theta(double *theta){
-  _theta[0] = theta[0];
-_theta[1] = theta[1];
-_theta[2] = theta[2];
-_theta[3] = theta[3];
-_theta[4] = theta[4];
-_theta[5] = theta[5];
-_theta[6] = theta[6];
-_theta[7] = theta[7];
-_theta[8] = theta[8];
-_theta[9] = theta[9];
-_theta[10] = theta[10];
-  return _theta;
-}
 
 
 // prj-specific differential eqns
-void mod1__dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)
+void mod1__dydt(int *_neq, double __t, double *__zzStateVar__, double *__DDtStateVar__)
 {
+  int _itwhile = 0;
+  (void)_itwhile;
   int _cSub = _neq[1];
-  double   Concentration,
-  centr,
-  V2,
-  C3,
-  peri,
-  V3,
-  C4,
-  peri2,
-  V4,
-  depot,
-  KA,
-  CL,
-  Q,
-  Q2,
-  eff,
-  Kin,
-  Emax,
-  EC50,
-  Kout;
+  double t = __t + _solveData->subjects[_neq[1]].curShift;
+  (void)t;
+    double Concentration;
+  double centr;
+  double V2;
+  double C3;
+  double peri;
+  double V3;
+  double C4;
+  double peri2;
+  double V4;
+  double depot;
+  double KA;
+  double CL;
+  double Q;
+  double Q2;
+  double eff;
+  double Kin;
+  double Emax;
+  double EC50;
+  double Kout;
 
   (void)t;
   (void)Concentration;
@@ -70,7 +344,11 @@ void mod1__dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateV
   (void)EC50;
   (void)Kout;
 
-  _update_par_ptr(t, _cSub, _solveData, _idx);
+  Concentration = _PL[0];
+  C3 = _PL[1];
+  C4 = _PL[2];
+
+  _update_par_ptr(__t, _cSub, _solveData, _idx);
   V2 = _PP[0];
   V3 = _PP[1];
   V4 = _PP[2];
@@ -101,39 +379,50 @@ void mod1__dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateV
 }
 
 // Jacobian derived vars
-void mod1__calc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {
-  int _cSub=_neq[1];
-  (&_solveData->subjects[_cSub])->jac_counter[0]++;
+void mod1__calc_jac(int *_neq, double __t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {
+  int _itwhile = 0;
+  (void)_itwhile;
+    int _cSub=_neq[1];
+  double t = __t + _solveData->subjects[_neq[1]].curShift;
+  (void)t;
+    (&_solveData->subjects[_cSub])->jac_counter[0]++;
 }
 // Functional based initial conditions.
 void mod1__inis(int _cSub, double *__zzStateVar__){
+  int _itwhile = 0;
+  (void)_itwhile;
+  
 }
 // prj-specific derived vars
-void mod1__calc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {
-  double   __DDtStateVar_0__,
-  __DDtStateVar_1__,
-  __DDtStateVar_2__,
-  __DDtStateVar_3__,
-  __DDtStateVar_4__,
-  Concentration,
-  centr,
-  V2,
-  C3,
-  peri,
-  V3,
-  C4,
-  peri2,
-  V4,
-  depot,
-  KA,
-  CL,
-  Q,
-  Q2,
-  eff,
-  Kin,
-  Emax,
-  EC50,
-  Kout;
+void mod1__calc_lhs(int _cSub, double __t, double *__zzStateVar__, double *_lhs) {
+    int _itwhile = 0;
+  (void)_itwhile;
+  double t = __t + _solveData->subjects[_cSub].curShift;
+  (void)t;
+    double  __DDtStateVar_0__;
+  double  __DDtStateVar_1__;
+  double  __DDtStateVar_2__;
+  double  __DDtStateVar_3__;
+  double  __DDtStateVar_4__;
+  double Concentration;
+  double centr;
+  double V2;
+  double C3;
+  double peri;
+  double V3;
+  double C4;
+  double peri2;
+  double V4;
+  double depot;
+  double KA;
+  double CL;
+  double Q;
+  double Q2;
+  double eff;
+  double Kin;
+  double Emax;
+  double EC50;
+  double Kout;
 
   (void)t;
   (void)__DDtStateVar_0__;
@@ -161,7 +450,11 @@ void mod1__calc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {
   (void)EC50;
   (void)Kout;
 
-  _update_par_ptr(t, _cSub, _solveData, _idx);
+  Concentration = _PL[0];
+  C3 = _PL[1];
+  C4 = _PL[2];
+
+  _update_par_ptr(__t, _cSub, _solveData, _idx);
   V2 = _PP[0];
   V3 = _PP[1];
   V4 = _PP[2];
@@ -194,297 +487,49 @@ void mod1__calc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {
   _lhs[2]=C4;
 }
 // Functional based bioavailability
-double mod1__F(int _cSub,  int _cmt, double _amt, double t){
+double mod1__F(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){
  return _amt;
 }
 // Functional based absorption lag
-double mod1__Lag(int _cSub,  int _cmt, double t){
- return t;
-  double   Concentration,
-  centr,
-  V2,
-  C3,
-  peri,
-  V3,
-  C4,
-  peri2,
-  V4,
-  depot,
-  KA,
-  CL,
-  Q,
-  Q2,
-  eff,
-  Kin,
-  Emax,
-  EC50,
-  Kout;
-
-  (void)t;
-  (void)Concentration;
-  (void)centr;
-  (void)V2;
-  (void)C3;
-  (void)peri;
-  (void)V3;
-  (void)C4;
-  (void)peri2;
-  (void)V4;
-  (void)depot;
-  (void)KA;
-  (void)CL;
-  (void)Q;
-  (void)Q2;
-  (void)eff;
-  (void)Kin;
-  (void)Emax;
-  (void)EC50;
-  (void)Kout;
-
-  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);
-  V2 = _PP[0];
-  V3 = _PP[1];
-  V4 = _PP[2];
-  KA = _PP[3];
-  CL = _PP[4];
-  Q = _PP[5];
-  Q2 = _PP[6];
-  Kin = _PP[7];
-  Emax = _PP[8];
-  EC50 = _PP[9];
-  Kout = _PP[10];
-
+double mod1__Lag(int _cSub,  int _cmt, double __t, double *__zzStateVar__){
+ return __t;
 }
 // Modeled zero-order rate
-double mod1__Rate(int _cSub,  int _cmt, double _amt, double t){
+double mod1__Rate(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){
  return 0.0;
-  double   Concentration,
-  centr,
-  V2,
-  C3,
-  peri,
-  V3,
-  C4,
-  peri2,
-  V4,
-  depot,
-  KA,
-  CL,
-  Q,
-  Q2,
-  eff,
-  Kin,
-  Emax,
-  EC50,
-  Kout;
-
-  (void)t;
-  (void)Concentration;
-  (void)centr;
-  (void)V2;
-  (void)C3;
-  (void)peri;
-  (void)V3;
-  (void)C4;
-  (void)peri2;
-  (void)V4;
-  (void)depot;
-  (void)KA;
-  (void)CL;
-  (void)Q;
-  (void)Q2;
-  (void)eff;
-  (void)Kin;
-  (void)Emax;
-  (void)EC50;
-  (void)Kout;
-
-  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);
-  V2 = _PP[0];
-  V3 = _PP[1];
-  V4 = _PP[2];
-  KA = _PP[3];
-  CL = _PP[4];
-  Q = _PP[5];
-  Q2 = _PP[6];
-  Kin = _PP[7];
-  Emax = _PP[8];
-  EC50 = _PP[9];
-  Kout = _PP[10];
-
 }
 // Modeled zero-order duration
-double mod1__Dur(int _cSub,  int _cmt, double _amt, double t){
+double mod1__Dur(int _cSub,  int _cmt, double _amt, double __t){
  return 0.0;
 }
 // Model Times
 void mod1__mtime(int _cSub, double *_mtime){
 }
+// Matrix Exponential (0)
+void mod1__ME(int _cSub, double _t, double __t, double *_mat, const double *__zzStateVar__){
+  int _itwhile = 0;
+  (void)_itwhile;
+  double t = __t + _solveData->subjects[_cSub].curShift;
+  (void)t;
+  }
+// Inductive linearization Matf
+void mod1__IndF(int _cSub, double _t, double __t, double *_matf){
+ int _itwhile = 0;
+  (void)_itwhile;
+  double t = __t + _solveData->subjects[_cSub].curShift;
+  (void)t;
+  }
 extern SEXP mod1__model_vars(){
   int pro=0;
   SEXP _mv = PROTECT(_rxGetModelLib("mod1__model_vars"));pro++;
   if (!_rxIsCurrentC(_mv)){
-    SEXP lst      = PROTECT(allocVector(VECSXP, 20));pro++;
-    SEXP names    = PROTECT(allocVector(STRSXP, 20));pro++;
-    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
-    int *iNeedSort  = INTEGER(sNeedSort);
-    iNeedSort[0] = 0;
-    SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
-    int *iMtime  = INTEGER(sMtime);
-    iMtime[0] = 0;
-    SEXP sExtraCmt = PROTECT(allocVector(INTSXP,1));pro++;
-    int *iExtraCmt  = INTEGER(sExtraCmt);
-    iExtraCmt[0] = 0;
-    SEXP params   = PROTECT(allocVector(STRSXP, 11));pro++;
-    SEXP lhs      = PROTECT(allocVector(STRSXP, 3));pro++;
-    SEXP state    = PROTECT(allocVector(STRSXP, 5));pro++;
-  SEXP extraState = PROTECT(allocVector(STRSXP, 0));pro++;
-    SEXP stateRmS = PROTECT(allocVector(INTSXP, 5));pro++;
-    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;
-    INTEGER(timeInt)[0] = 1586353658;
-    SEXP sens     = PROTECT(allocVector(STRSXP, 0));pro++;
-    SEXP normState= PROTECT(allocVector(STRSXP, 5));pro++;
-    SEXP fn_ini   = PROTECT(allocVector(STRSXP, 0));pro++;
-    SEXP dfdy     = PROTECT(allocVector(STRSXP, 0));pro++;
-    SEXP tran     = PROTECT(allocVector(STRSXP, 20));pro++;
-    SEXP trann    = PROTECT(allocVector(STRSXP, 20));pro++;
-    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;
-    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;
-    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;
-    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;
-    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;
-    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;
-    SET_STRING_ELT(version,0,mkChar("0.8.1-0"));
-    SET_STRING_ELT(version,1,mkChar("https://github.com/nlmixrdevelopment/RxODE"));
-    SET_STRING_ELT(version,2,mkChar("2ef740cbdf83ec58b612d7c6d08130e4"));
-    SET_STRING_ELT(versionn,0,mkChar("version"));
-    SET_STRING_ELT(versionn,1,mkChar("repo"));
-    SET_STRING_ELT(versionn,2,mkChar("md5"));
-  SET_STRING_ELT(lhs,0,mkChar("Concentration"));
-    SET_STRING_ELT(params,0,mkChar("V2"));
-  SET_STRING_ELT(lhs,1,mkChar("C3"));
-    SET_STRING_ELT(params,1,mkChar("V3"));
-  SET_STRING_ELT(lhs,2,mkChar("C4"));
-    SET_STRING_ELT(params,2,mkChar("V4"));
-    SET_STRING_ELT(params,3,mkChar("KA"));
-    SET_STRING_ELT(params,4,mkChar("CL"));
-    SET_STRING_ELT(params,5,mkChar("Q"));
-    SET_STRING_ELT(params,6,mkChar("Q2"));
-    SET_STRING_ELT(params,7,mkChar("Kin"));
-    SET_STRING_ELT(params,8,mkChar("Emax"));
-    SET_STRING_ELT(params,9,mkChar("EC50"));
-    SET_STRING_ELT(params,10,mkChar("Kout"));
-    SET_STRING_ELT(state,0,mkChar("depot"));
-    SET_STRING_ELT(normState,0,mkChar("depot"));
-    _SR[0] = 0;
-    SET_STRING_ELT(state,1,mkChar("centr"));
-    SET_STRING_ELT(normState,1,mkChar("centr"));
-    _SR[1] = 0;
-    SET_STRING_ELT(state,2,mkChar("peri"));
-    SET_STRING_ELT(normState,2,mkChar("peri"));
-    _SR[2] = 0;
-    SET_STRING_ELT(state,3,mkChar("peri2"));
-    SET_STRING_ELT(normState,3,mkChar("peri2"));
-    _SR[3] = 0;
-    SET_STRING_ELT(state,4,mkChar("eff"));
-    SET_STRING_ELT(normState,4,mkChar("eff"));
-    _SR[4] = 0;
-    SET_STRING_ELT(modeln,0,mkChar("normModel"));
-    SET_STRING_ELT(model,0,mkChar("Concentration=centr/V2;\nC3=peri/V3;\nC4=peri2/V4;\nd/dt(depot)=-KA*depot;\nd/dt(centr)=KA*depot-(CL+Q+Q2)*Concentration+Q*C3+Q2*C4;\nd/dt(peri)=Q*Concentration-Q*C3;\nd/dt(peri2)=Q2*Concentration-Q2*C4;\nd/dt(eff)=Kin*(1+Emax*Concentration/(EC50+Concentration))-Kout*(1)*eff;\n"));
-    SEXP ini    = PROTECT(allocVector(REALSXP,0));pro++;
-    SEXP inin   = PROTECT(allocVector(STRSXP, 0));pro++;
-    SET_STRING_ELT(names,0,mkChar("params"));
-    SET_VECTOR_ELT(lst,  0,params);
-    SET_STRING_ELT(names,1,mkChar("lhs"));
-    SET_VECTOR_ELT(lst,  1,lhs);
-    SET_STRING_ELT(names,2,mkChar("state"));
-    SET_VECTOR_ELT(lst,  2,state);
-    SET_STRING_ELT(names,3,mkChar("trans"));
-    SET_VECTOR_ELT(lst,  3,tran);
-    SET_STRING_ELT(names,4,mkChar("model"));
-    SET_VECTOR_ELT(lst,  4,model);
-    SET_STRING_ELT(names,5,mkChar("ini"));
-    SET_VECTOR_ELT(lst,  5,ini);
-    SET_STRING_ELT(names,6,mkChar("podo"));
-    SET_VECTOR_ELT(lst,   6,ScalarLogical(0));
-    SET_STRING_ELT(names,7,mkChar("dfdy"));
-    SET_VECTOR_ELT(lst,  7,dfdy);
-    SET_STRING_ELT(names,8,mkChar("sens"));
-    SET_VECTOR_ELT(lst,  8,sens);
-    SET_STRING_ELT(names,9,mkChar("fn.ini"));
-    SET_VECTOR_ELT(lst,  9,fn_ini);
-    SET_STRING_ELT(names,10,mkChar("state.ignore"));
-    SET_VECTOR_ELT(lst,  10,stateRmS);
-    SET_STRING_ELT(names,11,mkChar("version"));
-    SET_VECTOR_ELT(lst,  11,version);
-    SET_STRING_ELT(names,12,mkChar("normal.state"));
-    SET_VECTOR_ELT(lst,  12,normState);
-    SET_STRING_ELT(names,13,mkChar("needSort"));
-    SET_VECTOR_ELT(lst,  13,sNeedSort);
-    SET_STRING_ELT(names,14,mkChar("nMtime"));
-    SET_VECTOR_ELT(lst,  14,sMtime);
-    SET_STRING_ELT(names,15,mkChar("extraCmt"));
-    SET_VECTOR_ELT(lst,  15,sExtraCmt);
-    SET_STRING_ELT(names, 16, mkChar("stateExtra"));
-    SET_VECTOR_ELT(lst,  16, extraState);
-    SET_STRING_ELT(names, 17, mkChar("dvid"));
-    SEXP sDvid = PROTECT(allocVector(INTSXP,0));pro++;
-    SET_VECTOR_ELT(lst, 17, sDvid);
-    SET_STRING_ELT(names,18,mkChar("timeId"));
-    SET_VECTOR_ELT(lst,  18,timeInt);
-    SET_STRING_ELT(names,19,mkChar("md5"));    SET_VECTOR_ELT(lst,  19,mmd5);    SET_STRING_ELT(mmd5n,0,mkChar("file_md5"));
-    SET_STRING_ELT(mmd5,0,mkChar("1e6509b060d5db997e9262077c630500"));
-    SET_STRING_ELT(mmd5n,1,mkChar("parsed_md5"));
-    SET_STRING_ELT(mmd5,1,mkChar("106d328b3013589e7bc96bd9e687c561"));
-    SET_STRING_ELT(trann,0,mkChar("lib.name"));
-    SET_STRING_ELT(tran, 0,mkChar("mod1_"));
-    SET_STRING_ELT(trann,1,mkChar("jac"));
-    SET_STRING_ELT(tran,1,mkChar("fullint"));
-    SET_STRING_ELT(trann,2,mkChar("prefix"));
-    SET_STRING_ELT(tran, 2,mkChar("mod1__"));
-    SET_STRING_ELT(trann,3,mkChar("dydt"));
-    SET_STRING_ELT(tran, 3,mkChar("mod1__dydt"));
-    SET_STRING_ELT(trann,4,mkChar("calc_jac"));
-    SET_STRING_ELT(tran, 4,mkChar("mod1__calc_jac"));
-    SET_STRING_ELT(trann,5,mkChar("calc_lhs"));
-    SET_STRING_ELT(tran, 5,mkChar("mod1__calc_lhs"));
-    SET_STRING_ELT(trann,6,mkChar("model_vars"));
-    SET_STRING_ELT(tran, 6,mkChar("mod1__model_vars"));
-    SET_STRING_ELT(trann,7,mkChar("theta"));
-    SET_STRING_ELT(tran, 7,mkChar("mod1__theta"));
-    SET_STRING_ELT(trann,8,mkChar("inis"));
-    SET_STRING_ELT(tran, 8,mkChar("mod1__inis"));
-    SET_STRING_ELT(trann,  9,mkChar("dydt_lsoda"));
-    SET_STRING_ELT(tran,   9,mkChar("mod1__dydt_lsoda"));
-    SET_STRING_ELT(trann,10,mkChar("calc_jac_lsoda"));
-    SET_STRING_ELT(tran, 10,mkChar("mod1__calc_jac_lsoda"));
-    SET_STRING_ELT(trann,11,mkChar("ode_solver_solvedata"));
-    SET_STRING_ELT(tran, 11,mkChar("mod1__ode_solver_solvedata"));
-    SET_STRING_ELT(trann,12,mkChar("ode_solver_get_solvedata"));
-    SET_STRING_ELT(tran, 12,mkChar("mod1__ode_solver_get_solvedata"));
-    SET_STRING_ELT(trann,13,mkChar("dydt_liblsoda"));
-    SET_STRING_ELT(tran, 13,mkChar("mod1__dydt_liblsoda"));
-    SET_STRING_ELT(trann,14,mkChar("F"));
-    SET_STRING_ELT(tran, 14,mkChar("mod1__F"));
-    SET_STRING_ELT(trann,15,mkChar("Lag"));
-    SET_STRING_ELT(tran, 15,mkChar("mod1__Lag"));
-    SET_STRING_ELT(trann,16,mkChar("Rate"));
-    SET_STRING_ELT(tran, 16,mkChar("mod1__Rate"));
-    SET_STRING_ELT(trann,17,mkChar("Dur"));
-    SET_STRING_ELT(tran, 17,mkChar("mod1__Dur"));
-    SET_STRING_ELT(trann,18,mkChar("mtime"));
-    SET_STRING_ELT(tran, 18,mkChar("mod1__mtime"));
-    SET_STRING_ELT(trann,19,mkChar("assignFuns"));
-    SET_STRING_ELT(tran, 19,mkChar("mod1__assignFuns"));
-    setAttrib(tran, R_NamesSymbol, trann);
-    setAttrib(mmd5, R_NamesSymbol, mmd5n);
-    setAttrib(model, R_NamesSymbol, modeln);
-    setAttrib(ini, R_NamesSymbol, inin);
-    setAttrib(version, R_NamesSymbol, versionn);
-    setAttrib(lst, R_NamesSymbol, names);
-    SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;
-    SET_STRING_ELT(cls, 0, mkChar("rxModelVars"));
-    classgets(lst, cls);
+    SEXP hash    = PROTECT(allocVector(STRSXP, 1));pro++;
+#define __doBuf__  sprintf(buf, "un]\"BAAA@QRtHACAAAAAAA+>2AAAv7#aT)dbvzNA)}Gc=WVwVAA.(D|7\?,8UV9RM(,\"d[kQjN:WeHNnJl3`L*C]uX{d4h5zpXXVOTP4a$i\"awI4!d)JB@E,LDiz(lAzBTf@#Q`kpU[LMN~hP=[EihVw8;{6Pm>M22LMd$`UNTq5fL=_Oc{DOpK2<b]1~!qw/@8LnKy&]5L)`@jQy:x|8.v{4xmg&$PEYY(S9S.oFulF{wk0D=(bKnD(8>3A`E*_(=OkW\"RQMTtjc0|IvT9zS2mkm04$T;W*zv.OyjwXk@u~Q!yDe9YOznz%%ZnBlEyu*S^$o2g.aR1DTJ>WXWD$g,=(UUHlMm<Rq2{BF6DE*^+xtItx_*KFM$tM8*}\?[*1E]]@DV^1RKf@gsdZmmuByu.\";;vAK[0^haLAovfFDAAfx.gbRR8gW*kdJr2{Qgq*`!+~d|51Y2dXWKj]`6keG]<>H[~Co.,.0,jL1j~GuO3Hj\"W9cq\".$IIF}+zy;qab8jpTI2i\?>cx!Ik}{)s;J(7#u#L`!,lWT(\?F2eO,HiJ(XR)DwLoz%%ZrXYu5IjL0aJnF6\"3U\?IeVWhFo|%%rqTzYCoBW>|DM<GUP9`mb7|UezR{$AMUXi4}\?t{v#c/E[q]u*}mHG2_LoRy0SP/d^&R*iSj$[h[I0+1<8ze+SPi.zk2)KG1k2t4j]QmFuo&{|/Gv;eQBiVLFuQ}3rewdeSC^\?56Ii5b6@G]]d:lx{r!L_Z(dgJ:im{|V#Kj|&7p)R~@i[YP1YMf+[a~gb=1Q(:$sz^Mm:%%KY95bHR7*:o#R\?c:_fbXDXW.L2D9@*oO|zGBI$IQu;i2ud0TvXDW)CSxBCa\"dpE)AW0^48MVRLHnGkcIQV[bZq7,rqoolw&WG8YZ804:[G@Y33g$SI5@e]}%%i0&<f#@3l`UyREXtUZtr2w*TQ/btZkvFg}/+1=:Pq|zM,GFnNazujos4\?DTCasX/RrzN71n8!*Bt|np3DpqKjd#hhQC+z`*lQ<pz.^QmbrWpPkUROLG1gPf2D]c+>rPJ<ONYcYiMQ_\"VE4Jy(,!1H7}KaF6/O~Yay<dXEm]+GwG0,Xa{\"`XumTosrEsGD.kB+DF.GcwMdA");
+    char buf[1119];
+    __doBuf__
+#undef __doBuf__
+    SET_STRING_ELT(hash, 0, mkChar(buf));
+    SEXP lst      = PROTECT(_rxQr(hash));pro++;
     _assign_ptr(lst);
     UNPROTECT(pro);
     return lst;
@@ -497,10 +542,10 @@ extern void mod1__dydt_lsoda(int *neq, double *t, double *A, double *DADT)
 {
   mod1__dydt(neq, *t, A, DADT);
 }
-extern int mod1__dydt_liblsoda(double t, double *y, double *ydot, void *data)
+extern int mod1__dydt_liblsoda(double __t, double *y, double *ydot, void *data)
 {
   int *neq = (int*)(data);
-  mod1__dydt(neq, t, y, ydot);
+  mod1__dydt(neq, __t, y, ydot);
   return(0);
 }
 extern void mod1__calc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
@@ -516,9 +561,7 @@ extern void mod1__assignFuns(){
 //Initialize the dll to match RxODE's calls
 void R_init0_mod1_(){
   // Get C callables on load; Otherwise it isn't thread safe
-  _assignFuns();
   R_RegisterCCallable("mod1_","mod1__assignFuns", (DL_FUNC) mod1__assignFuns);
-  R_RegisterCCallable("mod1_","mod1__theta", (DL_FUNC) mod1__theta);
   R_RegisterCCallable("mod1_","mod1__inis",(DL_FUNC) mod1__inis);
   R_RegisterCCallable("mod1_","mod1__dydt",(DL_FUNC) mod1__dydt);
   R_RegisterCCallable("mod1_","mod1__calc_lhs",(DL_FUNC) mod1__calc_lhs);
@@ -532,6 +575,8 @@ void R_init0_mod1_(){
   R_RegisterCCallable("mod1_","mod1__Rate", (DL_FUNC) mod1__Rate);
   R_RegisterCCallable("mod1_","mod1__Dur", (DL_FUNC) mod1__Dur);
   R_RegisterCCallable("mod1_","mod1__mtime", (DL_FUNC) mod1__mtime);
+  R_RegisterCCallable("mod1_","mod1__ME", (DL_FUNC) mod1__ME);
+  R_RegisterCCallable("mod1_","mod1__IndF", (DL_FUNC) mod1__IndF);
   R_RegisterCCallable("mod1_","mod1__dydt_liblsoda", (DL_FUNC) mod1__dydt_liblsoda);
 }
 //Initialize the dll to match RxODE's calls
@@ -545,6 +590,8 @@ void R_init_mod1_(DllInfo *info){
 
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
+  _assignFuns0();
+
 }
 
 void R_unload_mod1_ (DllInfo *info){

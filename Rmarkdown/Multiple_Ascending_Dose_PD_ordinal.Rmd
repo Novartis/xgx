@@ -112,6 +112,15 @@ gg <- gg + facet_grid(.~TRTACT_low2high)
 gg <- gg + guides(fill = guide_legend(""))
 gg <- gg + xgx_annotate_status(status)
 gg
+
+gg2 <- ggplot(data = pd_data, aes(x = PROFDAY, response = ORDINAL_LEVELS_high2low, color = ORDINAL_LEVELS_high2low)) 
+gg2 <- gg2 + xgx_stat_ci(distribution = "ordinal", geom = list("line", "point","errorbar")) + scale_y_continuous(labels = scales::percent)
+gg2 <- gg2 + labs(x = time_label, y = pd_response_label)
+gg2 <- gg2 + facet_grid(.~TRTACT_low2high)
+gg2 <- gg2 + scale_fill_brewer(palette = 6)
+gg2 <- gg2 + guides(color = guide_legend(""),fill = guide_legend(""))
+gg2 <- gg2 + xgx_annotate_status(status)
+gg2
 ```
 
 
@@ -159,7 +168,7 @@ gg
 
 ## Explore Dose-Response Relationship
 
-### Percent of subjects by response category against dose, faceted by time
+### Percent of subjects by response category against dose, at the endpoint of interest
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message = FALSE}
 data_to_plot <- pd_data %>% subset(PROFDAY %in% c(SS_PROFDAY), )
@@ -171,8 +180,32 @@ gg <- gg + labs(x = dose_label, y = pd_response_label) + guides(fill = guide_leg
 gg <- gg + scale_fill_brewer(palette = 6)
 gg <- gg + facet_grid(.~DAY_label)
 gg
+
+gg2 <- ggplot(data = data_to_plot, aes(x = DOSE, response = ORDINAL_LEVELS_high2low, color = ORDINAL_LEVELS_high2low)) 
+gg2 <- gg2 + xgx_annotate_status(status)
+gg2 <- gg2 + xgx_stat_ci(distribution = "ordinal", position = position_dodge(width = 50), alpha = 0.5) 
+gg2 <- gg2 + scale_y_continuous(labels = scales::percent)
+gg2 <- gg2 + labs(x = dose_label, y = pd_response_label) + guides(color = guide_legend(""))
+gg2 <- gg2 + facet_grid(.~DAY_label)
+gg2
 ```
 
+### Ordinal response against dose, at the endpoint of interest
+
+```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message = FALSE}
+data_to_plot <- pd_data %>% subset(PROFDAY %in% c(SS_PROFDAY), )
+
+gg <- ggplot(data = data_to_plot, aes(y = DOSE, x = ORDINAL_LEVELS_low2high))
+gg <- gg + geom_jitter(data = data_to_plot, 
+                       aes(color = TRTACT_high2low), shape = 19, width = 0.1, height = 0, alpha = 0.5)
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape = NA) 
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + coord_flip() 
+gg <- gg + labs(y = dose_label, x = pd_ordinal_label)
+gg <- gg + facet_grid(.~DAY_label)
+gg
+```
 
 ### Percent of subjects by response category against dose, faceted by day
 
@@ -186,21 +219,12 @@ gg <- gg + labs(x = dose_label, y = pd_response_label) + guides(fill = guide_leg
 gg <- gg + scale_fill_brewer(palette = 6)
 gg <- gg + facet_grid(.~DAY_label)
 gg
-```
 
-### Ordinal response against dose
-
-```{r, error = TRUE, cache = TRUE, fig.width = 5, fig.height = 4, warning = FALSE, message = FALSE}
-data_to_plot <- pd_data %>% subset(PROFDAY %in% c(SS_PROFDAY), )
-
-gg <- ggplot(data = data_to_plot, aes(y = DOSE, x = ORDINAL_LEVELS_low2high))
-gg <- gg + geom_jitter(data = data_to_plot, 
-                       aes(color = TRTACT_high2low), shape = 19, width = 0.1, height = 0, alpha = 0.5)
+gg <- ggplot(data = data_to_plot, aes(x = DOSE, response = ORDINAL_LEVELS_high2low, color = ORDINAL_LEVELS_high2low)) 
 gg <- gg + xgx_annotate_status(status)
-gg <- gg + geom_boxplot(width = 0.5, fill = NA, outlier.shape = NA) 
-gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
-gg <- gg + coord_flip() 
-gg <- gg + labs(y = dose_label, x = pd_ordinal_label)
+gg <- gg + xgx_stat_ci(distribution = "ordinal", position = position_dodge(width = 50), alpha = 0.5) 
+gg <- gg + scale_y_continuous(labels = scales::percent)
+gg <- gg + labs(x = dose_label, y = pd_response_label) + guides(color = guide_legend(""))
 gg <- gg + facet_grid(.~DAY_label)
 gg
 ```
