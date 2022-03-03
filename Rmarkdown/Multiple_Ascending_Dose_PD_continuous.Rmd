@@ -142,41 +142,41 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 ### PD marker over time, colored by Dose, dots & lines grouped by individuals
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE}
- 
- gg <- ggplot(data = pd_data, 
-               aes(x = TIME, y = LIDV, group = ID, color = factor(TRTACT_high2low))) 
- gg <- gg + xgx_annotate_status(status)
- gg <- gg + geom_line()
- gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
- gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
-                                   units_plot    = time_units_plot)    
- gg <- gg + labs(y = pd_label)
- gg <- gg + xgx_annotate_status(status)
+
+gg <- ggplot(data = pd_data, 
+             aes(x = TIME, y = LIDV, group = ID, color = factor(TRTACT_high2low))) 
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)    
+gg <- gg + labs(y = pd_label)
+gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
- print(gg)
+print(gg)
 
 ```
 
 ### PD marker over time, faceted by Dose, dots & lines grouped by individuals
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE}
- 
+
 gg <- ggplot(data = pd_data, 
-               aes(x = TIME, y = LIDV, group = ID)) 
- gg <- gg + xgx_annotate_status(status)
- gg <- gg + geom_line(alpha = 0.5)
- gg <- gg + geom_point(alpha = 0.5)
- gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
- gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
-                                   units_plot    = time_units_plot)    
- gg <- gg + facet_grid(~TRTACT_low2high)
- gg <- gg + labs(y = pd_label)
- gg <- gg + xgx_annotate_status(status)
- #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
+             aes(x = TIME, y = LIDV, group = ID)) 
+gg <- gg + xgx_annotate_status(status)
+gg <- gg + geom_line(alpha = 0.5)
+gg <- gg + geom_point(alpha = 0.5)
+gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
+gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
+                                  units_plot    = time_units_plot)    
+gg <- gg + facet_grid(~TRTACT_low2high)
+gg <- gg + labs(y = pd_label)
+gg <- gg + xgx_annotate_status(status)
+#if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
- print(gg)
+print(gg)
 
 ```
 
@@ -243,10 +243,11 @@ Here are some questions to ask yourself when looking at Dose-Response plots: Do 
 <!--END_EXPLANATION-->
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
-pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% c(0, SS_PROFDAY))
+pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% c(SS_PROFDAY))
 
-gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE, y = LIDV, group = DOSE))
-gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE, y = LIDV))
+gg <- gg + xgx_stat_ci(conf_level = .95, geom = list("point","errorbar"))
+gg <- gg + xgx_geom_smooth_emax()
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + labs(x = dose_label, y = pd_label)
@@ -267,8 +268,9 @@ Sometimes the crossectional Dose-Response curve which looks only at one timepoin
 pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 
 
-gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE, y = LIDV, group = DOSE))
-gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE, y = LIDV))
+gg <- gg + xgx_stat_ci(conf_level = .95, geom = list("point","errorbar"))
+gg <- gg + xgx_geom_smooth_emax()
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + labs(x = dose_label, y = pd_label)

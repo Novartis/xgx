@@ -365,21 +365,17 @@ Plot response against exposure. Include a logistic regression for binary data to
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 pkpd_data_wide_plot = pkpd_data_wide %>%
-  mutate(PROFDAY_STR = paste("Day",PROFDAY)) %>%
-  filter(PROFDAY %in% c(1,3,5)) %>%
-  mutate(CONC_QUART = cut(CONC, quantile(CONC, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
-  group_by(CONC_QUART) %>%
-  mutate(CONC_MIDPOINT = median(CONC))
+  filter(PROFDAY %in% c(1,3,5))
 
 gg <- ggplot(data = pkpd_data_wide_plot, aes(x = CONC, y = PD))
 gg <- gg + geom_jitter(aes(color = TRTACT_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = PD), distribution = "binomial", geom = "errorbar", size = 0.5)
-gg <- gg + xgx_stat_ci(aes(x = CONC_MIDPOINT, y = PD), distribution = "binomial", geom = "point", shape = 0, size = 4)
+gg <- gg + xgx_stat_ci(bins = 4, distribution = "binomial", geom = "errorbar", size = 0.5)
+gg <- gg + xgx_stat_ci(bins = 4, distribution = "binomial", geom = "point", shape = 0, size = 4)
 gg <- gg + scale_y_continuous(labels=scales::percent)
 gg <- gg + labs(x = conc_label, y = pd_response_label, color = trtact_label)
 gg <- gg + xgx_scale_x_log10()
-gg <- gg + facet_grid(~PROFDAY_STR)
+gg <- gg + facet_grid(~DAY_label)
 print(gg)
 ```
 
@@ -388,19 +384,11 @@ Plotting AUC vs response instead of concentration vs response may make more sens
 <!--END_EXPLANATION-->
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
-NCA_plot = NCA %>%
-  group_by(PARAM) %>%
-  mutate(VALUE_QUART = cut(VALUE, quantile(VALUE, na.rm=TRUE), na.rm=TRUE, include.lowest = TRUE)) %>%
-  group_by(PARAM, VALUE_QUART) %>%
-  mutate(VALUE_MIDPOINT = median(VALUE))
-
-gg <- ggplot(NCA_plot, aes(x = VALUE, y = PD))
+gg <- ggplot(NCA, aes(x = VALUE, y = PD))
 gg <- gg + geom_jitter(aes( color = TRTACT_high2low), width = 0, height = 0.05, alpha = 0.5) 
 gg <- gg + geom_smooth(method = "glm", method.args = list(family=binomial(link = logit)), color = "black")
-gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = PD), 
-                       conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
-gg <- gg + xgx_stat_ci(mapping = aes(x = VALUE_MIDPOINT, y = PD), 
-                       conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
+gg <- gg + xgx_stat_ci(bins = 4, conf_level = 0.95, distribution = "binomial", geom = c("point"), shape = 0, size = 4)
+gg <- gg + xgx_stat_ci(bins = 4, conf_level = 0.95, distribution = "binomial", geom = c("errorbar"), size = 0.5)
 gg <- gg + facet_wrap(~DAY_label + PARAM, scales = "free_x")
 gg <- gg + labs(color = trtact_label, x = "NCA parameter", y = pd_response_label)
 gg <- gg + xgx_scale_x_log10()
