@@ -12,7 +12,9 @@ output:
 <!--START_EXPLANATION-->
 This document contains exploratory plots for binary response data as well as the R code that generates these graphs.The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 <!--END_EXPLANATION-->
+
 ## Setup
+
 ```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
@@ -43,6 +45,7 @@ dirs = list(
 <!--START_EXPLANATION-->
 The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
 #load dataset
 pkpd_data <- read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
@@ -167,6 +170,7 @@ We start with *Expsoure and Response vs Time*, or longitduinal plots
 
 Summarize data with Mean +/- 95% confidence intervals for the percent responders over time.  Confidence intervals should be claculated with  `binom::binom.exact()`.  You should either color or facet by dose group.  
 <!--END_EXPLANATION-->
+
 ### PK and PD marker over time, colored by Dose, mean +/- 95% CI by nominal time
 <!--START_EXPLANATION-->
 Questions to ask:
@@ -189,19 +193,21 @@ Questions to ask:
   gg <- gg + labs(y=conc_label,color = trtact_label)
   gg <- gg + xgx_annotate_status(status)
   gg <- gg + xgx_annotate_filenames(dirs)
+  
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
   #xgx_save(width,height,dirs,"filename_main",status)
   print(gg)
   
 #PD data
   gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
-  gg <- gg + xgx_stat_ci(distribution = "binomial")
+  gg <- gg + xgx_stat_ci(distribution = "binomial", position = position_dodge(width = 12), alpha = 0.5)
   gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                     units_plot    = time_units_plot)
   gg <- gg + scale_y_continuous(labels=scales::percent)
   gg <- gg + labs(y = pd_response_label, color = trtact_label)  
   gg <- gg + xgx_annotate_status(status)
   gg <- gg + xgx_annotate_filenames(dirs)
+  
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
   #xgx_save(width,height,dirs,"filename_main",status)
   print(gg)
@@ -211,6 +217,7 @@ Questions to ask:
 <!--START_EXPLANATION-->
 If coloring by dose makes a messy plot, you can try faceting by dose instead. Here we show the same data, but faceted by dose. 
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 #PK data
   gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV))
@@ -222,6 +229,7 @@ If coloring by dose makes a messy plot, you can try faceting by dose instead. He
   gg <- gg + facet_grid(~TRTACT_low2high)
   gg <- gg + xgx_annotate_status(status)
   gg <- gg + xgx_annotate_filenames(dirs)
+  
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
   #xgx_save(width,height,dirs,"filename_main",status)
   print(gg)
@@ -236,6 +244,7 @@ If coloring by dose makes a messy plot, you can try faceting by dose instead. He
   gg <- gg + facet_grid(~TRTACT_low2high)
   gg <- gg + xgx_annotate_status(status)
   gg <- gg + xgx_annotate_filenames(dirs)
+  
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
   #xgx_save(width,height,dirs,"filename_main",status)
   print(gg)
@@ -245,6 +254,7 @@ If coloring by dose makes a messy plot, you can try faceting by dose instead. He
 <!--START_EXPLANATION-->
 Another longitudinal plot that can be useful for binary data is plotting the PK over time for all individuals, and coloring by response type. This plot is often used for adverse events plotting. For studies with few PK observations, a PK model may be needed in order to produce concentrations at each time point where response is measured.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide, aes(x = NOMTIME, y = CONC))
 gg <- gg + geom_boxplot(aes(group = factor(NOMTIME)), width = 0.5*24)
@@ -265,6 +275,7 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 When plotting individual binomial data, it is often helpful to stagger the dots and use transparency, so that it is easier to detect individual dots.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message= FALSE}
 
 gg <- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
@@ -277,6 +288,7 @@ gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset,
 gg <- gg + labs(y = conc_label, color = trtact_label)
 gg <- gg + xgx_annotate_status(status) 
 gg <- gg + xgx_annotate_filenames(dirs)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
@@ -289,6 +301,7 @@ gg <- gg + scale_y_continuous(labels=scales::percent)
 gg <- gg + labs(y = conc_label, color = pd_response_label)
 gg <- gg + xgx_annotate_status(status) 
 gg <- gg + xgx_annotate_filenames(dirs)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
@@ -309,6 +322,7 @@ gg <- gg + labs(y = conc_label, shape = "BLQ", color = "BLQ")
 gg <- gg + facet_grid(.~TRTACT_low2high)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
@@ -322,12 +336,12 @@ gg <- gg + labs(y = pd_binary_label, shape = "BLQ", color = "BLQ")
 gg <- gg + facet_grid(.~TRTACT_low2high)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_annotate_filenames(dirs)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
 
 ```
-
 
 ## Explore Exposure-Response Relationship
 
@@ -344,9 +358,11 @@ gg <- gg + coord_flip()
 print(gg)
 
 ```
+
 <!--START_EXPLANATION-->
 Plot response against exposure. Include a logistic regression for binary data to help determine the shape of the exposure-respone relationship. Summary information such as mean and 95% confidence intervals by quartiles of exposure can also be plotted. The exposure metric that you use in these plots could be either raw concentrations, or NCA or model-derived exposure metrics (e.g. Cmin, Cmax, AUC), and may depend on the level of data that you have available.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 pkpd_data_wide_plot = pkpd_data_wide %>%
   mutate(PROFDAY_STR = paste("Day",PROFDAY)) %>%
@@ -366,9 +382,11 @@ gg <- gg + xgx_scale_x_log10()
 gg <- gg + facet_grid(~PROFDAY_STR)
 print(gg)
 ```
+
 <!--START_EXPLANATION-->
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
 NCA_plot = NCA %>%
   group_by(PARAM) %>%
@@ -391,9 +409,11 @@ print(gg)
 ```
 
 ### Explore covariate effects on Exposure-Response Relationship
+
 <!--START_EXPLANATION-->
 Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. For examples of plots and code startifying by covariate, see [Continuous PKPD Covariate Section](Multiple_Ascending_Dose_PKPD_continuous.html#explore_covariate_effects_on_exposure-response_relationship)
 <!--END_EXPLANATION-->
+
 ## R Session Info
 ```{r}
 sessionInfo()

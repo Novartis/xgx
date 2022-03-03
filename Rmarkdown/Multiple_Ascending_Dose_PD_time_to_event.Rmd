@@ -61,6 +61,7 @@ print(gg)
 <!--START_EXPLANATION-->
 This plot can help in assessing the impact of a covariate (sex) on outcome.
 <!--END_EXPLANATION-->
+
 ```{r warning=FALSE, message=FALSE}
 km_fit_sex <- survfit(Surv(time, status) ~ sex, 
                        data = km_data, 
@@ -79,6 +80,7 @@ print(gg)
 <!--START_EXPLANATION-->
 In this data only a few variables are available, so variable selection isn't needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. Look for small p values or large hazard ratios to identify covariates that have a large effect.
 <!--END_EXPLANATION-->
+
 ```{r warning=FALSE, message=FALSE}
 km_cox <- coxph(Surv(time) ~ dose + sex,
              data =km_data)
@@ -109,6 +111,7 @@ The mean cumulative function is another way of looking at repeated time-to-event
 
 Calculate the mean cumulative function by ordering all of the events by increasing time, calculate the cumulative number of occurances up to each time point, and take the average over the number of subjects being observed. For repeated time-to-event data, the mean cumulative function can achieve values greater than 1.
 <!--END_EXPLANATION-->
+
 ```{r}
 # (coming soon)
 ```

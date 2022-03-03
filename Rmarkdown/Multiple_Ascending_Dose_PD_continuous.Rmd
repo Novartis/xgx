@@ -12,6 +12,7 @@ output:
 <!--START_EXPLANATION-->
 This document contains exploratory plots for multiple ascending continuous PD data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_continuous.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 <!--END_EXPLANATION-->
+
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -91,6 +92,7 @@ Summarize the data in a way that is easy to visualize the general trend of PD ov
 
 When looking at summaries of continuous PD over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. How does the profile change over time? Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect? 
 <!--END_EXPLANATION-->
+
 ### PD marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
@@ -98,8 +100,7 @@ When looking at summaries of continuous PD over time, there are several things t
 #PD data
 gg <- ggplot(data = pd_data, 
                aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
-gg <- gg + xgx_stat_ci(conf_level = .95)
-
+gg <- gg + xgx_stat_ci(conf_level = .95, position = position_dodge(width = 12), alpha = 0.5)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
@@ -183,10 +184,12 @@ gg <- ggplot(data = pd_data,
 <!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. 
 <!--END_EXPLANATION-->
+
 ### PD marker over time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group
 <!--START_EXPLANATION-->
 Plotting individual profiles on top of gray spaghetti plots puts individual profiles into context, and may help identify outlying individuals for further inspection.
 <!--END_EXPLANATION-->
+
 ```{r , cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 8}
 
 pd_data_rep_by_trt <- list()
@@ -230,7 +233,6 @@ Stratify by covariates of interest to explore whether any key covariates impact 
 
 One of the key questions when looking at PD markers is to determine if there is a dose-response relationship, and if there is, what dose is necessary to achieve the desired effect? Simple dose-response plots can give insight into these questions.
 
-
 ### PD marker by Dose, for endpoint of interest, mean (95% CI) by Dose
 
 Plot PD marker against dose. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. 
@@ -249,6 +251,7 @@ gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + labs(x = dose_label, y = pd_label)
 gg <- gg + xgx_annotate_status(status)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
 print(gg)
@@ -259,6 +262,7 @@ print(gg)
 <!--START_EXPLANATION-->
 Sometimes the crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. Looking at longitudinal PD over time (as in previous sections above) can help to uncover these trends. It may also be helpful to plot the cross-sectional Dose-Response curves for different time points throughout the study.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message = FALSE} 
 pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% PD_PROFDAYS)
 

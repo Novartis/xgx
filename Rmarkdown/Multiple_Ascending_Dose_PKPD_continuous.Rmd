@@ -12,6 +12,7 @@ output:
 <!--START_EXPLANATION-->
 This document contains exploratory plots for continuous PD data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PKPD_continuous.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 <!--END_EXPLANATION-->
+
 ## Setup
 
 ```{r, error = TRUE, warning=FALSE, message=FALSE}
@@ -141,16 +142,18 @@ pd_label           = paste0("Continuous PD Marker (", pd_units, ")")
 <!--START_EXPLANATION-->
 Summarize the data in a way that is easy to visualize the general trend of PD over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
 <!--END_EXPLANATION-->
+
 ### PK and PD marker over time, colored by Dose, mean (95% CI) percentiles by nominal time
 <!--START_EXPLANATION-->
 Observe the overall shape of the average profiles. Does the effect appear to increase and decrease quickly on a short time scale, or does is occur over a longer time scale? Do the PK and PD profiles appear to be on the same time scale, or does the PD seem delayed compared to the PK? Is there clear separation between the profiles for different doses? Does the effect appear to increase with increasing dose? Do you detect a saturation of the effect? 
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
 
 #PK data
 gg <- ggplot(data = pk_data, 
              aes(x = NOMTIME,y = LIDV, color = TRTACT_high2low, fill = TRTACT_high2low)) 
-gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- gg + xgx_stat_ci(conf_level = .95, position = position_dodge(width = 12), alpha = 0.5)
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
@@ -187,6 +190,7 @@ gg %+% (data = pd_data %>% subset(DOSE>0)) + scale_y_continuous() + labs(y = pd_
 <!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?
 <!--END_EXPLANATION-->
+
 ### PK and PD marker over time, colored by Dose, dots & lines grouped by individuals
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 3, warning = FALSE, message= FALSE}
@@ -235,6 +239,7 @@ Plot PD marker against concentration. Do you see any relationship? Does response
 
 **Warning:** Even if you don't see an Emax, that doesn't mean there isn't one. Be very careful about using linear models for Dose-Response or Exposure-Response relationships. Extrapolation outside of the observed dose range could indicate a higher dose is always better (even if it isn't).
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = pkpd_data_wide %>% subset(PROFDAY == SS_PROFDAY,), aes(x = CONC,y = PD))
 gg <- gg + xgx_annotate_status(status)
@@ -263,6 +268,7 @@ gg + facet_grid(~DAY_label)
 <!--START_EXPLANATION-->
 Plotting AUC vs response instead of concentration vs response may make more sense in some situations. For example, when there is a large delay between PK and PD it would be diffcult to relate the time-varying concentration with the response. If rich sampling is only done at a particular point in the study, e.g. at steady state, then the AUC calculated on the rich profile could be used as the exposure variable for a number of PD visits. If PK samples are scarce, average Cmin could also be used as the exposure metric.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 6, warning = FALSE, message= FALSE}
 NCA_plot = NCA %>%
   group_by(PARAM) %>%
@@ -285,6 +291,7 @@ print(gg)
 <!--START_EXPLANATION-->
 Stratify exposure-response plots by covariates of interest to explore whether any key covariates impact response independent of exposure. 
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
 gg <- ggplot(data = NCA_plot, aes(x = VALUE, y = PD)) 
 gg <- gg + xgx_annotate_status(status)
@@ -304,6 +311,7 @@ In a hysteresis plot, you want to determine whether the path is curving, and if 
 
 In the plots below, most of the hysteresis paths follow a counter clockwise turn, with most arrows pointing up and to the right or down and to the left, indicating the effect increases in a delayed manner with increasing concentration.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 15, warning = FALSE, message= FALSE}
 pkpd_data_wide <- pkpd_data_wide %>% arrange(ID, TIME)
 
@@ -318,7 +326,6 @@ gg <- gg + theme(panel.grid.minor.x = ggplot2::element_line(color = rgb(0.9,0.9,
 
 gg + facet_wrap(~ID + TRTACT_low2high, ncol = 5)
 ```
-
 
 ## R Session Info
 ```{r}
