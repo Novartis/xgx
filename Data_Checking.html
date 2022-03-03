@@ -564,7 +564,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Data Checking</h1>
 <h4 class="author">Andy Stein, Siyan Xu</h4>
-<h4 class="date">01 March, 2022</h4>
+<h4 class="date">03 March, 2022</h4>
 
 </div>
 
@@ -577,9 +577,8 @@ div.tocify {
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## Warning in (function (kind = NULL, normal.kind = NULL, sample.kind = NULL) : non-uniform &#39;Rounding&#39; sampler used</code></pre>
-<pre class="r"><code>library(DT)
+<pre class="r"><code>library(tidyverse)
+library(DT)
 library(xgxr)
 
 #set chunk default options
@@ -653,8 +652,8 @@ summary_by_trt = data %&gt;%
   rename(n_patients = n) %&gt;% 
   bind_rows(total_patients)
 datatable(summary_by_trt)</code></pre>
-<div id="htmlwidget-4467a1b20881ecd608f9" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-4467a1b20881ecd608f9">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["3 mg","6 mg","12 mg","24 mg","48 mg","TOTAL NUMBER"],[2,2,3,2,5,14]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>n_patients<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4c12b823c7da585bf0a3" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4c12b823c7da585bf0a3">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["3 mg","6 mg","12 mg","24 mg","48 mg","TOTAL NUMBER"],[2,2,3,2,5,14]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>n_patients<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="number-of-data-points-per-treatment-arm-and-ytype" class="section level2">
 <h2>Number of Data Points per Treatment Arm and YTYPE</h2>
@@ -669,8 +668,8 @@ datatable(summary_by_trt)</code></pre>
   spread(YTYPE_NAME, n_data_points)
 
 datatable(summary_by_trt_ytype)</code></pre>
-<div id="htmlwidget-aa9bb136085db41eb46c" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-aa9bb136085db41eb46c">{"x":{"filter":"none","data":[["1","2","3","4","5"],["3 mg","6 mg","12 mg","24 mg","48 mg"],[8,8,7,12,95],[18,24,20,32,86],[17,24,20,28,55]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>0:Dose<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-56826faee82d435a0708" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-56826faee82d435a0708">{"x":{"filter":"none","data":[["1","2","3","4","5"],["3 mg","6 mg","12 mg","24 mg","48 mg"],[8,8,7,12,95],[18,24,20,32,86],[17,24,20,28,55]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>0:Dose<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dosing-summary" class="section level2">
 <h2>Dosing Summary</h2>
@@ -691,8 +690,8 @@ dose_summary = data.frame(
   rename(N = V1)
 
 datatable(dose_summary)</code></pre>
-<div id="htmlwidget-a064d7cdd0e5f27e36d0" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-a064d7cdd0e5f27e36d0">{"x":{"filter":"none","data":[["patients_that_never_received_drug","entries_where_AMT_equals_0","entries_where_AMT_greater_than_0"],[1,1,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-179d056c148188bea39f" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-179d056c148188bea39f">{"x":{"filter":"none","data":[["patients_that_never_received_drug","entries_where_AMT_equals_0","entries_where_AMT_greater_than_0"],[1,1,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dependent-variable-dv-summary" class="section level2">
 <h2>Dependent Variable (DV) Summary</h2>
@@ -759,8 +758,8 @@ dv_summary_overall = dv_summary_overall %&gt;%
   arrange(Type)
 
 datatable(dv_summary_overall)</code></pre>
-<div id="htmlwidget-5d4ecca3b2500ad2b701" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-5d4ecca3b2500ad2b701">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points per patient","Number of data points per patient","Number of data points per patient","Number of data points per patient","Value of data points","Value of data points","Value of data points","Value of data points","Value of data points"],["total","missing_or_NA","zeroes","censored","negative","duplicate_times","max","median","min","none","min","Q1","median","Q3","max"],["180","0","0","11","0","2","24","15","1","2","6.966","89.39825","503.052","1442.6782","18325.380"],["144","0","0"," 1","0","1","21","14","7","4","2.015","23.52375"," 69.880"," 143.2493"," 1023.214"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Type<\/th>\n      <th>Value<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-dbf39fbf1d64ea7110f4" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-dbf39fbf1d64ea7110f4">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points per patient","Number of data points per patient","Number of data points per patient","Number of data points per patient","Value of data points","Value of data points","Value of data points","Value of data points","Value of data points"],["total","missing_or_NA","zeroes","censored","negative","duplicate_times","max","median","min","none","min","Q1","median","Q3","max"],["180","0","0","11","0","2","24","15","1","2","6.966","89.39825","503.052","1442.6782","18325.380"],["144","0","0"," 1","0","1","21","14","7","4","2.015","23.52375"," 69.880"," 143.2493"," 1023.214"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Type<\/th>\n      <th>Value<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="covariate-summary" class="section level2">
 <h2>Covariate Summary</h2>
@@ -782,8 +781,8 @@ cts_cov_summary = cts_cov %&gt;%
             Q3                = quantile(value, 0.75, na.rm = TRUE),
             max               = max     (value,       na.rm = TRUE))
 datatable(cts_cov_summary)</code></pre>
-<div id="htmlwidget-0c9752aac1201be18911" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0c9752aac1201be18911">{"x":{"filter":"none","data":[["1","2"],["AGE0","WEIGHT0"],[0,0],[54,47.1],[61.5,55.6],[65.5,70.15],[67,88.3],[75,112.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>min<\/th>\n      <th>Q1<\/th>\n      <th>median<\/th>\n      <th>Q3<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f1ae0eb853bff037bee0" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f1ae0eb853bff037bee0">{"x":{"filter":"none","data":[["1","2"],["AGE0","WEIGHT0"],[0,0],[54,47.1],[61.5,55.6],[65.5,70.15],[67,88.3],[75,112.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>min<\/th>\n      <th>Q1<\/th>\n      <th>median<\/th>\n      <th>Q3<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>cat_summary = function(x) {
   unique_x = sort(unique(x))
   str = 1:length(unique_x)
@@ -801,8 +800,8 @@ cat_cov_summary = cat_cov %&gt;%
             n_distinct        = n_distinct(value),
             count_summary     = cat_summary(value))
 datatable(cat_cov_summary)</code></pre>
-<div id="htmlwidget-29bd9eca7e4b73a15d78" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-29bd9eca7e4b73a15d78">{"x":{"filter":"none","data":[["1","2"],["SEX","WEIGHT0_CAT"],[0,0],[2,3],["Female=7, Male=7","WT:60-80=4, WT&lt;60=5, WT&gt;80=5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>n_distinct<\/th>\n      <th>count_summary<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-740644c7b6fc04514175" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-740644c7b6fc04514175">{"x":{"filter":"none","data":[["1","2"],["SEX","WEIGHT0_CAT"],[0,0],[2,3],["Female=7, Male=7","WT:60-80=4, WT&lt;60=5, WT&gt;80=5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>n_distinct<\/th>\n      <th>count_summary<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>GGally::ggpairs(data1, 
                 columns = covariates,
                 diag = list(continuous = &quot;barDiag&quot;))</code></pre>
@@ -822,8 +821,8 @@ na_summary = na_summary %&gt;%
   filter(N_NA &gt; 0)
 
 datatable(na_summary)</code></pre>
-<div id="htmlwidget-5e42346582d332c9223e" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-5e42346582d332c9223e">{"x":{"filter":"none","data":[["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],[111,129,115,7,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Column<\/th>\n      <th>N_NA<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-88a4ec4bcfb13070dcd1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-88a4ec4bcfb13070dcd1">{"x":{"filter":"none","data":[["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],[111,129,115,7,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Column<\/th>\n      <th>N_NA<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dose-and-pkpd-data-collection-times" class="section level2">
 <h2>Dose and PK/PD Data Collection Times</h2>
@@ -911,31 +910,37 @@ print(g)</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] DT_0.18         forcats_0.5.1   stringr_1.4.0   purrr_0.3.4     readr_2.0.1     tibble_3.1.3    tidyverse_1.3.1
-##  [8] zoo_1.8-9       xgxr_1.1.1      gridExtra_2.3   tidyr_1.1.3     dplyr_1.0.7     ggplot2_3.3.5  
+##  [1] RxODE_1.1.1     survminer_0.4.9 ggpubr_0.4.0    survival_3.2-11 knitr_1.33      broom_0.7.9     caTools_1.18.2 
+##  [8] DT_0.18         forcats_0.5.1   stringr_1.4.0   purrr_0.3.4     readr_2.0.1     tibble_3.1.3    tidyverse_1.3.1
+## [15] zoo_1.8-9       xgxr_1.1.1      gridExtra_2.3   tidyr_1.1.3     dplyr_1.0.7     ggplot2_3.3.5  
 ## 
 ## loaded via a namespace (and not attached):
-##   [1] colorspace_2.0-2    ellipsis_0.3.2      class_7.3-19        rsconnect_0.8.24    htmlTable_2.2.1    
-##   [6] base64enc_0.1-3     fs_1.5.0            gld_2.6.2           rstudioapi_0.13     proxy_0.4-26       
-##  [11] farver_2.1.0        Deriv_4.1.3         fansi_0.5.0         mvtnorm_1.1-2       lubridate_1.7.10   
-##  [16] xml2_1.3.2          codetools_0.2-18    splines_4.1.0       rootSolve_1.8.2.2   knitr_1.33         
-##  [21] Formula_1.2-4       jsonlite_1.7.2      broom_0.7.9         binom_1.1-1         cluster_2.1.2      
-##  [26] dbplyr_2.1.1        png_0.1-7           compiler_4.1.0      httr_1.4.2          backports_1.2.1    
-##  [31] assertthat_0.2.1    Matrix_1.3-3        cli_3.0.1           prettyunits_1.1.1   htmltools_0.5.1.1  
-##  [36] tools_4.1.0         gtable_0.3.0        glue_1.4.2          lmom_2.8            Rcpp_1.0.7         
-##  [41] cellranger_1.1.0    jquerylib_0.1.4     vctrs_0.3.8         nlme_3.1-152        crosstalk_1.1.1    
-##  [46] xfun_0.25           rvest_1.0.1         lifecycle_1.0.0     MASS_7.3-54         scales_1.1.1       
-##  [51] hms_1.1.0           expm_0.999-6        RColorBrewer_1.1-2  yaml_2.2.1          Exact_2.1          
-##  [56] pander_0.6.4        sass_0.4.0          rpart_4.1-15        reshape_0.8.8       latticeExtra_0.6-29
-##  [61] stringi_1.7.3       highr_0.9           e1071_1.7-8         checkmate_2.0.0     boot_1.3-28        
-##  [66] rlang_0.4.11        pkgconfig_2.0.3     bitops_1.0-7        evaluate_0.14       lattice_0.20-44    
-##  [71] htmlwidgets_1.5.3   labeling_0.4.2      tidyselect_1.1.1    GGally_2.1.2        plyr_1.8.6         
-##  [76] magrittr_2.0.1      R6_2.5.1            DescTools_0.99.42   generics_0.1.0      Hmisc_4.5-0        
-##  [81] DBI_1.1.1           pillar_1.6.2        haven_2.4.3         foreign_0.8-81      withr_2.4.2        
-##  [86] mgcv_1.8-35         survival_3.2-11     RCurl_1.98-1.4      nnet_7.3-16         modelr_0.1.8       
-##  [91] crayon_1.4.1        utf8_1.2.2          tzdb_0.1.2          rmarkdown_2.11      jpeg_0.1-9         
-##  [96] progress_1.2.2      grid_4.1.0          readxl_1.3.1        minpack.lm_1.2-1    data.table_1.14.0  
-## [101] reprex_2.0.1        digest_0.6.27       munsell_0.5.0       bslib_0.2.5.1</code></pre>
+##   [1] readxl_1.3.1        backports_1.2.1     Hmisc_4.5-0         plyr_1.8.6          lazyeval_0.2.2     
+##   [6] splines_4.1.0       RApiSerialize_0.1.0 crosstalk_1.1.1     digest_0.6.27       htmltools_0.5.1.1  
+##  [11] rsconnect_0.8.24    fansi_0.5.0         magrittr_2.0.1      checkmate_2.0.0     memoise_2.0.0      
+##  [16] cluster_2.1.2       tzdb_0.1.2          openxlsx_4.2.4      modelr_0.1.8        RcppParallel_5.1.4 
+##  [21] prettyunits_1.1.1   jpeg_0.1-9          colorspace_2.0-2    rvest_1.0.1         PreciseSums_0.4    
+##  [26] haven_2.4.3         xfun_0.25           crayon_1.4.1        RCurl_1.98-1.4      jsonlite_1.7.2     
+##  [31] Exact_2.1           stringfish_0.15.2   glue_1.4.2          gtable_0.3.0        car_3.0-11         
+##  [36] abind_1.4-5         scales_1.1.1        mvtnorm_1.1-2       DBI_1.1.1           GGally_2.1.2       
+##  [41] rstatix_0.7.0       Rcpp_1.0.7          xtable_1.8-4        progress_1.2.2      htmlTable_2.2.1    
+##  [46] foreign_0.8-81      proxy_0.4-26        km.ci_0.5-2         Formula_1.2-4       dparser_1.3.1-4    
+##  [51] rex_1.2.0           htmlwidgets_1.5.3   httr_1.4.2          RColorBrewer_1.1-2  ellipsis_0.3.2     
+##  [56] pkgconfig_2.0.3     reshape_0.8.8       lotri_0.3.1         farver_2.1.0        nnet_7.3-16        
+##  [61] sass_0.4.0          dbplyr_2.1.1        binom_1.1-1         utf8_1.2.2          tidyselect_1.1.1   
+##  [66] labeling_0.4.2      rlang_0.4.11        munsell_0.5.0       cellranger_1.1.0    tools_4.1.0        
+##  [71] cachem_1.0.6        cli_3.0.1           generics_0.1.0      evaluate_0.14       fastmap_1.1.0      
+##  [76] yaml_2.2.1          sys_3.4             fs_1.5.0            zip_2.2.0           pander_0.6.4       
+##  [81] survMisc_0.5.5      rootSolve_1.8.2.2   nlme_3.1-152        xml2_1.3.2          compiler_4.1.0     
+##  [86] rstudioapi_0.13     curl_4.3.2          png_0.1-7           e1071_1.7-8         ggsignif_0.6.2     
+##  [91] reprex_2.0.1        bslib_0.2.5.1       DescTools_0.99.42   stringi_1.7.3       highr_0.9          
+##  [96] lattice_0.20-44     Matrix_1.3-3        markdown_1.1        KMsurv_0.1-5        vctrs_0.3.8        
+## [101] pillar_1.6.2        lifecycle_1.0.0     jquerylib_0.1.4     data.table_1.14.0   bitops_1.0-7       
+## [106] lmom_2.8            R6_2.5.1            latticeExtra_0.6-29 qs_0.25.1           rio_0.5.27         
+## [111] gld_2.6.2           codetools_0.2-18    boot_1.3-28         MASS_7.3-54         assertthat_0.2.1   
+## [116] minpack.lm_1.2-1    withr_2.4.2         Deriv_4.1.3         mgcv_1.8-35         expm_0.999-6       
+## [121] hms_1.1.0           grid_4.1.0          rpart_4.1-15        class_7.3-19        rmarkdown_2.11     
+## [126] carData_3.0-4       lubridate_1.7.10    base64enc_0.1-3</code></pre>
 </div>
 
 
