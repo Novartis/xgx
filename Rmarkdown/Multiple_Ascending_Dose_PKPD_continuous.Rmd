@@ -306,7 +306,7 @@ Stratify exposure-response plots by covariates of interest to explore whether an
 <!--END_EXPLANATION-->
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE}
-gg <- ggplot(data = NCA_plot, aes(x = VALUE, y = PD)) 
+gg <- ggplot(data = NCA, aes(x = VALUE, y = PD)) 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = SEX)) 
 gg <- gg + xgx_geom_smooth_emax(aes(color = SEX))

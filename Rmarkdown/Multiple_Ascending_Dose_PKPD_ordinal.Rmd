@@ -277,6 +277,7 @@ gg <- gg + xgx_annotate_status(status)
 gg
 
 gg <- ggplot(data = data_to_plot, aes(x = CONC, response = ORDINAL_LEVELS_low2high, color = ORDINAL_LEVELS_low2high))
+gg <- gg + xgx_stat_ci(bins = 4, distribution = "ordinal", geom = list("point","errorbar"))
 gg <- gg + xgx_stat_smooth(method = "polr")
 gg <- gg + xgx_scale_x_log10()
 gg <- gg + scale_y_continuous(labels = scales::percent)
