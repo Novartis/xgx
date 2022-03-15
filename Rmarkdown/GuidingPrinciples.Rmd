@@ -86,27 +86,30 @@ The consequences of high variability depend upon the type of variability that is
 
 # Causality and Covariates
 
-TO DO
+<span style="color: red;">TO DO LIST</span>.
 
 * would be nice to add an example causal diagram.  Will plan to add one as I think about the dataset to create
 * How to stratify by forked variables if they're continuous?
 
 MAIN TEXT
 
-When we model the relationship between exposure and response, we almost always implicitly assume that our models can be interpreted in a causal framework, such that changing exposure (by changing the dose regimen) will change the response. However, there can be factors that correlate with both exposure and response that can confound this interpretation (c.f. (Simpson’s Paradox)[https://en.wikipedia.org/wiki/Simpson%27s_paradox]) and it’s important we check for these factors as best we can.  For example, for many PD-1 and PD-L1 inhibitors, if one only looks at steady state exposure at a single dose, one may detect an exposure-response trend -- however the trend is due to the fact that responders exhibit a reduction in clearance, and therefore have greater exposure (Liu et al., 2017).  Interpreting the exposure-response analysis as if the exposure caused a greater response rate can lead to erroneous conclusions and poor decisions.
+When we model the relationship between exposure and response, we almost always implicitly assume that our models can be interpreted in a causal framework, such that changing exposure (by changing the dose regimen) will change the response. However, there can be factors that correlate with both exposure and response that can confound this interpretation (see [Simpson’s Paradox](https://en.wikipedia.org/wiki/Simpson%27s_paradox) and it’s important we check for these factors as best we can.  For example, for many PD-1 and PD-L1 inhibitors, if one only looks at steady state exposure at a single dose, one may detect an exposure-response trend -- however the trend is due to the fact that responders exhibit a reduction in clearance, and therefore have greater exposure [1].  Interpreting the exposure-response analysis as if the exposure caused a greater response rate can lead to erroneous conclusions and poor decisions.
 
-When performing an exploratory Exposure-Response analysis that takes causality into account, you should
+To avoid being misled by confounding, one should take causality into account when performing exploratory Exposure-Response analyses.  In particular, you should: 
 
 * Draw a causal graph of your system.  Include dose, exposure, biomarkers, and the safety and efficacy endpoints.
 * Identify any forks or feedback loops in the graph
-  * For any forks, stratify exposure-response plots by the variable.  If the variable is continuous, you may need to introduce thresholds.
+  * For any forks, stratify exposure-response plots by the variable (see figure below for graphical representation of a fork).  If the variable is continuous, you may need to introduce thresholds.
   * For any feedback loops where exposure impacts response, consider including an exploratory analysis that uses exposure after the first dose, which is less likely to be confounded.
 * Create a pairwise comparison plot for all covariates (including exposure) and the response data.
-* Consider entering your Causal Graph into (DAGitty)[http://www.dagitty.net/dags.html] and assess the "Testable implications" (right column of DAGitty page)
+* Consider entering your Causal Graph into [DAGitty](http://www.dagitty.net/dags.html) and assess the "Testable implications" (right column of DAGitty page)
 
 
 ![](SiteResources/Causal_Diagram_Types.png){width=90%}
 
 
+# References
+
+1. Liu, C., et al. "Association of time‐varying clearance of nivolumab with disease dynamics and its implications on exposure response analysis." Clinical Pharmacology & Therapeutics 101.5 (2017): 657-666.
 
 
