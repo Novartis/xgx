@@ -120,13 +120,13 @@ print(gg)
 gg <- ggplot(data = pd_data, 
                aes(x = NOMTIME, y = LIDV)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + xgx_annotate_status(status)
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + facet_grid(~TRTACT_low2high)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + scale_y_continuous()
 gg <- gg + labs(y = pd_label)
+gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
@@ -145,7 +145,6 @@ Use spaghetti plots to visualize the extent of variability between individuals. 
 
 gg <- ggplot(data = pd_data, 
              aes(x = TIME, y = LIDV, group = ID, color = factor(TRTACT_high2low))) 
-gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_line(alpha = 0.5)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
@@ -165,7 +164,6 @@ print(gg)
 
 gg <- ggplot(data = pd_data, 
              aes(x = TIME, y = LIDV, group = ID)) 
-gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_line(alpha = 0.5)
 gg <- gg + geom_point(alpha = 0.5)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
