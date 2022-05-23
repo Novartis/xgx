@@ -62,6 +62,9 @@ data = data_in %>%
                                  WEIGHT0 > 80 ~ "WT>80",
                                  TRUE         ~ "WT:60-80"))
 
+# a patient with no PK or PD data is added to the dataset to illustrate how the 
+# data checking will report when such data is present.  This code block should be
+# removed if you'll be using it with your dataset.
 empty_row = data[1,] %>%
   mutate(ID = 23,
          USUBJID = paste0("PAT",ID),
