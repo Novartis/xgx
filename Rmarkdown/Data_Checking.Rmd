@@ -61,7 +61,14 @@ data = data_in %>%
   mutate(WEIGHT0_CAT = case_when(WEIGHT0 < 60 ~ "WT<60", #creating 2nd categorical var
                                  WEIGHT0 > 80 ~ "WT>80",
                                  TRUE         ~ "WT:60-80"))
+                                 
+data1 = data %>%
+  filter(!duplicated(USUBJID))
+```
 
+### Data Manipulation to simulate a patient with no doses
+
+```{r}
 # a patient with no PK or PD data is added to the dataset to illustrate how the 
 # data checking will report when such data is present.  This code block should be
 # removed if you'll be using it with your dataset.
