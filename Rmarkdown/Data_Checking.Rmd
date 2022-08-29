@@ -330,6 +330,15 @@ g = g + annotate("segment", x = xymin, xend = xymax, y = xymin, yend = xymax, co
 g = g + xlim(c(xymin, xymax))
 g = g + ylim(c(xymin, xymax))
 print(g)
+
+difftime = data %>%
+  mutate(DIFF_TIME = abs(NOMTIME - TIME)) %>%
+  arrange(-DIFF_TIME) %>%
+  slice(1:10)
+
+difftime %>%
+  select(USUBJID, TRT, DIFF_TIME, TIME, NOMTIME, YTYPE, NAME, LIDV) %>%
+  DT::datatable(difftime)
 ```
 
 ### Unique Nominal Time values
@@ -340,22 +349,6 @@ Look at the nominal times in the dataset, just to make sure they're correct.  In
 cat(sort(unique(data$NOMTIME)))
 ```
 
-## List of things to do and to consider
-
-Features/plots/tables to add
-
-* Create and display a summary of the data points with potential issues to help the user more quickly resolve them. 
-* Better understand Matt Fidler's dose and observation plots that use `II` and `ADDL`.  Andy still doesn't really get it.  It might be more for "Gen Med" than for Oncology.
-
-Make some clunky things a bit nicer
-
-* See if there's a nicer, cleaner way to transpose a data.table and get the column names right.
-* See if there's a better option for doing the categorical covariate summary other than defining the `cat_summary` function. 
-
-xGx website
-
-* Rename the "Data checking" header to "Data"
-* Update the core and extended team
 
 ## R session info
 ```{r}
