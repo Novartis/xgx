@@ -43,7 +43,7 @@ data = data_in %>%
   # in this mutate command are all columns that are required for this check
   # if your dataset has different naming convention, 
   # then rename the right hand side of the equality
-  mutate(USUBJID = paste0("PAT",USUBJID), # Unique subject identifier
+  mutate(USUBJID = USUBJID, # Unique subject identifier
          TIME    = TIME,    # Actual Time
          NOMTIME = NOMTIME, # Nominal Time
          AMT     = AMT,     # Dose Amount
@@ -57,18 +57,21 @@ data = data_in %>%
          TRTN    = TRTN) %>%# Treatment Arm numeric description (used for sorting)
   arrange(TRTN) %>%
   mutate(TRT_low2high = factor(TRT, levels = unique(TRT)),
-         TRT_high2low = factor(TRT, levels = rev(unique(TRT)))) %>%
-  mutate(WEIGHT0_CAT = case_when(WEIGHT0 < 60 ~ "WT<60", #creating 2nd categorical var
-                                 WEIGHT0 > 80 ~ "WT>80",
-                                 TRUE         ~ "WT:60-80"))
+         TRT_high2low = factor(TRT, levels = rev(unique(TRT))))
                                  
 data1 = data %>%
   filter(!duplicated(USUBJID))
 ```
 
-### Data Manipulation to simulate a patient with no doses
+### Data Manipulation to simulate a patient with no doses and introduce new variables
 
 ```{r}
+data = data %>%
+  mutate(USUBJID = paste0("PAT",USUBJID),
+         WEIGHT0_CAT = case_when(WEIGHT0 < 60 ~ "WT<60", #creating 2nd categorical var
+                                 WEIGHT0 > 80 ~ "WT>80",
+                                 TRUE         ~ "WT:60-80"))
+
 # a patient with no PK or PD data is added to the dataset to illustrate how the 
 # data checking will report when such data is present.  This code block should be
 # removed if you'll be using it with your dataset.
