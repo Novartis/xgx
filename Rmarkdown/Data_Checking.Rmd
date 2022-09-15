@@ -253,7 +253,7 @@ cat_summary = function(x) {
   str = 1:length(unique_x)
   for(i in 1:length(unique_x))
   {
-    str[i] = paste0(unique_x[i], "=", sum(x == unique_x[i]))
+    str[i] = paste0(unique_x[i], "=", sum(x == unique_x[i], na.rm = TRUE))
   }
   output = paste(str, collapse = ", ")
 }
