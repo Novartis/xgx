@@ -12,6 +12,7 @@ output:
 <!--START_EXPLANATION-->
 This document contains exploratory plots for binary response data as well as the R code that generates these graphs. The plots presented here are based on simulated data ([see: PKPD Datasets](PKPD_Datasets.html)). Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PD_binary.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Multiple_Ascending_Dose_Dataset2.csv)).
 <!--END_EXPLANATION-->
+
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
@@ -123,13 +124,13 @@ When overlaying individual binomial data, it is often helpful to stagger the dot
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE} 
 
   gg <- ggplot(data = pd_data, aes(x = NOMTIME, y = LIDV, color = TRTACT_high2low))
-  gg <- gg + xgx_stat_ci(distribution = "binomial")
+  gg <- gg + xgx_stat_ci(distribution = "binomial", position = position_dodge(width = 12), alpha = 0.5)
   gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                     units_plot    = time_units_plot)
   gg <- gg + scale_y_continuous(labels = scales::percent)
   gg <- gg + labs(y = pd_label, color = trtact_label)  
   gg <- gg + xgx_annotate_status(status)
-  #gg <- gg + xgx_annotate_filenames(dirs)
+  
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
   #xgx_save(width,height,dirs,"filename_main",status)
   print(gg)
@@ -148,7 +149,7 @@ When overlaying individual binomial data, it is often helpful to stagger the dot
   gg <- gg + labs(y = pd_label)  
   gg <- gg + facet_grid(~TRTACT_low2high)
   gg <- gg + xgx_annotate_status(status)
-  #gg <- gg + xgx_annotate_filenames(dirs)
+  
   #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
   #xgx_save(width,height,dirs,"filename_main",status)
   print(gg)
@@ -173,7 +174,7 @@ gg <- gg + scale_y_continuous(breaks = seq(0, 1, 0.25))
 gg <- gg + labs(y = pd2_label)  
 gg <- gg + facet_grid(~TRTACT_low2high)
 gg <- gg + xgx_annotate_status(status)
-#gg <- gg + xgx_annotate_filenames(dirs)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
@@ -185,6 +186,7 @@ print(gg)
 <!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any unusual profiles. Look at the pattern of response/non-response over time and whether individuals switch from responder back to non-responder.  
 <!--END_EXPLANATION-->
+
 ### Response over time, faceted by individual, individual line plots
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 8, warning = FALSE, message = FALSE}
@@ -199,7 +201,7 @@ gg <- gg + facet_wrap(~ID + TRTACT_low2high,
                 ncol = 10)
 gg <- gg + labs(y = pd2_label)  
 gg <- gg + xgx_annotate_status(status)
-#gg <- gg + xgx_annotate_filenames(dirs)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
@@ -249,7 +251,6 @@ grid.arrange(pp1,pp2,nrow = 1)
 
 ```
 
-
 ### Responder rate (95% CI) by dose, faceted by visit
 <!--START_EXPLANATION-->
 The crossectional Dose-Response curve which looks only at one timepoint defined in the protocol can obscure certain characteristics of the dose-response relationship. For example, if the response variable is much delayed compared to PK the maximal PD effect could occur much later than steady state PK is achieved. Looking only at the defined clinical endpoint has the potential miss this, especially in early clinical trials before the time course of the effect has been characterized. In addtion to looking at longitudinal PD over time (as in previous sections above), plotting the cross-sectional Dose-Response curves for different time points throughout the study can also be helpful. In the figure below, we plot the exposure response relationship at a number of different visits to see how the relationsihp might change over time.
@@ -267,7 +268,6 @@ gg + facet_grid(~DAY_label)
 gg <- gg + xgx_annotate_status(status)
 
 ```
-
 
 ## R Session Info
 ```{r}

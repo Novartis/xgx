@@ -17,7 +17,9 @@ This document contains PK exploratory graphs and also the R code that generates 
 
 Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Multiple_Ascending_Dose_PK_KeyPlots.Rmd).
 <!--END_EXPLANATION-->
+
 ### Setup
+
 ```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 
 #add key packages
@@ -124,6 +126,7 @@ Summarize the data in a way that is easy to visualize the general trend of PK ov
 
 When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?
 <!--END_EXPLANATION-->
+
 ### Concentration over time, faceted by regimen, colored by dose
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
@@ -153,7 +156,6 @@ gg <- gg + labs(x = "Day")
 gg <- gg + facet_grid(CYCLE~REGIMEN, labeller = label_both, switch = "y")
 print(gg)
 ```
-
 
 ## Assess the dose linearity of exposure
 
@@ -202,6 +204,7 @@ print(gg)
 <!--START_EXPLANATION-->
 Use spaghetti plots to visualize the extent of variability between individuals. The wider the spread of the profiles, the higher the between subject variability. Distinguish different doses by color, or separate into different panels. If coloring by dose, do the individuals in the different dose groups overlap across doses? Dose there seem to be more variability at higher or lower concentrations?
 <!--END_EXPLANATION-->
+
 ### Spaghetti, grouped by dose
 
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
@@ -225,6 +228,7 @@ print(gg)
 <!--START_EXPLANATION-->
 Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)?
 <!--END_EXPLANATION-->
+
 ### Individual profiles
 ```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 18}
 gg <- ggplot(data = data, aes(x=TIME, y=LIDV, group=ID))

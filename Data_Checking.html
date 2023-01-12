@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -15,12 +14,22 @@
 
 <title>Data Checking</title>
 
-<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
@@ -28,14 +37,14 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<script src="site_libs/htmlwidgets-1.5.3/htmlwidgets.js"></script>
 <link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-<script src="site_libs/datatables-binding-0.9/datatables.js"></script>
-<link href="site_libs/dt-core-1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="site_libs/dt-core-1.10.19/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="site_libs/dt-core-1.10.19/js/jquery.dataTables.min.js"></script>
-<link href="site_libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
-<script src="site_libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+<script src="site_libs/datatables-binding-0.18/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.1.1/js/crosstalk.min.js"></script>
 
 <style type="text/css">
   .visible-sm-block {padding-top: 120px;}
@@ -49,12 +58,18 @@
 <span class=visible-md-block> </span>
 <span class=visible-lg-block> </span>
 
-<style type="text/css">code{white-space: pre;}</style>
+
+
 <style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -67,32 +82,7 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
+
 
 
 
@@ -102,10 +92,6 @@ h6 {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -122,40 +108,13 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 51px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h2 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h3 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h4 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h5 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h6 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
 .dropdown-submenu {
   position: relative;
 }
@@ -183,7 +142,7 @@ body {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
+  border-left-color: #adb5bd;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -195,7 +154,7 @@ body {
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -206,10 +165,23 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.parent().addClass('active');
+  menuAnchor.tab('show');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
 
@@ -221,7 +193,6 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
-  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -257,6 +228,7 @@ $(document).ready(function () {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -288,6 +260,12 @@ $(document).ready(function () {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -343,7 +321,7 @@ div.tocify {
 
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
+<div class="row">
 <div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
@@ -569,13 +547,14 @@ div.tocify {
 <p/>
 <p class="warning"> Dear Internet Explorer user: Please ensure compatibility view settings are turned OFF in order to view this website propertly. For best results, use Chrome. <br/>
 <p/>
- <![endif]-->
+ <![endif]--> 
 
-<div class="fluid-row" id="header">
 
-<div class="btn-group pull-right">
-<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
-<ul class="dropdown-menu" style="min-width: 50px;">
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
 </ul>
@@ -585,7 +564,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Data Checking</h1>
 <h4 class="author">Andy Stein, Siyan Xu</h4>
-<h4 class="date">01 September, 2021</h4>
+<h4 class="date">03 March, 2022</h4>
 
 </div>
 
@@ -673,8 +652,8 @@ summary_by_trt = data %&gt;%
   rename(n_patients = n) %&gt;% 
   bind_rows(total_patients)
 datatable(summary_by_trt)</code></pre>
-<div id="htmlwidget-10172393b493a4418861" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-10172393b493a4418861">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["3 mg","6 mg","12 mg","24 mg","48 mg","TOTAL NUMBER"],[2,2,3,2,5,14]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>n_patients<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4c12b823c7da585bf0a3" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4c12b823c7da585bf0a3">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["3 mg","6 mg","12 mg","24 mg","48 mg","TOTAL NUMBER"],[2,2,3,2,5,14]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>n_patients<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="number-of-data-points-per-treatment-arm-and-ytype" class="section level2">
 <h2>Number of Data Points per Treatment Arm and YTYPE</h2>
@@ -689,8 +668,8 @@ datatable(summary_by_trt)</code></pre>
   spread(YTYPE_NAME, n_data_points)
 
 datatable(summary_by_trt_ytype)</code></pre>
-<div id="htmlwidget-aca8e440b6fdd459968b" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-aca8e440b6fdd459968b">{"x":{"filter":"none","data":[["1","2","3","4","5"],["3 mg","6 mg","12 mg","24 mg","48 mg"],[8,8,7,12,95],[18,24,20,32,86],[17,24,20,28,55]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>0:Dose<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-56826faee82d435a0708" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-56826faee82d435a0708">{"x":{"filter":"none","data":[["1","2","3","4","5"],["3 mg","6 mg","12 mg","24 mg","48 mg"],[8,8,7,12,95],[18,24,20,32,86],[17,24,20,28,55]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>0:Dose<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dosing-summary" class="section level2">
 <h2>Dosing Summary</h2>
@@ -711,8 +690,8 @@ dose_summary = data.frame(
   rename(N = V1)
 
 datatable(dose_summary)</code></pre>
-<div id="htmlwidget-7aaf407360da8c0f126a" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7aaf407360da8c0f126a">{"x":{"filter":"none","data":[["patients_that_never_received_drug","entries_where_AMT_equals_0","entries_where_AMT_greater_than_0"],[1,1,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-179d056c148188bea39f" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-179d056c148188bea39f">{"x":{"filter":"none","data":[["patients_that_never_received_drug","entries_where_AMT_equals_0","entries_where_AMT_greater_than_0"],[1,1,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dependent-variable-dv-summary" class="section level2">
 <h2>Dependent Variable (DV) Summary</h2>
@@ -779,8 +758,8 @@ dv_summary_overall = dv_summary_overall %&gt;%
   arrange(Type)
 
 datatable(dv_summary_overall)</code></pre>
-<div id="htmlwidget-07f67370d91fbfc43614" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-07f67370d91fbfc43614">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points per patient","Number of data points per patient","Number of data points per patient","Number of data points per patient","Value of data points","Value of data points","Value of data points","Value of data points","Value of data points"],["total","missing_or_NA","zeroes","censored","negative","duplicate_times","max","median","min","none","min","Q1","median","Q3","max"],["180","0","0","11","0","2","24","15","1","2","6.966","89.39825","503.052","1442.6782","18325.380"],["144","0","0"," 1","0","1","21","14","7","4","2.015","23.52375"," 69.880"," 143.2493"," 1023.214"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Type<\/th>\n      <th>Value<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-dbf39fbf1d64ea7110f4" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-dbf39fbf1d64ea7110f4">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points per patient","Number of data points per patient","Number of data points per patient","Number of data points per patient","Value of data points","Value of data points","Value of data points","Value of data points","Value of data points"],["total","missing_or_NA","zeroes","censored","negative","duplicate_times","max","median","min","none","min","Q1","median","Q3","max"],["180","0","0","11","0","2","24","15","1","2","6.966","89.39825","503.052","1442.6782","18325.380"],["144","0","0"," 1","0","1","21","14","7","4","2.015","23.52375"," 69.880"," 143.2493"," 1023.214"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Type<\/th>\n      <th>Value<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="covariate-summary" class="section level2">
 <h2>Covariate Summary</h2>
@@ -802,8 +781,8 @@ cts_cov_summary = cts_cov %&gt;%
             Q3                = quantile(value, 0.75, na.rm = TRUE),
             max               = max     (value,       na.rm = TRUE))
 datatable(cts_cov_summary)</code></pre>
-<div id="htmlwidget-0d81133fbc87e641bd5c" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0d81133fbc87e641bd5c">{"x":{"filter":"none","data":[["1","2"],["AGE0","WEIGHT0"],[0,0],[54,47.1],[61.5,55.6],[65.5,70.15],[67,88.3],[75,112.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>min<\/th>\n      <th>Q1<\/th>\n      <th>median<\/th>\n      <th>Q3<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f1ae0eb853bff037bee0" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f1ae0eb853bff037bee0">{"x":{"filter":"none","data":[["1","2"],["AGE0","WEIGHT0"],[0,0],[54,47.1],[61.5,55.6],[65.5,70.15],[67,88.3],[75,112.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>min<\/th>\n      <th>Q1<\/th>\n      <th>median<\/th>\n      <th>Q3<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>cat_summary = function(x) {
   unique_x = sort(unique(x))
   str = 1:length(unique_x)
@@ -821,8 +800,8 @@ cat_cov_summary = cat_cov %&gt;%
             n_distinct        = n_distinct(value),
             count_summary     = cat_summary(value))
 datatable(cat_cov_summary)</code></pre>
-<div id="htmlwidget-1202bc65c00e7e9b7060" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1202bc65c00e7e9b7060">{"x":{"filter":"none","data":[["1","2"],["SEX","WEIGHT0_CAT"],[0,0],[2,3],["Female=7, Male=7","WT:60-80=4, WT&lt;60=5, WT&gt;80=5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>n_distinct<\/th>\n      <th>count_summary<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-740644c7b6fc04514175" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-740644c7b6fc04514175">{"x":{"filter":"none","data":[["1","2"],["SEX","WEIGHT0_CAT"],[0,0],[2,3],["Female=7, Male=7","WT:60-80=4, WT&lt;60=5, WT&gt;80=5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>n_distinct<\/th>\n      <th>count_summary<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>GGally::ggpairs(data1, 
                 columns = covariates,
                 diag = list(continuous = &quot;barDiag&quot;))</code></pre>
@@ -842,8 +821,8 @@ na_summary = na_summary %&gt;%
   filter(N_NA &gt; 0)
 
 datatable(na_summary)</code></pre>
-<div id="htmlwidget-7a12f974ee18b2aaff5a" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7a12f974ee18b2aaff5a">{"x":{"filter":"none","data":[["1","2","3","4","5"],["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],[111,129,115,7,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Column<\/th>\n      <th>N_NA<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-88a4ec4bcfb13070dcd1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-88a4ec4bcfb13070dcd1">{"x":{"filter":"none","data":[["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],[111,129,115,7,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Column<\/th>\n      <th>N_NA<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dose-and-pkpd-data-collection-times" class="section level2">
 <h2>Dose and PK/PD Data Collection Times</h2>
@@ -910,62 +889,58 @@ print(g)</code></pre>
 <div id="r-session-info" class="section level2">
 <h2>R session info</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.6.1 (2019-07-05)
+<pre><code>## R version 4.1.0 (2021-05-18)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
 ## Running under: Red Hat Enterprise Linux
 ## 
 ## Matrix products: default
 ## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
+## Random number generation:
+##  RNG:     Mersenne-Twister 
+##  Normal:  Inversion 
+##  Sample:  Rounding 
+##  
 ## locale:
-##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## attached base packages:
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] RxODE_0.9.1-8    survminer_0.4.6  ggpubr_0.2.3     magrittr_1.5    
-##  [5] survival_3.1-7   knitr_1.25       broom_0.5.3      caTools_1.17.1.2
-##  [9] DT_0.9           forcats_0.4.0    stringr_1.4.0    purrr_0.3.3     
-## [13] readr_1.3.1      tibble_2.1.3     tidyverse_1.2.1  xgxr_1.0.7      
-## [17] zoo_1.8-6        gridExtra_2.3    tidyr_1.0.0      dplyr_0.8.3     
-## [21] ggplot2_3.2.1   
+##  [1] RxODE_1.1.1     survminer_0.4.9 ggpubr_0.4.0    survival_3.2-11 knitr_1.33      broom_0.7.9     caTools_1.18.2 
+##  [8] DT_0.18         forcats_0.5.1   stringr_1.4.0   purrr_0.3.4     readr_2.0.1     tibble_3.1.3    tidyverse_1.3.1
+## [15] zoo_1.8-9       xgxr_1.1.1      gridExtra_2.3   tidyr_1.1.3     dplyr_1.0.7     ggplot2_3.3.5  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] nlme_3.1-142       bitops_1.0-6       lubridate_1.7.4   
-##  [4] RColorBrewer_1.1-2 progress_1.2.2     httr_1.4.1        
-##  [7] tools_3.6.1        backports_1.1.5    R6_2.4.0          
-## [10] lazyeval_0.2.2     colorspace_1.4-1   lotri_0.1.1       
-## [13] withr_2.1.2        tidyselect_0.2.5   prettyunits_1.0.2 
-## [16] GGally_1.4.0       compiler_3.6.1     cli_1.1.0         
-## [19] rvest_0.3.5        binom_1.1-1        xml2_1.2.2        
-## [22] labeling_0.3       scales_1.0.0       survMisc_0.5.5    
-## [25] mvnfast_0.2.5      digest_0.6.22      rmarkdown_1.16    
-## [28] PreciseSums_0.4    pkgconfig_2.0.3    htmltools_0.4.0   
-## [31] fastmap_1.0.1      highr_0.8          htmlwidgets_1.5.1 
-## [34] rlang_0.4.10       readxl_1.3.1       rstudioapi_0.13   
-## [37] shiny_1.4.0        farver_1.1.0       generics_0.0.2    
-## [40] jsonlite_1.6       crosstalk_1.0.0    Matrix_1.2-17     
-## [43] Rcpp_1.0.6         munsell_0.5.0      lifecycle_0.1.0   
-## [46] stringi_1.4.3      yaml_2.2.0         MASS_7.3-51.4     
-## [49] plyr_1.8.4         grid_3.6.1         promises_1.1.0    
-## [52] crayon_1.3.4       lattice_0.20-38    haven_2.2.0       
-## [55] splines_3.6.1      pander_0.6.3       hms_0.5.2         
-## [58] pillar_1.4.2       markdown_1.1       ggsignif_0.6.0    
-## [61] reshape2_1.4.3     codetools_0.2-16   glue_1.3.1        
-## [64] evaluate_0.14      dparser_0.1.8      data.table_1.12.6 
-## [67] modelr_0.1.5       tweenr_1.0.1       png_0.1-7         
-## [70] vctrs_0.3.8        httpuv_1.5.2       cellranger_1.1.0  
-## [73] polyclip_1.10-0    gtable_0.3.0       reshape_0.8.8     
-## [76] km.ci_0.5-2        assertthat_0.2.1   ggforce_0.3.1     
-## [79] xfun_0.10          mime_0.7           xtable_1.8-4      
-## [82] later_1.0.0        minpack.lm_1.2-1   memoise_1.1.0     
-## [85] KMsurv_0.1-5       units_0.6-5        ellipsis_0.3.0</code></pre>
+##   [1] readxl_1.3.1        backports_1.2.1     Hmisc_4.5-0         plyr_1.8.6          lazyeval_0.2.2     
+##   [6] splines_4.1.0       RApiSerialize_0.1.0 crosstalk_1.1.1     digest_0.6.27       htmltools_0.5.1.1  
+##  [11] rsconnect_0.8.24    fansi_0.5.0         magrittr_2.0.1      checkmate_2.0.0     memoise_2.0.0      
+##  [16] cluster_2.1.2       tzdb_0.1.2          openxlsx_4.2.4      modelr_0.1.8        RcppParallel_5.1.4 
+##  [21] prettyunits_1.1.1   jpeg_0.1-9          colorspace_2.0-2    rvest_1.0.1         PreciseSums_0.4    
+##  [26] haven_2.4.3         xfun_0.25           crayon_1.4.1        RCurl_1.98-1.4      jsonlite_1.7.2     
+##  [31] Exact_2.1           stringfish_0.15.2   glue_1.4.2          gtable_0.3.0        car_3.0-11         
+##  [36] abind_1.4-5         scales_1.1.1        mvtnorm_1.1-2       DBI_1.1.1           GGally_2.1.2       
+##  [41] rstatix_0.7.0       Rcpp_1.0.7          xtable_1.8-4        progress_1.2.2      htmlTable_2.2.1    
+##  [46] foreign_0.8-81      proxy_0.4-26        km.ci_0.5-2         Formula_1.2-4       dparser_1.3.1-4    
+##  [51] rex_1.2.0           htmlwidgets_1.5.3   httr_1.4.2          RColorBrewer_1.1-2  ellipsis_0.3.2     
+##  [56] pkgconfig_2.0.3     reshape_0.8.8       lotri_0.3.1         farver_2.1.0        nnet_7.3-16        
+##  [61] sass_0.4.0          dbplyr_2.1.1        binom_1.1-1         utf8_1.2.2          tidyselect_1.1.1   
+##  [66] labeling_0.4.2      rlang_0.4.11        munsell_0.5.0       cellranger_1.1.0    tools_4.1.0        
+##  [71] cachem_1.0.6        cli_3.0.1           generics_0.1.0      evaluate_0.14       fastmap_1.1.0      
+##  [76] yaml_2.2.1          sys_3.4             fs_1.5.0            zip_2.2.0           pander_0.6.4       
+##  [81] survMisc_0.5.5      rootSolve_1.8.2.2   nlme_3.1-152        xml2_1.3.2          compiler_4.1.0     
+##  [86] rstudioapi_0.13     curl_4.3.2          png_0.1-7           e1071_1.7-8         ggsignif_0.6.2     
+##  [91] reprex_2.0.1        bslib_0.2.5.1       DescTools_0.99.42   stringi_1.7.3       highr_0.9          
+##  [96] lattice_0.20-44     Matrix_1.3-3        markdown_1.1        KMsurv_0.1-5        vctrs_0.3.8        
+## [101] pillar_1.6.2        lifecycle_1.0.0     jquerylib_0.1.4     data.table_1.14.0   bitops_1.0-7       
+## [106] lmom_2.8            R6_2.5.1            latticeExtra_0.6-29 qs_0.25.1           rio_0.5.27         
+## [111] gld_2.6.2           codetools_0.2-18    boot_1.3-28         MASS_7.3-54         assertthat_0.2.1   
+## [116] minpack.lm_1.2-1    withr_2.4.2         Deriv_4.1.3         mgcv_1.8-35         expm_0.999-6       
+## [121] hms_1.1.0           grid_4.1.0          rpart_4.1-15        class_7.3-19        rmarkdown_2.11     
+## [126] carData_3.0-4       lubridate_1.7.10    base64enc_0.1-3</code></pre>
 </div>
 
 
@@ -979,7 +954,7 @@ print(g)</code></pre>
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -997,7 +972,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
+    $(this).parent().toggleClass('nav-tabs-open');
   });
 });
 </script>
@@ -1012,6 +987,9 @@ $(document).ready(function () {
 <script>
 $(document).ready(function ()  {
 
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')
         .removeClass('toc-ignore')
@@ -1023,7 +1001,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0

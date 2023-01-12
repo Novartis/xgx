@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -15,12 +14,22 @@
 
 <title>PK/PD, Exposure-Response - Time to Event</title>
 
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
@@ -41,12 +50,18 @@
 <span class=visible-md-block> </span>
 <span class=visible-lg-block> </span>
 
-<style type="text/css">code{white-space: pre;}</style>
+
+
 <style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -59,32 +74,7 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
+
 
 
 
@@ -94,10 +84,6 @@ h6 {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -114,40 +100,13 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 51px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h2 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h3 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h4 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h5 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h6 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
 .dropdown-submenu {
   position: relative;
 }
@@ -175,7 +134,7 @@ body {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
+  border-left-color: #adb5bd;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -187,7 +146,7 @@ body {
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -198,10 +157,23 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.parent().addClass('active');
+  menuAnchor.tab('show');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
 
@@ -213,7 +185,6 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
-  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -249,6 +220,7 @@ $(document).ready(function () {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -280,6 +252,12 @@ $(document).ready(function () {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -335,7 +313,7 @@ div.tocify {
 
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
+<div class="row">
 <div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
@@ -369,7 +347,7 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Data Checking
+    Data
      
     <span class="caret"></span>
   </a>
@@ -561,13 +539,14 @@ div.tocify {
 <p/>
 <p class="warning"> Dear Internet Explorer user: Please ensure compatibility view settings are turned OFF in order to view this website propertly. For best results, use Chrome. <br/>
 <p/>
- <![endif]-->
+ <![endif]--> 
 
-<div class="fluid-row" id="header">
 
-<div class="btn-group pull-right">
-<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
-<ul class="dropdown-menu" style="min-width: 50px;">
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
 </ul>
@@ -581,7 +560,8 @@ div.tocify {
 </div>
 
 
-<p>Rmarkdown template to generate this page can be found on <a href="Rmarkdown/Multiple_Ascending_Dose_PKPD_time_to_event.Rmd">Rmarkdown-Template</a>.</p>
+<!--START_EXPLANATION-->
+<p>Rmarkdown template to generate this page can be found on <a href="Rmarkdown/Multiple_Ascending_Dose_PKPD_time_to_event.Rmd">Rmarkdown-Template</a>. <!--END_EXPLANATION--></p>
 <pre class="r"><code>library(ggplot2)
 library(dplyr)
 library(broom)
@@ -622,8 +602,9 @@ km_data_Cmax_AUC &lt;- km_data %&gt;%
 </div>
 <div id="plot-kaplan-meier-with-confidence-intervals-using-only-cmax" class="section level2">
 <h2>Plot Kaplan Meier with Confidence Intervals using only Cmax</h2>
+<!--START_EXPLANATION-->
 <p>Time-to-event plots can be summarized by Kaplan-Meier plots and stratified by exposure quartile to give an overview of the dose-response. To see if there’s an effect on exposure vs response, look to see if there is separation between the quartiles. However note that it may be that there are factors that impact both exposure and response and so a more careful model-based analysis may be needed to formally assess any causal relationship, as described in the reference below.</p>
-<p>Yang, Jun, et al. “The combination of exposure‐response and case‐control analyses in regulatory decision making.” The Journal of Clinical Pharmacology 53.2 (2013): 160-166.</p>
+<p>Yang, Jun, et al. “The combination of exposure‐response and case‐control analyses in regulatory decision making.” The Journal of Clinical Pharmacology 53.2 (2013): 160-166. <!--END_EXPLANATION--></p>
 <pre class="r"><code>km_fit &lt;- survfit(Surv(time, status) ~ exposure, data = km_data, conf.int = 0.95)
 gg &lt;- ggsurvplot(km_fit, km_data, conf.int = TRUE, ggtheme = xgx_theme())
 gg &lt;- gg + xgx_scale_x_time_units(units_dataset = &quot;day&quot;, units_plot = &quot;year&quot;)
@@ -632,7 +613,8 @@ print(gg)</code></pre>
 </div>
 <div id="plot-kaplan-meier-faceted-by-exposure-metric" class="section level2">
 <h2>Plot Kaplan Meier faceted by exposure metric</h2>
-<p>Using the <code>ggsurvplot_facet</code> command, one can look at many exposure metrics at once. Again, look for separation in the quartiles, but be aware that something like a case-control analysis may be needed to assess whether exposure causes reduced response or whether other factors may affect both exposure and response.</p>
+<!--START_EXPLANATION-->
+<p>Using the <code>ggsurvplot_facet</code> command, one can look at many exposure metrics at once. Again, look for separation in the quartiles, but be aware that something like a case-control analysis may be needed to assess whether exposure causes reduced response or whether other factors may affect both exposure and response. <!--END_EXPLANATION--></p>
 <pre class="r"><code>km_fit_Cmax_AUC &lt;- survfit(Surv(time, status) ~ NCAvalue, data = km_data_Cmax_AUC, conf.int = 0.95)
 gg &lt;- ggsurvplot_facet(km_fit_Cmax_AUC, 
                        km_data_Cmax_AUC, 
@@ -645,8 +627,9 @@ print(gg)</code></pre>
 </div>
 <div id="plot-kaplan-meier-faceted-by-exposure-quartile-for-assessing-covariates" class="section level2">
 <h2>Plot Kaplan Meier faceted by exposure quartile for assessing covariates</h2>
+<!--START_EXPLANATION-->
 <p>This plot can help in assessing the impact of a covariate (ECOG) on outcome.</p>
-<p>Note, <code>ph.ecog == 3</code> patient are removed from dataset because there is only one patient with ECOG = 3 and this causes an error when generating the confidence interval. This bug was <a href="https://github.com/kassambara/survminer/issues/443">reported to the survminer developer and fixed in the github version</a>.</p>
+<p>Note, <code>ph.ecog == 3</code> patient are removed from dataset because there is only one patient with ECOG = 3 and this causes an error when generating the confidence interval. This bug was <a href="https://github.com/kassambara/survminer/issues/443">reported to the survminer developer and fixed in the github version</a>. <!--END_EXPLANATION--></p>
 <pre class="r"><code>km_data_noecog3 &lt;- km_data %&gt;% filter (ph.ecog != 3)
 km_fit_ecog &lt;- survfit(Surv(time, status) ~ ph.ecog, 
                        data = km_data_noecog3 , 
@@ -663,13 +646,11 @@ print(gg)</code></pre>
 </div>
 <div id="performing-cox-regression-on-the-above-data." class="section level2">
 <h2>Performing Cox regression on the above data.</h2>
-<p>In this data only 2 variables are available, so variable selection isn’t needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. The effect on the hazard ratio by changing the covariate by 20% is also reported. Look for small p values or large hazard ratios to identify covariates that have a large effect.</p>
+<!--START_EXPLANATION-->
+<p>In this data only 2 variables are available, so variable selection isn’t needed. If there are multiple variables, applying a variable selection approach (e.g. stepwiseAIC) would be advisable. Look for small p values or large hazard ratios to identify covariates that have a large effect. <!--END_EXPLANATION--></p>
 <pre class="r"><code>km_cox &lt;- coxph(Surv(time) ~ fake_AUC + fake_Cmax,
              data =km_data)
 km_cox_summary &lt;- broom::tidy(km_cox) %&gt;%
-  mutate(HR.chg20pct = (1.2)^estimate,
-         HR.chg20pct.conf.low  = 1.2^conf.low,
-         HR.chg20pct.conf.high = 1.2^conf.high) %&gt;%
   mutate_at(vars(-term),signif,2)
 kable(km_cox_summary)  </code></pre>
 <table>
@@ -680,11 +661,6 @@ kable(km_cox_summary)  </code></pre>
 <th align="right">std.error</th>
 <th align="right">statistic</th>
 <th align="right">p.value</th>
-<th align="right">conf.low</th>
-<th align="right">conf.high</th>
-<th align="right">HR.chg20pct</th>
-<th align="right">HR.chg20pct.conf.low</th>
-<th align="right">HR.chg20pct.conf.high</th>
 </tr>
 </thead>
 <tbody>
@@ -694,11 +670,6 @@ kable(km_cox_summary)  </code></pre>
 <td align="right">0.055</td>
 <td align="right">2.5</td>
 <td align="right">0.012</td>
-<td align="right">0.03</td>
-<td align="right">0.250</td>
-<td align="right">1.00</td>
-<td align="right">1.00</td>
-<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">fake_Cmax</td>
@@ -706,11 +677,6 @@ kable(km_cox_summary)  </code></pre>
 <td align="right">0.130</td>
 <td align="right">-1.2</td>
 <td align="right">0.210</td>
-<td align="right">-0.40</td>
-<td align="right">0.091</td>
-<td align="right">0.97</td>
-<td align="right">0.93</td>
-<td align="right">1</td>
 </tr>
 </tbody>
 </table>
@@ -718,7 +684,7 @@ kable(km_cox_summary)  </code></pre>
 <div id="r-session-info" class="section level2">
 <h2>R Session Info</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.6.1 (2019-07-05)
+<pre><code>## R version 4.1.0 (2021-05-18)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
 ## Running under: Red Hat Enterprise Linux
 ## 
@@ -731,54 +697,45 @@ kable(km_cox_summary)  </code></pre>
 ##  Sample:  Rounding 
 ##  
 ## locale:
-##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## attached base packages:
-## [1] grid      stats     graphics  grDevices utils     datasets  methods  
-## [8] base     
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] stringr_1.4.0    survminer_0.4.6  ggpubr_0.2.3     magrittr_1.5    
-##  [5] survival_3.1-7   knitr_1.25       broom_0.5.3      DT_0.9          
-##  [9] caTools_1.17.1.2 RxODE_0.9.1-8    zoo_1.8-6        xgxr_1.0.7      
-## [13] gridExtra_2.3    tidyr_1.0.0      dplyr_0.8.3      ggplot2_3.2.1   
+##  [1] RxODE_1.1.1     survminer_0.4.9 ggpubr_0.4.0    survival_3.2-11 knitr_1.33      broom_0.7.9     caTools_1.18.2 
+##  [8] DT_0.18         forcats_0.5.1   stringr_1.4.0   purrr_0.3.4     readr_2.0.1     tibble_3.1.3    tidyverse_1.3.1
+## [15] zoo_1.8-9       xgxr_1.1.1      gridExtra_2.3   tidyr_1.1.3     dplyr_1.0.7     ggplot2_3.3.5  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] nlme_3.1-142       bitops_1.0-6       matrixStats_0.55.0
-##  [4] lubridate_1.7.4    RColorBrewer_1.1-2 rstan_2.19.2      
-##  [7] tools_3.6.1        backports_1.1.5    R6_2.4.0          
-## [10] lazyeval_0.2.2     colorspace_1.4-1   lotri_0.1.1       
-## [13] withr_2.1.2        tidyselect_0.2.5   prettyunits_1.0.2 
-## [16] processx_3.4.1     compiler_3.6.1     cli_1.1.0         
-## [19] binom_1.1-1        labeling_0.3       scales_1.0.0      
-## [22] survMisc_0.5.5     callr_3.3.2        mvnfast_0.2.5     
-## [25] digest_0.6.22      StanHeaders_2.19.0 rmarkdown_1.16    
-## [28] PreciseSums_0.3    pkgconfig_2.0.3    htmltools_0.4.0   
-## [31] highr_0.8          fastmap_1.0.1      htmlwidgets_1.5.1 
-## [34] rlang_0.4.1        rstudioapi_0.10    shiny_1.4.0       
-## [37] farver_1.1.0       generics_0.0.2     jsonlite_1.6      
-## [40] crosstalk_1.0.0    inline_0.3.15      loo_2.1.0         
-## [43] Matrix_1.2-17      Rcpp_1.0.3         munsell_0.5.0     
-## [46] lifecycle_0.1.0    stringi_1.4.3      yaml_2.2.0        
-## [49] MASS_7.3-51.4      pkgbuild_1.0.6     plyr_1.8.4        
-## [52] parallel_3.6.1     promises_1.1.0     crayon_1.3.4      
-## [55] lattice_0.20-38    splines_3.6.1      pander_0.6.3      
-## [58] zeallot_0.1.0      ps_1.3.0           pillar_1.4.2      
-## [61] markdown_1.1       ggsignif_0.6.0     reshape2_1.4.3    
-## [64] codetools_0.2-16   stats4_3.6.1       glue_1.3.1        
-## [67] evaluate_0.14      data.table_1.12.6  png_0.1-7         
-## [70] vctrs_0.2.0        tweenr_1.0.1       httpuv_1.5.2      
-## [73] gtable_0.3.0       purrr_0.3.3        polyclip_1.10-0   
-## [76] km.ci_0.5-2        assertthat_0.2.1   xfun_0.10         
-## [79] ggforce_0.3.1      mime_0.7           xtable_1.8-4      
-## [82] later_1.0.0        rsconnect_0.8.15   tibble_2.1.3      
-## [85] KMsurv_0.1-5       memoise_1.1.0      units_0.6-5       
-## [88] ellipsis_0.3.0</code></pre>
+##   [1] readxl_1.3.1        backports_1.2.1     Hmisc_4.5-0         plyr_1.8.6          lazyeval_0.2.2     
+##   [6] splines_4.1.0       RApiSerialize_0.1.0 crosstalk_1.1.1     digest_0.6.27       htmltools_0.5.1.1  
+##  [11] rsconnect_0.8.24    fansi_0.5.0         magrittr_2.0.1      checkmate_2.0.0     memoise_2.0.0      
+##  [16] cluster_2.1.2       tzdb_0.1.2          openxlsx_4.2.4      modelr_0.1.8        RcppParallel_5.1.4 
+##  [21] prettyunits_1.1.1   jpeg_0.1-9          colorspace_2.0-2    rvest_1.0.1         PreciseSums_0.4    
+##  [26] haven_2.4.3         xfun_0.25           crayon_1.4.1        RCurl_1.98-1.4      jsonlite_1.7.2     
+##  [31] Exact_2.1           stringfish_0.15.2   glue_1.4.2          gtable_0.3.0        car_3.0-11         
+##  [36] abind_1.4-5         scales_1.1.1        mvtnorm_1.1-2       DBI_1.1.1           GGally_2.1.2       
+##  [41] rstatix_0.7.0       Rcpp_1.0.7          xtable_1.8-4        progress_1.2.2      htmlTable_2.2.1    
+##  [46] foreign_0.8-81      proxy_0.4-26        km.ci_0.5-2         Formula_1.2-4       dparser_1.3.1-4    
+##  [51] rex_1.2.0           htmlwidgets_1.5.3   httr_1.4.2          RColorBrewer_1.1-2  ellipsis_0.3.2     
+##  [56] pkgconfig_2.0.3     reshape_0.8.8       lotri_0.3.1         farver_2.1.0        nnet_7.3-16        
+##  [61] sass_0.4.0          dbplyr_2.1.1        binom_1.1-1         utf8_1.2.2          tidyselect_1.1.1   
+##  [66] labeling_0.4.2      rlang_0.4.11        munsell_0.5.0       cellranger_1.1.0    tools_4.1.0        
+##  [71] cachem_1.0.6        cli_3.0.1           generics_0.1.0      evaluate_0.14       fastmap_1.1.0      
+##  [76] yaml_2.2.1          sys_3.4             fs_1.5.0            zip_2.2.0           pander_0.6.4       
+##  [81] survMisc_0.5.5      rootSolve_1.8.2.2   nlme_3.1-152        xml2_1.3.2          compiler_4.1.0     
+##  [86] rstudioapi_0.13     curl_4.3.2          png_0.1-7           e1071_1.7-8         ggsignif_0.6.2     
+##  [91] reprex_2.0.1        bslib_0.2.5.1       DescTools_0.99.42   stringi_1.7.3       highr_0.9          
+##  [96] lattice_0.20-44     Matrix_1.3-3        markdown_1.1        KMsurv_0.1-5        vctrs_0.3.8        
+## [101] pillar_1.6.2        lifecycle_1.0.0     jquerylib_0.1.4     data.table_1.14.0   bitops_1.0-7       
+## [106] lmom_2.8            R6_2.5.1            latticeExtra_0.6-29 qs_0.25.1           rio_0.5.27         
+## [111] gld_2.6.2           codetools_0.2-18    boot_1.3-28         MASS_7.3-54         assertthat_0.2.1   
+## [116] minpack.lm_1.2-1    withr_2.4.2         Deriv_4.1.3         mgcv_1.8-35         expm_0.999-6       
+## [121] hms_1.1.0           grid_4.1.0          rpart_4.1-15        class_7.3-19        rmarkdown_2.11     
+## [126] carData_3.0-4       lubridate_1.7.10    base64enc_0.1-3</code></pre>
 </div>
 </div>
 
@@ -793,7 +750,7 @@ kable(km_cox_summary)  </code></pre>
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -811,7 +768,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
+    $(this).parent().toggleClass('nav-tabs-open');
   });
 });
 </script>
@@ -826,6 +783,9 @@ $(document).ready(function () {
 <script>
 $(document).ready(function ()  {
 
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')
         .removeClass('toc-ignore')
@@ -837,7 +797,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0

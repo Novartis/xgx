@@ -17,6 +17,7 @@ The plots presented here are based on blinded merged RECIST data ([download data
 
 Standard statistical plots for summarizing recist (e.g. Waterfall) are presented elsewhere.
 <!--END_EXPLANATION-->
+
 ## Setup
 
 ```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
@@ -142,15 +143,16 @@ RECIST (Response Evaluation Criteria in Solid Tumor) uses an image-based assessm
 
 An example patient and the criteria for assigning a response category, is shown below.
 <!--END_EXPLANATION-->
+
 ![](SiteResources/RECIST.png){width=80%}
 
 
 ![Figure 1: Example RECIST assessment for individualpatient and response category identified](SiteResources/response_category.png){width=80%}
 
-
 ## Overview of all data
-<!--START_EXPLANATION-->
+
 ### Spaghetti plots of change from baseline
+<!--START_EXPLANATION-->
 We recommend stratifying the spaghetti plots of target lesion kinetics by dose so that one can observe if there is more tumor shrinkage at the higher dose groups.  In this case, no obvious relationship is observed and it is likely a longitudinal model will not be helpful.
 <!--END_EXPLANATION-->
 
@@ -166,7 +168,6 @@ gg <- gg + labs(x= timemonth_label, y= sld_label)
 gg <- gg + xgx_annotate_status(status)
 gg
 ```
-
 
 ### Change from baseline plot, faceted by Dose
 
@@ -190,6 +191,7 @@ These plots allow one to look for subtle trends in the individual trajectories. 
 
 In the first plot below, it is difficult to see a trend of dose changes impacting response and a longitudinal tumor-size model will likely not be informative.  But in the second plot below, a trend of tumor shrinkage followed by tumor growth after a dose reduction was observed and a longitudinal model was useful for characterizing this data.  [see reference](https://bmccancer.biomedcentral.com/articles/10.1186/1471-2407-12-311)
 <!--END_EXPLANATION-->
+
 Example 1, longitudinal model won't be informative:
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 14, warning = FALSE, message= FALSE}
@@ -231,13 +233,9 @@ gg <- gg + xgx_annotate_status(status)
 gg
 ```
 
-
 Example 2, dose reduction was followed by growth of tumor and longitudinal model would help.
 
 ![Example data where dose reduction was followed by growth of tumor](SiteResources/Stein12_RAD001.png){width=100%}
-
-
-
 
 ## Dose-Response: Monotherapy
 <!--START_EXPLANATION-->
@@ -245,6 +243,7 @@ To visualize dose-response (exposure-response), we recommend plotting the assign
 
 **Warning:** If you see what appears to be a linear dose-response relationship (e.g. more tumor shrinkage with increasing dose), be very cautious when trying to extrapolate outside this range, as Emax may not have been observed yet.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 gg <- ggplot()
 gg <- gg + geom_point(data=recist.data.monotherapy,aes(x=DOSE_ABC,y=BPCHG),color="tomato")
@@ -269,11 +268,13 @@ gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
 gg
 ```
+
 <!--START_EXPLANATION-->
 Best overall change is commonly reported in Waterfall plots.  And the reason we recommend using the randomized dose group as opposed to something like average dose-intensity is that the latter can be confounded.  For instance, consider the following scenario.  There are two patients that both start at 10 mg.  One has 30% tumor growth at the first assessment and progresses.  The other responds, but at month 6, they are dose reduced to 5 mg due to an adverse event, and then followed for another 6 months.  In this case, the responder would have a dose intensity of 7.5 mg while the non-responder had a dose-intensity of 10 mg, and thus one might conclude from a simple plot of these two patients that lower doses are better.
 
 One way to avoid this issue is to plot average dose intensity up to the first assessment vs percent change at the first assessment and this could be considered if there are a large number of dose reductions before the first assessment.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message= FALSE} 
 # Do it only for monoteraphy, it can be repeated for combo
 dose_intensity <- dose_intensity[dose_intensity$COMB=="Single",]
@@ -292,8 +293,6 @@ gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
 gg
 ```
-
-
 
 ## Dose-Response: Combo
 <!--START_EXPLANATION-->
@@ -315,7 +314,6 @@ gg <- gg + xgx_annotate_status(status)
 gg
 ```
 
-
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message= FALSE} 
 gg <- ggplot(data=recist.data.combo,aes(x=DOSE_DEF,y=BPCHG))
 gg <- gg + geom_point(aes( color= paste0("+ ", MONO_DOSE_label_low2high, " ABC123")))
@@ -333,6 +331,7 @@ gg
 <!--START_EXPLANATION-->
 For most of the oncology clinical trials, the standard primary and secondary endpoints are Overall Survival (OS), Progression Free Survival (PFS), duration without progression (PD) or death, and Overall Response Rate (ORR). Dose vs ORR at each dose can be informative.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 5, warning = FALSE, message= FALSE}
 gg <- ggplot(data = recist.data.combo, aes(x=DOSE_ABC,y=PR_rate))
 gg <- gg + xgx_stat_ci(mapping = aes(x = DOSE_ABC, y = binary_BOR ,group=DOSE_ABC), 
@@ -346,7 +345,6 @@ gg <- gg + theme(text = element_text(size=15))
 gg <- gg + xgx_annotate_status(status)
 gg
 ```
-
 
 ### Best Overall Response (BOR) plot for combo therapy
 
@@ -375,8 +373,6 @@ gg <- gg + guides(fill=FALSE)
 gg <- gg + xgx_annotate_status(status)
 gg 
 ```
-
-
 
 ## R Session Info
 ```{r}

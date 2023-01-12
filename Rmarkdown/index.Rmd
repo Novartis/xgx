@@ -60,6 +60,7 @@ We are losing programming resources
 * Andrew Stein
 * Fariba Khanshan
 * Camille Vong
+* Theodoros Papathanasiou
 
 ### Extended Team
 * Matt Fidler

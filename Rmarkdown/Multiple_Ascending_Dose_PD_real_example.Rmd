@@ -106,11 +106,11 @@ dirs = list(
 
 ```
 
-
 ## Intensity Score (a Composite Score)
 <!--START_EXPLANATION-->
 Intensity Score is a composite score ranging from 0 to 28, coming from the sum of 7 categories each with possible values from 0 to 4. The hypothesis for drug ABC123 is that it will have a positive relationship with Intensity Score. If the drug is working, higher doses should result in higher Intensity Score. 
 <!--END_EXPLANATION-->
+
 ### Response over Time
 
 #### Intensity Score over Time, Faceting by Dose
@@ -145,7 +145,6 @@ gg
 
 ```
 
-
 ### Dose Response
 
 #### Intensity Score vs Dose
@@ -177,9 +176,11 @@ gg <- gg + xgx_annotate_filenames(dirs)
 gg
 
 ```
+
 <!--START_EXPLANATION-->
 In the plot above, the doses are uniformly spaced, not proportionally spaced according to the numerical value of the doses. Producing this type of plot allows to clearly determine distinctions between different dose groups. However, it is wise to produce plots of dose vs response with dose on a scale proportional to the numerical value of the doses. This allows to more clearly see the shape of the dose-response relationship. Drug ABC123 has a nice dose-response curve shape that resembles a typical Emax model, appearing to plateau around 7.5 change from baseline in intensity score.
 <!--END_EXPLANATION-->
+
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message = FALSE}
 labelFun <- function(labels){     
   paste0(labels," h")                             
@@ -203,8 +204,6 @@ gg <- gg + xgx_annotate_filenames(dirs)
 
 gg 
 ```
-
-
 
 ## R Session Info
 
