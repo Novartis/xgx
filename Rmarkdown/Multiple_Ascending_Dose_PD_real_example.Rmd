@@ -42,22 +42,30 @@ xgx_theme_set()
 pkpd_data <- read.csv(file = "../Data/mt12345.csv", header = T)
 
 #ensure dataset has all the necessary columns
-  pkpd_data = pkpd_data %>%
-    mutate(ID        = ID,     #ID   column
-           TIME      = TIM2,   #TIME column name, time from first dose administration 
-           NOMTIME   = NTIM, #NOMINAL TIME column name
-           PROFDAY   = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
-           PROFTIME  = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
-           EVID      = EVID   , #EVENT ID, > = 1 is dose, otherwise measurement
-           LIDV      = LIDV,   #DEPENDENT VARIABLE column name
-           CENS      = CENS,   #CENSORING column name
-           CMT       = CMT,    #COMPARTMENT column
-           DOSE      = RNDDOSE,   #DOSE column here (numeric value)
-           TRTACT    = TRTTXT, #DOSE REGIMEN column here (character, with units), 
-           LIDV_NORM = LIDV/DOSE, 
-           LIDV_UNIT = UNIT, 
-           DAY_label = paste("Day", PROFDAY)
-    )
+pkpd_data = pkpd_data %>%
+  mutate(ID        = ID,     #ID   column
+         TIME      = TIM2,   #TIME column name, time from first dose administration 
+         NOMTIME   = NTIM, #NOMINAL TIME column name
+         PROFDAY   = 1 + floor(NOMTIME / 24), #PROFILE DAY day associated with profile, e.g. day of dose administration
+         PROFTIME  = NOMTIME - (PROFDAY - 1)*24, #PROFILE TIME, time associated with profile, e.g. hours post dose
+         EVID      = EVID   , #EVENT ID, > = 1 is dose, otherwise measurement
+         LIDV      = LIDV,   #DEPENDENT VARIABLE column name
+         CENS      = CENS,   #CENSORING column name
+         CMT       = CMT,    #COMPARTMENT column
+         DOSE      = RNDDOSE,   #DOSE column here (numeric value)
+         TRTACT    = TRTTXT, #DOSE REGIMEN column here (character, with units), 
+         LIDV_NORM = LIDV/DOSE, 
+         LIDV_UNIT = UNIT, 
+         DAY_label = paste("Day", PROFDAY),
+         NOMTIME_label = paste(NOMTIME, "h"),
+         PROFTIME_label = paste(PROFTIME, "h")
+  )
+
+#create a factor for the treatment variable for plotting
+pkpd_data = pkpd_data %>%
+  arrange(DOSE) %>%
+  mutate(TRTACT_low2high = factor(paste0(DOSE, " mg"), levels = unique(paste0(DOSE, " mg"))), 
+         TRTACT_high2low = factor(paste0(DOSE, " mg"), levels = rev(unique(paste0(DOSE, " mg")))))
 
 # data cleaning
 pkpd_data <- pkpd_data %>% 
@@ -120,10 +128,6 @@ Lets get an overview of the change from baseline intensity score over time follo
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 4, warning = FALSE, message = FALSE}
  
-labelFun <- function(labels){     
-  paste0(labels," mg")                             
-}
-
 gg <- ggplot(pd_multiple_dosing, 
                 aes(y = CHG, x = PROFDAY, group = NOMTIME)) 
 gg <- gg + geom_boxplot(width = 5)  
@@ -136,7 +140,7 @@ gg <- gg + theme(axis.text = element_text(size = 13),
         strip.text = element_text(size = 14)) 
 gg <- gg + ylab(paste0(pd_label,"\nchange from baseline"))
 gg <- gg + xlab("Time (days)")
-gg <- gg + facet_wrap(~DOSE,nrow = 1, label = labelFun)
+gg <- gg + facet_wrap(~TRTACT_low2high, nrow = 1)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
 
@@ -154,10 +158,6 @@ For this fast acting drug, an effect in change from baseline intensity score can
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message = FALSE}
  
-labelFun <- function(labels){     
-  paste0(labels," h")                             
-}
-
 gg <- ggplot(pd_single_dosing %>% subset(NOMTIME == 24), 
                 aes(y = CHG, x = factor(DOSE)))  
 gg <- gg + geom_boxplot(aes(group = factor(DOSE)))  
@@ -169,7 +169,7 @@ gg <- gg + theme(axis.text  = element_text(size = 13),
                  strip.text = element_text(size = 14))
 gg <- gg + ylab(paste0(pd_label,"\nchange from baseline"))
 gg <- gg + xlab(dose_label)   
-gg <- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg <- gg + facet_wrap(~NOMTIME_label, nrow = 1)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
 
@@ -182,9 +182,6 @@ In the plot above, the doses are uniformly spaced, not proportionally spaced acc
 <!--END_EXPLANATION-->
 
 ```{r, error = TRUE, cache = TRUE, fig.width = 10, fig.height = 5, warning = FALSE, message = FALSE}
-labelFun <- function(labels){     
-  paste0(labels," h")                             
-}
 
 gg <- ggplot(pd_single_dosing %>% subset(NOMTIME == 24,), 
                aes(y = CHG, x = DOSE, group = NOMTIME))   
@@ -198,7 +195,7 @@ gg <- gg + theme(axis.text  = element_text(size = 13),
 gg <- gg + ggtitle("Single dosing")   
 gg <- gg + ylab(paste0(pd_label,"\nchange from baseline"))
 gg <- gg + xlab(dose_label)
-gg <- gg + facet_wrap(~NOMTIME, nrow = 1, label = labelFun)
+gg <- gg + facet_wrap(~NOMTIME_label, nrow = 1)
 gg <- gg + xgx_annotate_status()
 gg <- gg + xgx_annotate_filenames(dirs)
 
