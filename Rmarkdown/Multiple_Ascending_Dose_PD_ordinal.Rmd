@@ -200,15 +200,14 @@ gg <- gg + geom_bar(position = "fill") + scale_y_continuous(labels = scales::per
 gg <- gg + labs(x = dose_label, y = pd_response_label) + guides(fill = guide_legend(""))
 gg <- gg + scale_fill_brewer(palette = 6)
 gg <- gg + facet_grid(.~DAY_label)
-# gg
 
 gg2 <- ggplot(data = data_to_plot, aes(x = DOSE, response = ORDINAL_LEVELS_high2low, color = ORDINAL_LEVELS_high2low)) 
 gg2 <- gg2 + xgx_annotate_status(status)
-gg2 <- gg2 + xgx_stat_ci(distribution = "ordinal", position = position_dodge(width = 50), alpha = 0.5) 
+gg2 <- gg2 + xgx_stat_ci(distribution = "ordinal", geom = list("point","errorbar"), position = position_dodge(width = 50)) 
+gg2 <- gg2 + xgx_geom_smooth(method = "polr")
 gg2 <- gg2 + scale_y_continuous(labels = scales::percent)
 gg2 <- gg2 + labs(x = dose_label, y = pd_response_label) + guides(color = guide_legend(""))
 gg2 <- gg2 + facet_grid(.~DAY_label)
-# gg2
 
 grid.arrange(gg, gg2, ncol = 2)
 ```

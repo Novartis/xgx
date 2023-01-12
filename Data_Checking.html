@@ -564,7 +564,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Data Checking</h1>
 <h4 class="author">Andy Stein, Siyan Xu</h4>
-<h4 class="date">03 March, 2022</h4>
+<h4 class="date">12 January, 2023</h4>
 
 </div>
 
@@ -572,8 +572,17 @@ div.tocify {
 <div id="overview" class="section level2">
 <h2>Overview</h2>
 <p>Example of plots and tables to create for data checking.</p>
-<p>For a dataset that is much larger that the example one used here, the default figure size may be too small for all plots to be readable. In that case, add or edit the <code>fig.height</code> and <code>fig.width</code> in the top of each chunk. For example: <code>{r, fig.height = 6, fig.width = 8}</code></p>
-<p>Data specifications can be accessed on <a href="Datasets.html">Datasets</a> and Rmarkdown template to generate this page can be found on <a href="Rmarkdown/Data_Checking.Rmd">Rmarkdown-Template</a>. You may also download the Multiple Ascending Dose PK/PD dataset for your reference (<a href="Data/Data_Checking.csv">download dataset</a>).</p>
+<p>For a dataset that is much larger that the example one used here, the
+default figure size may be too small for all plots to be readable. In
+that case, add or edit the <code>fig.height</code> and
+<code>fig.width</code> in the top of each chunk. For example:
+<code>{r, fig.height = 6, fig.width = 8}</code></p>
+<p>Data specifications can be accessed on <a
+href="Datasets.html">Datasets</a> and Rmarkdown template to generate
+this page can be found on <a
+href="Rmarkdown/Data_Checking.Rmd">Rmarkdown-Template</a>. You may also
+download the Multiple Ascending Dose PK/PD dataset for your reference
+(<a href="Data/Data_Checking.csv">download dataset</a>).</p>
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
@@ -599,7 +608,7 @@ data = data_in %&gt;%
   # in this mutate command are all columns that are required for this check
   # if your dataset has different naming convention, 
   # then rename the right hand side of the equality
-  mutate(USUBJID = paste0(&quot;PAT&quot;,USUBJID), # Unique subject identifier
+  mutate(USUBJID = USUBJID, # Unique subject identifier
          TIME    = TIME,    # Actual Time
          NOMTIME = NOMTIME, # Nominal Time
          AMT     = AMT,     # Dose Amount
@@ -613,11 +622,24 @@ data = data_in %&gt;%
          TRTN    = TRTN) %&gt;%# Treatment Arm numeric description (used for sorting)
   arrange(TRTN) %&gt;%
   mutate(TRT_low2high = factor(TRT, levels = unique(TRT)),
-         TRT_high2low = factor(TRT, levels = rev(unique(TRT)))) %&gt;%
-  mutate(WEIGHT0_CAT = case_when(WEIGHT0 &lt; 60 ~ &quot;WT&lt;60&quot;, #creating 2nd categorical var
+         TRT_high2low = factor(TRT, levels = rev(unique(TRT))))
+                                 
+data1 = data %&gt;%
+  filter(!duplicated(USUBJID))</code></pre>
+<div
+id="data-manipulation-to-simulate-a-patient-with-no-doses-and-introduce-new-variables"
+class="section level3">
+<h3>Data Manipulation to simulate a patient with no doses and introduce
+new variables</h3>
+<pre class="r"><code>data = data %&gt;%
+  mutate(USUBJID = paste0(&quot;PAT&quot;,USUBJID),
+         WEIGHT0_CAT = case_when(WEIGHT0 &lt; 60 ~ &quot;WT&lt;60&quot;, #creating 2nd categorical var
                                  WEIGHT0 &gt; 80 ~ &quot;WT&gt;80&quot;,
                                  TRUE         ~ &quot;WT:60-80&quot;))
 
+# a patient with no PK or PD data is added to the dataset to illustrate how the 
+# data checking will report when such data is present.  This code block should be
+# removed if you&#39;ll be using it with your dataset.
 empty_row = data[1,] %&gt;%
   mutate(ID = 23,
          USUBJID = paste0(&quot;PAT&quot;,ID),
@@ -636,9 +658,11 @@ data  = bind_rows(data, empty_row)
 data1 = data %&gt;%
   filter(!duplicated(USUBJID))</code></pre>
 </div>
+</div>
 <div id="number-of-patients-per-treatment-arm" class="section level2">
 <h2>Number of Patients per Treatment Arm</h2>
-<p>Check to see the number of patients in the dataset is what you expect.</p>
+<p>Check to see the number of patients in the dataset is what you
+expect.</p>
 <pre class="r"><code>total_patients = data %&gt;%
   filter(!duplicated(USUBJID)) %&gt;%
   tally() %&gt;%
@@ -652,12 +676,14 @@ summary_by_trt = data %&gt;%
   rename(n_patients = n) %&gt;% 
   bind_rows(total_patients)
 datatable(summary_by_trt)</code></pre>
-<div id="htmlwidget-4c12b823c7da585bf0a3" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-4c12b823c7da585bf0a3">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["3 mg","6 mg","12 mg","24 mg","48 mg","TOTAL NUMBER"],[2,2,3,2,5,14]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>n_patients<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-bf68d0fb68df98986243" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-bf68d0fb68df98986243">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["3 mg","6 mg","12 mg","24 mg","48 mg","TOTAL NUMBER"],[2,2,3,2,5,14]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>n_patients<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
-<div id="number-of-data-points-per-treatment-arm-and-ytype" class="section level2">
+<div id="number-of-data-points-per-treatment-arm-and-ytype"
+class="section level2">
 <h2>Number of Data Points per Treatment Arm and YTYPE</h2>
-<p>This is another quick way to see if there is way more or way less data than you expected.</p>
+<p>This is another quick way to see if there is way more or way less
+data than you expected.</p>
 <pre class="r"><code>summary_by_trt_ytype = data %&gt;% 
   group_by(YTYPE, NAME, TRT_low2high) %&gt;%
   tally() %&gt;%
@@ -668,12 +694,14 @@ datatable(summary_by_trt)</code></pre>
   spread(YTYPE_NAME, n_data_points)
 
 datatable(summary_by_trt_ytype)</code></pre>
-<div id="htmlwidget-56826faee82d435a0708" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-56826faee82d435a0708">{"x":{"filter":"none","data":[["1","2","3","4","5"],["3 mg","6 mg","12 mg","24 mg","48 mg"],[8,8,7,12,95],[18,24,20,32,86],[17,24,20,28,55]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>0:Dose<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-0d03efafc489bdd0ab97" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0d03efafc489bdd0ab97">{"x":{"filter":"none","data":[["1","2","3","4","5"],["3 mg","6 mg","12 mg","24 mg","48 mg"],[8,8,7,12,95],[18,24,20,32,86],[17,24,20,28,55]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>TRT_low2high<\/th>\n      <th>0:Dose<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dosing-summary" class="section level2">
 <h2>Dosing Summary</h2>
-<p>Summary of the dosing information. It can be useful to know if there are patients in the database that never received a dose of the drug. Also, usually AMT usually should not equal 0, and so</p>
+<p>Summary of the dosing information. It can be useful to know if there
+are patients in the database that never received a dose of the drug.
+Also, usually AMT usually should not equal 0, and so</p>
 <pre class="r"><code>dose = data %&gt;%
   filter(EVID == 1)
 
@@ -690,8 +718,8 @@ dose_summary = data.frame(
   rename(N = V1)
 
 datatable(dose_summary)</code></pre>
-<div id="htmlwidget-179d056c148188bea39f" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-179d056c148188bea39f">{"x":{"filter":"none","data":[["patients_that_never_received_drug","entries_where_AMT_equals_0","entries_where_AMT_greater_than_0"],[1,1,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-e802e60ec143a8642a4a" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e802e60ec143a8642a4a">{"x":{"filter":"none","data":[["patients_that_never_received_drug","entries_where_AMT_equals_0","entries_where_AMT_greater_than_0"],[1,1,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dependent-variable-dv-summary" class="section level2">
 <h2>Dependent Variable (DV) Summary</h2>
@@ -758,12 +786,13 @@ dv_summary_overall = dv_summary_overall %&gt;%
   arrange(Type)
 
 datatable(dv_summary_overall)</code></pre>
-<div id="htmlwidget-dbf39fbf1d64ea7110f4" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-dbf39fbf1d64ea7110f4">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points per patient","Number of data points per patient","Number of data points per patient","Number of data points per patient","Value of data points","Value of data points","Value of data points","Value of data points","Value of data points"],["total","missing_or_NA","zeroes","censored","negative","duplicate_times","max","median","min","none","min","Q1","median","Q3","max"],["180","0","0","11","0","2","24","15","1","2","6.966","89.39825","503.052","1442.6782","18325.380"],["144","0","0"," 1","0","1","21","14","7","4","2.015","23.52375"," 69.880"," 143.2493"," 1023.214"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Type<\/th>\n      <th>Value<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a9f78f7d333d0ccb290e" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a9f78f7d333d0ccb290e">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points","Number of data points per patient","Number of data points per patient","Number of data points per patient","Number of data points per patient","Value of data points","Value of data points","Value of data points","Value of data points","Value of data points"],["total","missing_or_NA","zeroes","censored","negative","duplicate_times","max","median","min","none","min","Q1","median","Q3","max"],["180","0","0","11","0","2","24","15","1","2","6.966","89.39825","503.052","1442.6782","18325.380"],["144","0","0"," 1","0","1","21","14","7","4","2.015","23.52375"," 69.880"," 143.2493"," 1023.214"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Type<\/th>\n      <th>Value<\/th>\n      <th>1:PK<\/th>\n      <th>2:PD<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="covariate-summary" class="section level2">
 <h2>Covariate Summary</h2>
-<p>Provide overview of the covariates. Check to see in particular that the distributions (along the diagonals) make sense.</p>
+<p>Provide overview of the covariates. Check to see in particular that
+the distributions (along the diagonals) make sense.</p>
 <pre class="r"><code>num_unique_vals = data1[,covariates] %&gt;%
   summarise_all(function(x){length(unique(x))}) %&gt;%
   as.numeric()
@@ -781,14 +810,14 @@ cts_cov_summary = cts_cov %&gt;%
             Q3                = quantile(value, 0.75, na.rm = TRUE),
             max               = max     (value,       na.rm = TRUE))
 datatable(cts_cov_summary)</code></pre>
-<div id="htmlwidget-f1ae0eb853bff037bee0" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-f1ae0eb853bff037bee0">{"x":{"filter":"none","data":[["1","2"],["AGE0","WEIGHT0"],[0,0],[54,47.1],[61.5,55.6],[65.5,70.15],[67,88.3],[75,112.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>min<\/th>\n      <th>Q1<\/th>\n      <th>median<\/th>\n      <th>Q3<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-79a6b88f66f5716b5fdb" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-79a6b88f66f5716b5fdb">{"x":{"filter":"none","data":[["1","2"],["AGE0","WEIGHT0"],[0,0],[54,47.1],[61.5,55.6],[65.5,70.15],[67,88.3],[75,112.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>min<\/th>\n      <th>Q1<\/th>\n      <th>median<\/th>\n      <th>Q3<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>cat_summary = function(x) {
   unique_x = sort(unique(x))
   str = 1:length(unique_x)
   for(i in 1:length(unique_x))
   {
-    str[i] = paste0(unique_x[i], &quot;=&quot;, sum(x == unique_x[i]))
+    str[i] = paste0(unique_x[i], &quot;=&quot;, sum(x == unique_x[i], na.rm = TRUE))
   }
   output = paste(str, collapse = &quot;, &quot;)
 }
@@ -800,16 +829,19 @@ cat_cov_summary = cat_cov %&gt;%
             n_distinct        = n_distinct(value),
             count_summary     = cat_summary(value))
 datatable(cat_cov_summary)</code></pre>
-<div id="htmlwidget-740644c7b6fc04514175" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-740644c7b6fc04514175">{"x":{"filter":"none","data":[["1","2"],["SEX","WEIGHT0_CAT"],[0,0],[2,3],["Female=7, Male=7","WT:60-80=4, WT&lt;60=5, WT&gt;80=5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>n_distinct<\/th>\n      <th>count_summary<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-d0a117e59d6ac4ea983d" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d0a117e59d6ac4ea983d">{"x":{"filter":"none","data":[["1","2"],["SEX","WEIGHT0_CAT"],[0,0],[2,3],["Female=7, Male=7","WT:60-80=4, WT&lt;60=5, WT&gt;80=5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>key<\/th>\n      <th>n_missing_or_NA<\/th>\n      <th>n_distinct<\/th>\n      <th>count_summary<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>GGally::ggpairs(data1, 
                 columns = covariates,
                 diag = list(continuous = &quot;barDiag&quot;))</code></pre>
-<p><img src="Data_Checking_files/figure-html/unnamed-chunk-7-3.png" width="768" /></p>
+<p><img src="Data_Checking_files/figure-html/unnamed-chunk-8-3.png" width="768" /></p>
 </div>
-<div id="columns-that-contains-nas-and-the-number-they-contain" class="section level2">
+<div id="columns-that-contains-nas-and-the-number-they-contain"
+class="section level2">
 <h2>Columns that contains NAs (and the number they contain)</h2>
-<p>Often, a dataset is not supposed to contain any NAs. This section highlights where the NAs occur. If the table below is empty, then there are no NAs in the dataset.</p>
+<p>Often, a dataset is not supposed to contain any NAs. This section
+highlights where the NAs occur. If the table below is empty, then there
+are no NAs in the dataset.</p>
 <pre class="r"><code>na_summary = data %&gt;%
   dplyr::summarise_all(function(x) {sum(is.na(x))}) %&gt;%
   t() %&gt;%
@@ -821,13 +853,20 @@ na_summary = na_summary %&gt;%
   filter(N_NA &gt; 0)
 
 datatable(na_summary)</code></pre>
-<div id="htmlwidget-88a4ec4bcfb13070dcd1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-88a4ec4bcfb13070dcd1">{"x":{"filter":"none","data":[["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],[111,129,115,7,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Column<\/th>\n      <th>N_NA<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-b287ca6f2cb632e3ce9a" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b287ca6f2cb632e3ce9a">{"x":{"filter":"none","data":[["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],["NOMTIME","LIDV","PROFDAY","CYCLE","LLOQ"],[111,129,115,7,129]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Column<\/th>\n      <th>N_NA<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="dose-and-pkpd-data-collection-times" class="section level2">
 <h2>Dose and PK/PD Data Collection Times</h2>
-<p>Get an overview of the timing of the dose, PK, and PD data collection for all patients and make sure it’s in line with expectations. Each “x” denotes a record, i.e. a dose time or a PK or PD assessment time. Each red circle denotes what may be a dose interruption, when the time between doses is greater than <code>DT_flag</code> and <code>NAME == "Dose"</code></p>
-<p>You might need to adjust the figure height and width in the line below, depending on how many different YTYPEs and how many patients your dataset has.</p>
+<p>Get an overview of the timing of the dose, PK, and PD data collection
+for all patients and make sure it’s in line with expectations. Each “x”
+denotes a record, i.e. a dose time or a PK or PD assessment time. Each
+red circle denotes what may be a dose interruption, when the time
+between doses is greater than <code>DT_flag</code> and
+<code>NAME == "Dose"</code></p>
+<p>You might need to adjust the figure height and width in the line
+below, depending on how many different YTYPEs and how many patients your
+dataset has.</p>
 <pre class="r"><code>DT_flag = 10   # &gt;10 days between doses is flagged
 NAME_DOSE = &quot;Dose&quot; # NAME == NAME_DOSE is flagged
 
@@ -846,11 +885,15 @@ g = g + geom_point(data = data_dose_interruption,
 g = g + xgx_scale_x_time_units(units_dataset = time_units_dataset)
 g = g + facet_wrap(~YTYPE+NAME, labeller = label_both)
 print(g)</code></pre>
-<p><img src="Data_Checking_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
+<p><img src="Data_Checking_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 </div>
-<div id="nominal-vs-actual-time-discrepancies-nominal-time-summary" class="section level2">
+<div id="nominal-vs-actual-time-discrepancies-nominal-time-summary"
+class="section level2">
 <h2>Nominal vs Actual Time Discrepancies + Nominal Time Summary</h2>
-<p>A common error is that either the nominal or actual time were derived incorrectly. Thus a quick sanity check is to plot nominal vs actual time. Any points that don’t lie near the identity line require further investigation.</p>
+<p>A common error is that either the nominal or actual time were derived
+incorrectly. Thus a quick sanity check is to plot nominal vs actual
+time. Any points that don’t lie near the identity line require further
+investigation.</p>
 <pre class="r"><code>xymin = min(c(data$NOMTIME, data$TIME), na.rm = TRUE)
 xymax = max(c(data$NOMTIME, data$TIME), na.rm = TRUE)
 
@@ -860,31 +903,27 @@ g = g + annotate(&quot;segment&quot;, x = xymin, xend = xymax, y = xymin, yend =
 g = g + xlim(c(xymin, xymax))
 g = g + ylim(c(xymin, xymax))
 print(g)</code></pre>
-<p><img src="Data_Checking_files/figure-html/unnamed-chunk-10-1.png" width="384" /></p>
+<p><img src="Data_Checking_files/figure-html/unnamed-chunk-11-1.png" width="384" /></p>
+<pre class="r"><code>difftime = data %&gt;%
+  mutate(DIFF_TIME = abs(NOMTIME - TIME)) %&gt;%
+  arrange(-DIFF_TIME) %&gt;%
+  slice(1:10)
+
+difftime %&gt;%
+  select(USUBJID, TRT, DIFF_TIME, TIME, NOMTIME, YTYPE, NAME, LIDV) %&gt;%
+  DT::datatable(difftime)</code></pre>
+<div id="htmlwidget-b4d0603258ed63347185" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b4d0603258ed63347185">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10"],["PAT15","PAT15","PAT16","PAT16","PAT21","PAT5","PAT5","PAT5","PAT5","PAT4"],["12 mg","12 mg","12 mg","12 mg","48 mg","48 mg","48 mg","48 mg","48 mg","48 mg"],[545.95,545.95,540.09,540.09,526.92,3.08,3.06,3.05,2.88,2.2],[22.05,22.05,27.91,27.91,41.08,67.92,46.94,53.95,89.12,82.8],[568,568,568,568,568,71,50,57,92,85],[1,2,1,2,1,0,0,0,0,1],["PK","PD","PK","PD","PK","Dose","Dose","Dose","Dose","PK"],[79.579,102.632,22.206,184.424,1558.455,null,null,null,null,3567.963]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>USUBJID<\/th>\n      <th>TRT<\/th>\n      <th>DIFF_TIME<\/th>\n      <th>TIME<\/th>\n      <th>NOMTIME<\/th>\n      <th>YTYPE<\/th>\n      <th>NAME<\/th>\n      <th>LIDV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"ID":[15,15,16,16,21,5,5,5,5,4],"USUBJID":["PAT15","PAT15","PAT16","PAT16","PAT21","PAT5","PAT5","PAT5","PAT5","PAT4"],"TIME":[22.05,22.05,27.91,27.91,41.08,67.92,46.94,53.95,89.12,82.8],"NOMTIME":[568,568,568,568,568,71,50,57,92,85],"TIMEUNIT":["Days","Days","Days","Days","Days","Days","Days","Days","Days","Days"],"AMT":[0,0,0,0,0,48,48,48,48,0],"LIDV":[79.579,102.632,22.206,184.424,1558.455,null,null,null,null,3567.963],"YTYPE":[1,2,1,2,1,0,0,0,0,1],"ADM":[0,0,0,0,0,1,1,1,1,0],"CMT":[1,2,1,2,1,0,0,0,0,1],"NAME":["PK","PD","PK","PD","PK","Dose","Dose","Dose","Dose","PK"],"EVENTU":["ng/mL","ng/mL","ng/mL","ng/mL","ng/mL","mg","mg","mg","mg","ng/mL"],"UNIT":["ng/mL","ng/mL","ng/mL","ng/mL","ng/mL","mg","mg","mg","mg","ng/mL"],"MDV":[0,0,0,0,0,1,1,1,1,0],"CENS":[0,0,0,0,0,0,0,0,0,0],"EVID":[0,0,0,0,0,1,1,1,1,0],"AGEB":[64,64,68,67,60,62,61,65,65,55],"AGE0":[64,64,68,67,60,62,61,65,65,55],"WEIGHTB":[85.7,85.5,93.6,92.5,70.1,75,75.7,83.2,82.7,54.3],"WEIGHT0":[85.7,85.5,93.6,92.5,70.1,75,75.7,83.2,82.7,54.3],"SEXN":[1,1,1,1,1,2,2,2,2,1],"SEX":["Male","Male","Male","Male","Male","Female","Female","Female","Female","Male"],"TRTN":[12,12,12,12,48,48,48,48,48,48],"TRT":["12 mg","12 mg","12 mg","12 mg","48 mg","48 mg","48 mg","48 mg","48 mg","48 mg"],"PROFDAY":[null,null,null,null,null,null,null,56,84,84],"VISNAME":["EOT","EOT","EOT","EOT","EOT","CYCLE 3 DAY 15","CYCLE 2 DAY 22","CYCLE 3 DAY 1","CYCLE 4 DAY 8","CYCLE 4 DAY 1"],"CYCLE":[null,null,null,null,null,3,2,3,4,4],"LLOQ":[10,10,10,10,10,null,null,null,null,10],"TRT_low2high":["12 mg","12 mg","12 mg","12 mg","48 mg","48 mg","48 mg","48 mg","48 mg","48 mg"],"TRT_high2low":["12 mg","12 mg","12 mg","12 mg","48 mg","48 mg","48 mg","48 mg","48 mg","48 mg"],"WEIGHT0_CAT":["WT>80","WT>80","WT>80","WT>80","WT:60-80","WT:60-80","WT:60-80","WT>80","WT>80","WT<60"],"DIFF_TIME":[545.95,545.95,540.09,540.09,526.92,3.08,3.06,3.05,2.88,2.2],"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,8]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 <div id="unique-nominal-time-values" class="section level3">
 <h3>Unique Nominal Time values</h3>
-<p>Look at the nominal times in the dataset, just to make sure they’re correct. In this case, there is a mistake because nominal time has units of days and the 5m, 1h, 2h, 4h, and 8h nominal time values were all set to “1” rather than having unique values (i.e. 1 hour should be 1/24 = 0.041 rather than 1).</p>
+<p>Look at the nominal times in the dataset, just to make sure they’re
+correct. In this case, there is a mistake because nominal time has units
+of days and the 5m, 1h, 2h, 4h, and 8h nominal time values were all set
+to “1” rather than having unique values (i.e. 1 hour should be 1/24 =
+0.041 rather than 1).</p>
 <pre class="r"><code>cat(sort(unique(data$NOMTIME)))</code></pre>
 <pre><code>## 1 2 4 8 15 22 29 30 32 36 43 50 57 64 71 78 85 92 99 106 113 120 127 134 141 148 155 162 169 176 183 190 197 204 568</code></pre>
 </div>
-</div>
-<div id="list-of-things-to-do-and-to-consider" class="section level2">
-<h2>List of things to do and to consider</h2>
-<p>Features/plots/tables to add</p>
-<ul>
-<li>Create and display a summary of the data points with potential issues to help the user more quickly resolve them.</li>
-<li>Better understand Matt Fidler’s dose and observation plots that use <code>II</code> and <code>ADDL</code>. Andy still doesn’t really get it. It might be more for “Gen Med” than for Oncology.</li>
-</ul>
-<p>Make some clunky things a bit nicer</p>
-<ul>
-<li>See if there’s a nicer, cleaner way to transpose a data.table and get the column names right.</li>
-<li>See if there’s a better option for doing the categorical covariate summary other than defining the <code>cat_summary</code> function.</li>
-</ul>
-<p>xGx website</p>
-<ul>
-<li>Rename the “Data checking” header to “Data”</li>
-<li>Update the core and extended team</li>
-</ul>
 </div>
 <div id="r-session-info" class="section level2">
 <h2>R session info</h2>
@@ -896,11 +935,6 @@ print(g)</code></pre>
 ## Matrix products: default
 ## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
-## Random number generation:
-##  RNG:     Mersenne-Twister 
-##  Normal:  Inversion 
-##  Sample:  Rounding 
-##  
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
 ##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
@@ -915,32 +949,31 @@ print(g)</code></pre>
 ## [15] zoo_1.8-9       xgxr_1.1.1      gridExtra_2.3   tidyr_1.1.3     dplyr_1.0.7     ggplot2_3.3.5  
 ## 
 ## loaded via a namespace (and not attached):
-##   [1] readxl_1.3.1        backports_1.2.1     Hmisc_4.5-0         plyr_1.8.6          lazyeval_0.2.2     
-##   [6] splines_4.1.0       RApiSerialize_0.1.0 crosstalk_1.1.1     digest_0.6.27       htmltools_0.5.1.1  
-##  [11] rsconnect_0.8.24    fansi_0.5.0         magrittr_2.0.1      checkmate_2.0.0     memoise_2.0.0      
-##  [16] cluster_2.1.2       tzdb_0.1.2          openxlsx_4.2.4      modelr_0.1.8        RcppParallel_5.1.4 
-##  [21] prettyunits_1.1.1   jpeg_0.1-9          colorspace_2.0-2    rvest_1.0.1         PreciseSums_0.4    
-##  [26] haven_2.4.3         xfun_0.25           crayon_1.4.1        RCurl_1.98-1.4      jsonlite_1.7.2     
-##  [31] Exact_2.1           stringfish_0.15.2   glue_1.4.2          gtable_0.3.0        car_3.0-11         
-##  [36] abind_1.4-5         scales_1.1.1        mvtnorm_1.1-2       DBI_1.1.1           GGally_2.1.2       
-##  [41] rstatix_0.7.0       Rcpp_1.0.7          xtable_1.8-4        progress_1.2.2      htmlTable_2.2.1    
-##  [46] foreign_0.8-81      proxy_0.4-26        km.ci_0.5-2         Formula_1.2-4       dparser_1.3.1-4    
-##  [51] rex_1.2.0           htmlwidgets_1.5.3   httr_1.4.2          RColorBrewer_1.1-2  ellipsis_0.3.2     
-##  [56] pkgconfig_2.0.3     reshape_0.8.8       lotri_0.3.1         farver_2.1.0        nnet_7.3-16        
-##  [61] sass_0.4.0          dbplyr_2.1.1        binom_1.1-1         utf8_1.2.2          tidyselect_1.1.1   
-##  [66] labeling_0.4.2      rlang_0.4.11        munsell_0.5.0       cellranger_1.1.0    tools_4.1.0        
-##  [71] cachem_1.0.6        cli_3.0.1           generics_0.1.0      evaluate_0.14       fastmap_1.1.0      
-##  [76] yaml_2.2.1          sys_3.4             fs_1.5.0            zip_2.2.0           pander_0.6.4       
-##  [81] survMisc_0.5.5      rootSolve_1.8.2.2   nlme_3.1-152        xml2_1.3.2          compiler_4.1.0     
-##  [86] rstudioapi_0.13     curl_4.3.2          png_0.1-7           e1071_1.7-8         ggsignif_0.6.2     
-##  [91] reprex_2.0.1        bslib_0.2.5.1       DescTools_0.99.42   stringi_1.7.3       highr_0.9          
-##  [96] lattice_0.20-44     Matrix_1.3-3        markdown_1.1        KMsurv_0.1-5        vctrs_0.3.8        
-## [101] pillar_1.6.2        lifecycle_1.0.0     jquerylib_0.1.4     data.table_1.14.0   bitops_1.0-7       
-## [106] lmom_2.8            R6_2.5.1            latticeExtra_0.6-29 qs_0.25.1           rio_0.5.27         
-## [111] gld_2.6.2           codetools_0.2-18    boot_1.3-28         MASS_7.3-54         assertthat_0.2.1   
-## [116] minpack.lm_1.2-1    withr_2.4.2         Deriv_4.1.3         mgcv_1.8-35         expm_0.999-6       
-## [121] hms_1.1.0           grid_4.1.0          rpart_4.1-15        class_7.3-19        rmarkdown_2.11     
-## [126] carData_3.0-4       lubridate_1.7.10    base64enc_0.1-3</code></pre>
+##   [1] readxl_1.3.1        backports_1.2.1     Hmisc_4.5-0         plyr_1.8.6          splines_4.1.0      
+##   [6] RApiSerialize_0.1.0 crosstalk_1.1.1     digest_0.6.27       htmltools_0.5.1.1   rsconnect_0.8.24   
+##  [11] fansi_0.5.0         magrittr_2.0.1      checkmate_2.0.0     memoise_2.0.0       cluster_2.1.2      
+##  [16] tzdb_0.1.2          openxlsx_4.2.4      modelr_0.1.8        RcppParallel_5.1.4  prettyunits_1.1.1  
+##  [21] jpeg_0.1-9          colorspace_2.0-2    rvest_1.0.1         PreciseSums_0.4     haven_2.4.3        
+##  [26] xfun_0.25           crayon_1.4.1        RCurl_1.98-1.4      jsonlite_1.7.2      Exact_2.1          
+##  [31] stringfish_0.15.2   glue_1.4.2          gtable_0.3.0        car_3.0-11          abind_1.4-5        
+##  [36] scales_1.1.1        mvtnorm_1.1-2       DBI_1.1.1           GGally_2.1.2        rstatix_0.7.0      
+##  [41] Rcpp_1.0.7          progress_1.2.2      xtable_1.8-4        htmlTable_2.2.1     foreign_0.8-81     
+##  [46] proxy_0.4-26        km.ci_0.5-2         Formula_1.2-4       htmlwidgets_1.5.3   httr_1.4.2         
+##  [51] RColorBrewer_1.1-2  ellipsis_0.3.2      pkgconfig_2.0.3     reshape_0.8.8       lotri_0.3.1        
+##  [56] farver_2.1.0        nnet_7.3-16         sass_0.4.0          dbplyr_2.1.1        binom_1.1-1        
+##  [61] utf8_1.2.2          tidyselect_1.1.1    labeling_0.4.2      rlang_0.4.11        munsell_0.5.0      
+##  [66] cellranger_1.1.0    tools_4.1.0         cachem_1.0.6        cli_3.4.1           generics_0.1.0     
+##  [71] evaluate_0.14       fastmap_1.1.0       yaml_2.2.1          sys_3.4             fs_1.5.0           
+##  [76] zip_2.2.0           pander_0.6.4        survMisc_0.5.5      rootSolve_1.8.2.2   nlme_3.1-152       
+##  [81] xml2_1.3.2          compiler_4.1.0      rstudioapi_0.13     curl_4.3.2          png_0.1-7          
+##  [86] e1071_1.7-8         ggsignif_0.6.2      reprex_2.0.1        bslib_0.2.5.1       DescTools_0.99.42  
+##  [91] stringi_1.7.3       highr_0.9           lattice_0.20-44     Matrix_1.3-3        KMsurv_0.1-5       
+##  [96] vctrs_0.3.8         pillar_1.6.2        lifecycle_1.0.0     jquerylib_0.1.4     data.table_1.14.0  
+## [101] bitops_1.0-7        lmom_2.8            R6_2.5.1            latticeExtra_0.6-29 qs_0.25.1          
+## [106] rio_0.5.27          gld_2.6.2           codetools_0.2-18    boot_1.3-28         MASS_7.3-54        
+## [111] assertthat_0.2.1    minpack.lm_1.2-1    withr_2.4.2         Deriv_4.1.3         mgcv_1.8-35        
+## [116] expm_0.999-6        hms_1.1.0           grid_4.1.0          rpart_4.1-15        class_7.3-19       
+## [121] rmarkdown_2.11      carData_3.0-4       lubridate_1.7.10    base64enc_0.1-3</code></pre>
 </div>
 
 

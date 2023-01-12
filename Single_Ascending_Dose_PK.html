@@ -563,7 +563,17 @@ div.tocify {
 <div id="overview" class="section level2">
 <h2>Overview</h2>
 <!--START_EXPLANATION-->
-<p>This document contains exploratory plots for single ascending dose PK data as well as the R code that generates these graphs. The plots presented here are based on simulated data (<a href="PKPD_Datasets.html">see: PKPD Datasets</a>). You may also download the Single Ascending Dose PK dataset for your reference (<a href="Data/Single_Ascending_Dose_Dataset2.csv">download dataset</a>). Data specifications can be accessed on <a href="Datasets.html">Datasets</a> and Rmarkdown template to generate this page can be found on <a href="Rmarkdown/Single_Ascending_Dose_PK.Rmd">Rmarkdown-Template</a>. <!--END_EXPLANATION--></p>
+<p>This document contains exploratory plots for single ascending dose PK
+data as well as the R code that generates these graphs. The plots
+presented here are based on simulated data (<a
+href="PKPD_Datasets.html">see: PKPD Datasets</a>). You may also download
+the Single Ascending Dose PK dataset for your reference (<a
+href="Data/Single_Ascending_Dose_Dataset2.csv">download dataset</a>).
+Data specifications can be accessed on <a
+href="Datasets.html">Datasets</a> and Rmarkdown template to generate
+this page can be found on <a
+href="Rmarkdown/Single_Ascending_Dose_PK.Rmd">Rmarkdown-Template</a>.
+<!--END_EXPLANATION--></p>
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
@@ -643,13 +653,27 @@ NCA = pk_data %&gt;%
 <div id="provide-an-overview-of-the-data" class="section level2">
 <h2>Provide an overview of the data</h2>
 <!--START_EXPLANATION-->
-<p>Summarize the data in a way that is easy to visualize the general trend of PK over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th &amp; 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.</p>
-<p>When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model? <!--END_EXPLANATION--></p>
-<div id="concentration-over-time-colored-by-dose-mean---95-ci" class="section level3">
+<p>Summarize the data in a way that is easy to visualize the general
+trend of PK over time and between doses. Using summary statistics can be
+helpful, e.g. Mean +/- SE, or median, 5th &amp; 95th percentiles.
+Consider either coloring by dose or faceting by dose. Depending on the
+amount of data one graph may be better than the other.</p>
+<p>When looking at summaries of PK over time, there are several things
+to observe. Note the number of doses and number of time points or
+sampling schedule. Observe the overall shape of the average profiles.
+What is the average Cmax per dose? Tmax? Does the elimination phase
+appear to be parallel across the different doses? Is there separation
+between the profiles for different doses? Can you make a visual estimate
+of the number of compartments that would be needed in a PK model?</p>
+<p>For PK data, we recommend plotting both on a linear scale, and on a
+log scale. Linear scale will help you better to see the Cmax, while log
+scale will help you to detect number of compartments, half-life and
+potential nonlinearity of clearance. <!--END_EXPLANATION--></p>
+<div id="concentration-over-time-colored-by-dose-mean---95-ci"
+class="section level3">
 <h3>Concentration over time, colored by Dose, mean +/- 95% CI</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= TRTACT_high2low, color = TRTACT_high2low)) 
 gg &lt;- gg + xgx_stat_ci(conf_level = .95)
-gg &lt;- gg + xgx_scale_y_log10() 
 gg &lt;- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg &lt;- gg + labs(y=conc_label,color = trtact_label)
@@ -659,10 +683,15 @@ gg &lt;- gg + xgx_annotate_filenames(dirs)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,&quot;filename_main&quot;,status)
 print(gg)</code></pre>
-<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<pre class="r"><code>print(gg + xgx_scale_y_log10() )</code></pre>
+<p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-3-2.png" width="768" /></p>
 </div>
-<div id="concentration-over-time-faceted-by-dose-mean---95-ci-overlaid-on-gray-spaghetti-plots" class="section level3">
-<h3>Concentration over time, faceted by Dose, mean +/- 95% CI, overlaid on gray spaghetti plots</h3>
+<div
+id="concentration-over-time-faceted-by-dose-mean---95-ci-overlaid-on-gray-spaghetti-plots"
+class="section level3">
+<h3>Concentration over time, faceted by Dose, mean +/- 95% CI, overlaid
+on gray spaghetti plots</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = TIME, y = LIDV))
 gg &lt;- gg + geom_line(aes(group = ID), color = rgb(0.5,0.5,0.5), size = 1, alpha = 0.3)  
 gg &lt;- gg + geom_point(aes(color = factor(CENS), shape = factor(CENS), alpha = 0.3), size = 2, alpha = 0.3)
@@ -685,8 +714,11 @@ print(gg)</code></pre>
 </div>
 <div id="assess-the-dose-linearity-of-exposure" class="section level2">
 <h2>Assess the dose linearity of exposure</h2>
-<div id="dose-normalized-concentration-over-time-colored-by-dose-mean---95-ci" class="section level3">
-<h3>Dose Normalized Concentration over time, colored by Dose, mean +/- 95% CI</h3>
+<div
+id="dose-normalized-concentration-over-time-colored-by-dose-mean---95-ci"
+class="section level3">
+<h3>Dose Normalized Concentration over time, colored by Dose, mean +/-
+95% CI</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, 
              aes(x = NOMTIME, y = LIDV_NORM, 
                  group = TRTACT_high2low, color = TRTACT_high2low))
@@ -703,10 +735,20 @@ gg &lt;- gg + xgx_annotate_filenames(dirs)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
 </div>
-<div id="nca-of-dose-normalized-auc-and-cmax-vs-dose" class="section level3">
+<div id="nca-of-dose-normalized-auc-and-cmax-vs-dose"
+class="section level3">
 <h3>NCA of dose normalized AUC and Cmax vs Dose</h3>
 <!--START_EXPLANATION-->
-<p>Observe the dose normalized AUC and Cmax over different doses. Does the relationship appear to be constant across doses or do some doses stand out from the rest? Can you think of reasons why some would stand out? For example, the lowest dose may have dose normalized AUC much higher than the rest, could this be due to BLQ observations? If the highest doses have dose normalized AUC much higher than the others, could this be due to nonlinear clearance, with clearance saturating at higher doses? If the highest doses have dose normalized AUC much lower than the others, could there be saturation of bioavailability, reaching the maximum absorbable dose? <!--END_EXPLANATION--></p>
+<p>Observe the dose normalized AUC and Cmax over different doses. Does
+the relationship appear to be constant across doses or do some doses
+stand out from the rest? Can you think of reasons why some would stand
+out? For example, the lowest dose may have dose normalized AUC much
+higher than the rest, could this be due to BLQ observations? If the
+highest doses have dose normalized AUC much higher than the others,
+could this be due to nonlinear clearance, with clearance saturating at
+higher doses? If the highest doses have dose normalized AUC much lower
+than the others, could there be saturation of bioavailability, reaching
+the maximum absorbable dose? <!--END_EXPLANATION--></p>
 <pre class="r"><code>gg &lt;- ggplot(data = NCA, aes(x = DOSE, y = VALUE_NORM))
 gg &lt;- gg + geom_boxplot(aes(group = DOSE)) 
 gg &lt;- gg + geom_smooth(method = &quot;lm&quot;, color = &quot;black&quot;)
@@ -724,9 +766,17 @@ print(gg)</code></pre>
 <div id="explore-variability" class="section level2">
 <h2>Explore variability</h2>
 <!--START_EXPLANATION-->
-<p>Now that the overall trends in the mean data have been observed, look into the between subject variability by plotting spaghetti plots. Consider again whether to color by dose or facet by dose. If coloring by dose, do the individuals in the different dose groups overlap across doses? Does there seem to be more variability at higher or lower concentrations? <!--END_EXPLANATION--></p>
-<div id="concentration-over-time-colored-by-dose-dots-and-lines-grouped-by-individual" class="section level3">
-<h3>Concentration over time, colored by Dose, dots and lines grouped by individual</h3>
+<p>Now that the overall trends in the mean data have been observed, look
+into the between subject variability by plotting spaghetti plots.
+Consider again whether to color by dose or facet by dose. If coloring by
+dose, do the individuals in the different dose groups overlap across
+doses? Does there seem to be more variability at higher or lower
+concentrations? <!--END_EXPLANATION--></p>
+<div
+id="concentration-over-time-colored-by-dose-dots-and-lines-grouped-by-individual"
+class="section level3">
+<h3>Concentration over time, colored by Dose, dots and lines grouped by
+individual</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg &lt;- gg + geom_line(aes(group = ID, color = factor(TRTACT_high2low)), size = 1, alpha = 0.5) 
 gg &lt;- gg + geom_point(data = pk_data %&gt;% filter(CENS==0), aes(color = TRTACT_high2low), size = 2, alpha = 0.5)
@@ -743,8 +793,11 @@ gg &lt;- gg + xgx_annotate_filenames(dirs)
 print(gg)</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 </div>
-<div id="concentration-over-time-faceted-by-dose-dots-and-lines-grouped-by-individual" class="section level3">
-<h3>Concentration over time, faceted by Dose, dots and lines grouped by individual</h3>
+<div
+id="concentration-over-time-faceted-by-dose-dots-and-lines-grouped-by-individual"
+class="section level3">
+<h3>Concentration over time, faceted by Dose, dots and lines grouped by
+individual</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = TIME, y = LIDV)) 
 gg &lt;- gg + geom_line(aes(group = ID), size = 1, alpha = 0.2)  
 
@@ -770,10 +823,23 @@ print(gg)</code></pre>
 <div id="explore-irregularities-in-profiles" class="section level2">
 <h2>Explore irregularities in profiles</h2>
 <!--START_EXPLANATION-->
-<p>Plot individual profiles in order to inspect them for any irregularities. Inspect the profiles for outlying data points that may skew results or bias conclusions. Looking at the shapes of the individual profiles now, do they support your observations made about the mean profile (e.g. number of compartments, typical Cmax, Tmax)?</p>
-<p>Plotting individual profiles on top of gray spaghetti plots puts individual profiles into context, and may help identify outlying individuals for further inspection. Are there any individuals that appear to have very high or low Cmax compared to others within the same dose group? What about the timing of Cmax? What about the slope of the elimination phase? Does it appear that any subjects could have received an incorrect dose? <!--END_EXPLANATION--></p>
-<div id="concentration-over-time-faceted-by-individual-individual-line-plots-overlaid-on-gray-spaghetti-plots-for-that-dose-group" class="section level3">
-<h3>Concentration over time, faceted by individual, individual line plots overlaid on gray spaghetti plots for that dose group</h3>
+<p>Plot individual profiles in order to inspect them for any
+irregularities. Inspect the profiles for outlying data points that may
+skew results or bias conclusions. Looking at the shapes of the
+individual profiles now, do they support your observations made about
+the mean profile (e.g. number of compartments, typical Cmax, Tmax)?</p>
+<p>Plotting individual profiles on top of gray spaghetti plots puts
+individual profiles into context, and may help identify outlying
+individuals for further inspection. Are there any individuals that
+appear to have very high or low Cmax compared to others within the same
+dose group? What about the timing of Cmax? What about the slope of the
+elimination phase? Does it appear that any subjects could have received
+an incorrect dose? <!--END_EXPLANATION--></p>
+<div
+id="concentration-over-time-faceted-by-individual-individual-line-plots-overlaid-on-gray-spaghetti-plots-for-that-dose-group"
+class="section level3">
+<h3>Concentration over time, faceted by individual, individual line
+plots overlaid on gray spaghetti plots for that dose group</h3>
 <pre class="r"><code>pk_data_rep_by_trt &lt;- list()
 for(id in unique(pk_data$ID)){
   indiv_data &lt;- pk_data %&gt;% subset(ID == id)
@@ -814,8 +880,11 @@ print(gg)</code></pre>
 </div>
 <div id="explore-covariate-effects-on-pk" class="section level2">
 <h2>Explore covariate effects on PK</h2>
-<div id="concentration-over-time-colored-by-categorical-covariate-mean---95-ci" class="section level3">
-<h3>Concentration over time, colored by categorical covariate, mean +/- 95% CI</h3>
+<div
+id="concentration-over-time-colored-by-categorical-covariate-mean---95-ci"
+class="section level3">
+<h3>Concentration over time, colored by categorical covariate, mean +/-
+95% CI</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, color = SEX)) 
 gg &lt;- gg + xgx_stat_ci(conf_level = 0.95)
 
@@ -835,8 +904,11 @@ print(gg)</code></pre>
 <pre class="r"><code>print(gg + aes(group= WEIGHTB&gt;70, color = WEIGHTB&gt;70) )</code></pre>
 <p><img src="Single_Ascending_Dose_PK_files/figure-html/unnamed-chunk-10-2.png" width="960" /></p>
 </div>
-<div id="dose-normalized-concentration-over-time-colored-by-categorical-covariate-mean---95-ci" class="section level3">
-<h3>Dose Normalized Concentration over time, colored by categorical covariate, mean +/- 95% CI</h3>
+<div
+id="dose-normalized-concentration-over-time-colored-by-categorical-covariate-mean---95-ci"
+class="section level3">
+<h3>Dose Normalized Concentration over time, colored by categorical
+covariate, mean +/- 95% CI</h3>
 <pre class="r"><code>gg &lt;- ggplot(data = pk_data, 
              aes(x = NOMTIME, 
                  y = LIDV_NORM, 
@@ -892,11 +964,6 @@ print(gg)</code></pre>
 ## Matrix products: default
 ## BLAS/LAPACK: /CHBS/apps/EB/software/imkl/2019.1.144-gompi-2019a/compilers_and_libraries_2019.1.144/linux/mkl/lib/intel64_lin/libmkl_gf_lp64.so
 ## 
-## Random number generation:
-##  RNG:     Mersenne-Twister 
-##  Normal:  Inversion 
-##  Sample:  Rounding 
-##  
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
 ##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
@@ -919,13 +986,13 @@ print(gg)</code></pre>
 ##  [26] haven_2.4.3         xfun_0.25           crayon_1.4.1        RCurl_1.98-1.4      jsonlite_1.7.2     
 ##  [31] Exact_2.1           stringfish_0.15.2   glue_1.4.2          gtable_0.3.0        car_3.0-11         
 ##  [36] abind_1.4-5         scales_1.1.1        mvtnorm_1.1-2       DBI_1.1.1           GGally_2.1.2       
-##  [41] rstatix_0.7.0       Rcpp_1.0.7          xtable_1.8-4        progress_1.2.2      htmlTable_2.2.1    
+##  [41] rstatix_0.7.0       Rcpp_1.0.7          progress_1.2.2      xtable_1.8-4        htmlTable_2.2.1    
 ##  [46] foreign_0.8-81      proxy_0.4-26        km.ci_0.5-2         Formula_1.2-4       dparser_1.3.1-4    
 ##  [51] rex_1.2.0           htmlwidgets_1.5.3   httr_1.4.2          RColorBrewer_1.1-2  ellipsis_0.3.2     
 ##  [56] pkgconfig_2.0.3     reshape_0.8.8       lotri_0.3.1         farver_2.1.0        nnet_7.3-16        
 ##  [61] sass_0.4.0          dbplyr_2.1.1        binom_1.1-1         utf8_1.2.2          tidyselect_1.1.1   
 ##  [66] labeling_0.4.2      rlang_0.4.11        munsell_0.5.0       cellranger_1.1.0    tools_4.1.0        
-##  [71] cachem_1.0.6        cli_3.0.1           generics_0.1.0      evaluate_0.14       fastmap_1.1.0      
+##  [71] cachem_1.0.6        cli_3.4.1           generics_0.1.0      evaluate_0.14       fastmap_1.1.0      
 ##  [76] yaml_2.2.1          sys_3.4             fs_1.5.0            zip_2.2.0           pander_0.6.4       
 ##  [81] survMisc_0.5.5      rootSolve_1.8.2.2   nlme_3.1-152        xml2_1.3.2          compiler_4.1.0     
 ##  [86] rstudioapi_0.13     curl_4.3.2          png_0.1-7           e1071_1.7-8         ggsignif_0.6.2     
