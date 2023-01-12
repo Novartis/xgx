@@ -548,14 +548,42 @@ div.tocify {
 
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p>Exploratory plots can be helpful in understanding general behavior of data. They should be used as a first step before approaching modeling, and could even uncover useful insights that can be quickly communicated to project teams without extensive effort.</p>
-<p>Visit the <a href="GuidingPrinciples.html">Guiding Principles</a> page to get an overview of the general principles to follow when exploring PK/PD data.</p>
-<p>This website is composed of Rmarkdown documents, which could be used as templates for generating exploratory plots. The Rmarkdown documents can be accessed on <a href="https://github.com/Novartis/xgx/tree/master/Rmarkdown">GitHub</a>.</p>
-<p>Many of the codes on this website use functions that we have found to be helpful while exploring PK/PD data. We compiled these helpful functions into the xgxr R-package, which is available on <a href="https://cran.r-project.org/web/packages/xgxr/index.html">CRAN</a>, and <a href="https://github.com/Novartis/xgxr">GitHub</a>. Check out the <a href="https://opensource.nibr.com/xgxr/">xgxr package website</a> for more information and examples on how to use the xgxr package functions.</p>
-<p>This website displays suggested plots to pursue when exploring different PK/PD datasets, with a focus on exploring the Dose-Exposure-Response relationship. This site is a collection of exploratory plots and code, and could serve as a checklist of graphs someone might create for certain projects.</p>
-<p>Some suggestions may be repetitive, so use your judgment to choose the best plot for your purpose and dataset. These plots are for exploratory benefit, and are not all expected to be included in a final report.</p>
-<p>Use the navigation menus at the top of the page, or click on an icon below to find the topic for your specific needs.</p>
-<p>The graphs on this website were created with <a href="https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf">Good Graphics Principles</a> in mind. Also check out the <a href="https://opensource.nibr.com/xgx/Resources/Presentation_Checklist_v2.03.pdf">Presentation Checklist</a> for useful tips on creating presentations of your results.</p>
+<p>Exploratory plots can be helpful in understanding general behavior of
+data. They should be used as a first step before approaching modeling,
+and could even uncover useful insights that can be quickly communicated
+to project teams without extensive effort.</p>
+<p>Visit the <a href="GuidingPrinciples.html">Guiding Principles</a>
+page to get an overview of the general principles to follow when
+exploring PK/PD data.</p>
+<p>This website is composed of Rmarkdown documents, which could be used
+as templates for generating exploratory plots. The Rmarkdown documents
+can be accessed on <a
+href="https://github.com/Novartis/xgx/tree/master/Rmarkdown">GitHub</a>.</p>
+<p>Many of the codes on this website use functions that we have found to
+be helpful while exploring PK/PD data. We compiled these helpful
+functions into the xgxr R-package, which is available on <a
+href="https://cran.r-project.org/web/packages/xgxr/index.html">CRAN</a>,
+and <a href="https://github.com/Novartis/xgxr">GitHub</a>. Check out the
+<a href="https://opensource.nibr.com/xgxr/">xgxr package website</a> for
+more information and examples on how to use the xgxr package
+functions.</p>
+<p>This website displays suggested plots to pursue when exploring
+different PK/PD datasets, with a focus on exploring the
+Dose-Exposure-Response relationship. This site is a collection of
+exploratory plots and code, and could serve as a checklist of graphs
+someone might create for certain projects.</p>
+<p>Some suggestions may be repetitive, so use your judgment to choose
+the best plot for your purpose and dataset. These plots are for
+exploratory benefit, and are not all expected to be included in a final
+report.</p>
+<p>Use the navigation menus at the top of the page, or click on an icon
+below to find the topic for your specific needs.</p>
+<p>The graphs on this website were created with <a
+href="https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf">Good
+Graphics Principles</a> in mind. Also check out the <a
+href="https://opensource.nibr.com/xgx/Resources/Presentation_Checklist_v2.03.pdf">Presentation
+Checklist</a> for useful tips on creating presentations of your
+results.</p>
 <!DOCTYPE html>
 <html>
 <head>
@@ -656,27 +684,38 @@ div.tocify {
 </div>
 <div id="motivation" class="section level1">
 <h1>Motivation</h1>
-<p>PMX modelers are losing time going back and forth to visualize data</p>
+<p>PMX modelers are losing time going back and forth to visualize
+data</p>
 <ul>
-<li>If we had a checklist of suggested exploratory plots, we could be more efficient in creating these output and not have to go back if we forgot something</li>
+<li>If we had a checklist of suggested exploratory plots, we could be
+more efficient in creating these output and not have to go back if we
+forgot something</li>
 </ul>
-<p>PMX modelers can tend to jump to applying mixed effects modeling before considering whether a simple exploratory graph could answer the question</p>
+<p>PMX modelers can tend to jump to applying mixed effects modeling
+before considering whether a simple exploratory graph could answer the
+question</p>
 <ul>
-<li>Having an exploratory graphs checklist will help focus our initial efforts to ensure that we have tried the simple approach first</li>
+<li>Having an exploratory graphs checklist will help focus our initial
+efforts to ensure that we have tried the simple approach first</li>
 </ul>
 <p>We are losing programming resources</p>
 <ul>
-<li>We need to become more efficient with data requests, data exploration &amp; data checking</li>
+<li>We need to become more efficient with data requests, data
+exploration &amp; data checking</li>
 </ul>
 </div>
 <div id="use-cases" class="section level1">
 <h1>Use Cases</h1>
 <ul>
-<li>New recruits – especially entry level or from different backgrounds who are unfamiliar with exploring data</li>
-<li>New projects – compounds that have never been explored before, what plots should be looked at?</li>
-<li>Associates re-assigned to a new disease area – unfamiliar with disease specific end points/PD markers</li>
+<li>New recruits – especially entry level or from different backgrounds
+who are unfamiliar with exploring data</li>
+<li>New projects – compounds that have never been explored before, what
+plots should be looked at?</li>
+<li>Associates re-assigned to a new disease area – unfamiliar with
+disease specific end points/PD markers</li>
 <li>Existing project but with a new end point/PD marker, etc.</li>
-<li>Last minute requests from project team – not enough time for full-blown mixed effects model</li>
+<li>Last minute requests from project team – not enough time for
+full-blown mixed effects model</li>
 </ul>
 </div>
 <div id="credits" class="section level1">
@@ -699,7 +738,8 @@ div.tocify {
 </div>
 <div id="contributors" class="section level3">
 <h3>Contributors</h3>
-<p>The following people contributed example graphs and code or provided useful feedback on the contents and development of this website.</p>
+<p>The following people contributed example graphs and code or provided
+useful feedback on the contents and development of this website.</p>
 <ul>
 <li>Chase Brown</li>
 <li>Konstantin Krismer</li>
