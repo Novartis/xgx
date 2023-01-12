@@ -19,6 +19,7 @@ This document contains exploratory plots for continuous PD data as well as the R
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(gridExtra)
 library(xgxr)
 
 #flag for labeling figures as draft
@@ -250,7 +251,16 @@ gg <- gg + geom_point(aes(color = TRTACT_high2low))
 gg <- gg + geom_point(data = pkpd_data_wide %>% subset(CENS==1,), color="red", shape = 8)
 gg <- gg + labs(x = conc_label , y = pd_label)
 gg <- gg + guides(color = guide_legend(""))
+
 gg <- gg + xgx_geom_smooth_emax(color = "black") 
+## Note: if the above line doesn't work, try modifying the formula, 
+##       initial estimates, or lower bounds in the following code
+# gg <- gg + xgx_geom_smooth(color = "black", method = "nlsLM", 
+#                            formula = y ~ E0 + Emax*x/(ED50 + x),
+#                            method.args = list(
+#                              start = list(Emax = 1, ED50 = 1, E0 = 1),
+#                              lower = c(-Inf, 0, -Inf)))
+
 gg <- gg + xgx_stat_ci(bins = 4, geom = "point", shape = 0, size = 4)
 gg <- gg + xgx_stat_ci(bins = 4, geom = "errorbar")
 
@@ -277,7 +287,11 @@ gg <- gg + xgx_stat_ci(bins = 4, geom = "errorbar")
 gg <- gg + facet_grid(~DAY_label)
 
 gg1 <- gg + xgx_geom_smooth_emax(color = "black") + ggtitle("Concentration on Linear Scale")
-gg2 <- gg + xgx_scale_x_log10() + ggtitle("Concentration on Log Scale")
+gg2 <- gg + xgx_geom_smooth(color = "black", method = "nlsLM", formula = y ~ E0 + Emax*x/(ED50 + x),
+                     method.args = list(
+                         start = list(Emax = 1, ED50 = 5, E0 = 1),
+                         lower = c(-Inf, 0, -Inf))) + 
+  xgx_scale_x_log10() + ggtitle("Concentration on Log Scale")
 
 grid.arrange(gg1,gg2,nrow = 2)
 
@@ -291,7 +305,16 @@ Plotting AUC vs response instead of concentration vs response may make more sens
 gg <- ggplot(data = NCA, aes(x = VALUE, y = PD))
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = TRTACT_high2low)) 
+
 gg <- gg + xgx_geom_smooth_emax(color = "black")
+## Note: if the above line doesn't work, try modifying the formula, 
+##       initial estimates, or lower bounds in the following code
+# gg <- gg + xgx_geom_smooth(color = "black", method = "nlsLM", 
+#                            formula = y ~ E0 + Emax*x/(ED50 + x),
+#                            method.args = list(
+#                              start = list(Emax = 1, ED50 = 1, E0 = 1),
+#                              lower = c(-Inf, 0, -Inf)))
+
 gg <- gg + xgx_stat_ci(bins = 4, geom = "errorbar")
 gg <- gg + xgx_stat_ci(bins = 4, geom = "point", shape = 0, size = 4)
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
@@ -309,7 +332,16 @@ Stratify exposure-response plots by covariates of interest to explore whether an
 gg <- ggplot(data = NCA, aes(x = VALUE, y = PD)) 
 gg <- gg + xgx_annotate_status(status)
 gg <- gg + geom_point(aes(color = SEX)) 
+
 gg <- gg + xgx_geom_smooth_emax(aes(color = SEX))
+## Note: if the above line doesn't work, try modifying the formula, 
+##       initial estimates, or lower bounds in the following code
+# gg <- gg + xgx_geom_smooth(aes(color = SEX), method = "nlsLM", 
+#                            formula = y ~ E0 + Emax*x/(ED50 + x),
+#                            method.args = list(
+#                              start = list(Emax = 1, ED50 = 1, E0 = 1),
+#                              lower = c(-Inf, 0, -Inf)))
+
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + labs(x = AUC_units , y = pd_label)
 gg + facet_grid(.~DAY_label) 

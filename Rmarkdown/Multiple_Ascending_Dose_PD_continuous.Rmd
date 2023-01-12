@@ -19,6 +19,7 @@ This document contains exploratory plots for multiple ascending continuous PD da
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(gridExtra)
 library(xgxr)
 
 #flag for labeling figures as draft
@@ -249,6 +250,7 @@ gg <- gg + xgx_geom_smooth_emax()
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + labs(x = dose_label, y = pd_label)
+gg <- gg + scale_x_continuous(breaks = unique(pd_data_to_plot$DOSE))
 gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
@@ -272,7 +274,9 @@ gg <- gg + xgx_geom_smooth_emax()
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + labs(x = dose_label, y = pd_label)
+gg <- gg + scale_x_continuous(breaks = seq(0, 1600, 400))
 gg <- gg + xgx_annotate_status(status)
+
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width, height, dirs, "filename_main", status)
 print(gg)
@@ -284,11 +288,12 @@ print(gg)
 ```{r, error = TRUE, cache = TRUE, fig.width = 8, fig.height = 4, warning = FALSE, message = FALSE} 
 pd_data_to_plot <- pd_data %>% subset(PROFDAY %in% c(0, SS_PROFDAY))
 
-gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE + 0.1*DOSE*(SEX == "Female"), y = LIDV, color = SEX))
-gg <- gg + xgx_stat_ci(conf_level = .95)
+gg <- ggplot(data = pd_data_to_plot, aes(x = DOSE , y = LIDV, color = SEX))
+gg <- gg + xgx_stat_ci(conf_level = .95, position = position_dodge(width = 100))
 gg <- gg + guides(color = guide_legend(""), fill = guide_legend(""))
 gg <- gg + facet_grid(~DAY_label)
 gg <- gg + labs(x = dose_label, y = pd_label)
+gg <- gg + scale_x_continuous(breaks = seq(0, 1600, 400))
 gg <- gg + xgx_annotate_status(status)
 
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
