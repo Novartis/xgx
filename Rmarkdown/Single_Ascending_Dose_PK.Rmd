@@ -99,15 +99,16 @@ NCA = pk_data %>%
 Summarize the data in a way that is easy to visualize the general trend of PK over time and between doses. Using summary statistics can be helpful, e.g. Mean +/- SE, or median, 5th & 95th percentiles. Consider either coloring by dose or faceting by dose. Depending on the amount of data one graph may be better than the other.
 
 When looking at summaries of PK over time, there are several things to observe. Note the number of doses and number of time points or sampling schedule. Observe the overall shape of the average profiles. What is the average Cmax per dose? Tmax? Does the elimination phase appear to be parallel across the different doses? Is there separation between the profiles for different doses? Can you make a visual estimate of the number of compartments that would be needed in a PK model?
+
+For PK data, we recommend plotting both on a linear scale, and on a log scale. Linear scale will help you better to see the Cmax, while log scale will help you to detect number of compartments, half-life and potential nonlinearity of clearance.
 <!--END_EXPLANATION-->
 
 ### Concentration over time, colored by Dose, mean +/- 95% CI
 
-```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 4}
+```{r, error = TRUE, cache = TRUE, echo = TRUE, warning=FALSE, message=FALSE, fig.width = 8, fig.height = 4}
 
 gg <- ggplot(data = pk_data, aes(x = NOMTIME, y = LIDV, group= TRTACT_high2low, color = TRTACT_high2low)) 
 gg <- gg + xgx_stat_ci(conf_level = .95)
-gg <- gg + xgx_scale_y_log10() 
 gg <- gg + xgx_scale_x_time_units(units_dataset = time_units_dataset, 
                                   units_plot    = time_units_plot)
 gg <- gg + labs(y=conc_label,color = trtact_label)
@@ -117,6 +118,7 @@ gg <- gg + xgx_annotate_filenames(dirs)
 #if saving copy of figure, replace xgx_annotate lines with xgx_save() shown below:
 #xgx_save(width,height,dirs,"filename_main",status)
 print(gg)
+print(gg + xgx_scale_y_log10() )
 ```
 
 ### Concentration over time, faceted by Dose, mean +/- 95% CI, overlaid on gray spaghetti plots
