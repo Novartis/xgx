@@ -1,0 +1,299 @@
+---
+title: "Data Checking - Functions and Code from Mark Baille to Try Out"
+author: "Andy Stein, Siyan Xu"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+## Ideas for Data Checking
+
+* Do a bunch of histograms, in addition to the GGpairs pairwise plot
+* Consider just using Hmisc for the data summaries - they do about the same thing...
+
+## Setup
+
+```{r, message = FALSE}
+library(tidyverse)
+library(Hmisc)
+library(DT)
+library(xgxr)
+
+#set chunk default options
+xgx_theme_set()
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4)
+options(DT.options = list(pageLength = 20)) #pageLength = number of entries per page
+```
+
+## Load Data
+
+```{r}
+filename = "../Data/Data_Checking.csv"
+data_in = read.csv(filename, stringsAsFactors = FALSE)
+
+data = data_in %>%
+  # in this mutate command are all columns that are required for this check
+  # if your dataset has different naming convention, 
+  # then rename the right hand side of the equality
+  mutate(USUBJID = paste0("PAT",USUBJID), # Unique subject identifier
+         TIME    = TIME,    # Actual Time
+         NOMTIME = NOMTIME, # Nominal Time
+         AMT     = AMT,     # Dose Amount
+         LIDV    = LIDV,    # Dependent variable
+         YTYPE   = YTYPE,   # Number for type of dependent variable
+         NAME    = NAME,    # Name for the type of dependent variable (e.g. PK)
+         MDV     = MDV,     # Missing Dependent Varibale (0 = no, 1 = yes)
+         CENS    = CENS,    # Censored Data (0 = no, 1 = yes)
+         EVID    = EVID,    # Event ID.  0 = Dependent Variabale, 1 = dose
+         TRT     = TRT,     # Treatment Arm character description
+         TRTN    = TRTN) %>%# Treatment Arm numeric description (used for sorting)
+  arrange(TRTN) %>%
+  mutate(TRT_low2high = factor(TRT, levels = unique(TRT)),
+         TRT_high2low = factor(TRT, levels = rev(unique(TRT)))) %>%
+  mutate(WEIGHT0_CAT = case_when(WEIGHT0 < 60 ~ "WT<60", #creating 2nd categorical var
+                                 WEIGHT0 > 80 ~ "WT>80",
+                                 TRUE         ~ "WT:60-80"))
+
+data1 = data %>%
+  filter(!duplicated(USUBJID))
+
+var = c("LIDV", "WEIGHT0","AGE0","SEX")
+```
+
+
+
+## Try out some data checking
+
+Adapt from link below to PKPD dataset
+https://gitlabce.apps.dit-prdocp.novartis.net/BAILLMA3/ida-regression/-/blob/main/Crash2_univar.Rmd
+
+## Quick Overview
+
+```{r}
+data1 %>%
+  dplyr::select("WEIGHT0", "AGE0", "SEX") %>%
+  Hmisc::describe(descript = "Demographic variables") %>%
+  Hmisc::html(size = 80)
+```
+
+## Categorical Covariates - Graph 
+I don't think this adds much over the table
+
+```{r}
+data1 %>%
+  dplyr::select(SEX, WEIGHT0_CAT) %>%
+  dplyr::mutate_all(forcats::as_factor) %>%   
+  dplyr::mutate_all(forcats::fct_explicit_na, "NA") %>%
+  tidyr::pivot_longer(
+    dplyr::everything(),
+    names_to = "var",
+    values_to = "value",
+    values_drop_na = FALSE
+  ) %>%
+  dplyr::group_by(var, value) %>%
+  dplyr::summarize(N = n()) %>%
+  dplyr::mutate(
+    freq = N / sum(N),
+    pct = round((freq * 100), 1),
+    axis_lab = paste0(value, ' ', '(N = ', N, ')'),
+    var_label = case_when(var == "sex" ~ "Sex",
+                          var == "injurytype" ~ "Injury type")
+  ) %>%
+  ggplot(aes(
+    x = reorder(axis_lab, pct),
+    y = pct,
+    label = pct
+  )) +
+  geom_text(nudge_y = 7) +
+  geom_pointrange(aes(ymin = 0, ymax = pct), alpha = 1, size = 1, color = "grey") +
+  geom_point(color = "firebrick2",
+             alpha = 0.6,
+             size = 3) +
+  ylab("Percentage (%)") +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(caption = "Number of subjects with a non-missing value reported in brackets.\nNA = missing") +
+  facet_wrap(~ var_label, ncol = 1, scales = "free_y") +
+  coord_flip() +
+  theme_minimal(base_size = 12) +
+  theme(axis.title.y = element_blank(),
+        panel.grid.minor = element_blank())
+
+```
+
+## Continuous Variable
+
+```{r}
+data1 %>%
+  dplyr::select(AGE0, WEIGHT0) %>%
+  tidyr::pivot_longer(everything()) %>%
+  ggplot(aes(value)) +
+  geom_histogram() +
+  facet_wrap(~name, scales = "free") 
+```
+
+## Function ida_plot_univar
+https://gitlabce.apps.dit-prdocp.novartis.net/BAILLMA3/ida-regression/-/blob/main/R/ida_plot_univar.R
+```{r}
+#' Function to generate a combined plot summary of univariate distributions
+#' including 
+#'  * jittered strip plot to show observed values
+#'  * spike histogram with reference lines on 5 -number summary
+#'  * boxplot 
+#'  
+#'
+#' @param data input dataset
+#' @param var variable to summarise
+#' @param n_dodge if the 5 number summary clashes, split over n lines.
+#'               Default is display over 1 line
+#' @param bin_width Width of the histogram bin
+#' @param sigma transformation parameter for pseudo_log (NA for no transformation)
+#' @return gg ggplot object
+#' @export
+#'
+#' @examples
+ida_plot_univar <- function(data, var, n_dodge = 1, 
+                            bin_width = diff(range(data[[var]],na.rm=T))/min(length(unique(data[[var]])),100), 
+                            sigma = NA, n_bars=100)                             {
+  
+  ## evaluate if sigma is na
+  
+  trans<-FALSE
+  if(!is.na(sigma)) trans<-TRUE
+  
+
+  
+  ## number of missing observations
+  nmiss <-
+    data %>% dplyr::filter(is.na(.data[[var]])) %>% dplyr::tally()
+  
+  ## number of non missing observations
+  bign <-
+    data %>% dplyr::filter(!is.na(.data[[var]])) %>% dplyr::tally()
+  
+  # vector of variable for calculating five number summary
+  x <- as.numeric(data[[var]])
+  x <- x[!is.na(x)]
+  x_orig<-x
+  if(trans) x <- pseudo_log(x, sigma=sigma)
+  
+  
+  # breaks for histogram
+  ## compute n_bars+1 quantiles and divide the range into nbars 
+  ## take a weighted average of the two sequences to compromise between small and wide bins
+  
+  if(length(unique(x))<n_bars*2) {
+    brks <- unique(x) 
+    }  else {
+    brks1 <- seq(min(x), max(x), length.out=n_bars+1)
+    brks2 <- quantile(x, seq(0,1,1/n_bars))
+    brks <- (brks2 + 3*brks1)/4
+  }
+  
+  
+  # title for plot
+  title <-
+    paste0("Univariate summary of ", label(data[[var]]), " [", units(data[[var]]), "]")
+  
+  # labels for histogram
+  y_axis <- "Density"
+  x_axis <-
+    paste0(label(data[[var]]), " [", units(data[[var]]), "]")
+  
+  # caption to summarise missing data
+  caption <-
+    paste0(
+      "All observed values, the distribution and the, min, max and interquartile range are reported\n",
+      "n = ",
+      bign,
+      " subjects displayed. ",
+      nmiss,
+      " subjects with missing values are not presented."
+    )
+  if(trans) caption<-paste0(caption, "Using pseudo-log scale.")
+  
+  ## strip plot
+  p1 <-
+    ggplot(data=NULL,aes(x = x, y = 0)) +
+    geom_jitter(
+      width = 0.1,
+      height = 0.1,
+      alpha = 0.2,
+      color = "firebrick2"
+    ) +
+    geom_rug(sides = "b") +
+    scale_x_continuous(limit = c(min(x), max(x)),
+                       breaks = round(fivenum(x), 1)) +
+    ggplot2::theme_minimal() +
+    ylab(y_axis) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.title = element_blank(),
+      axis.text = element_blank()
+    )
+  
+  ## plot histogram
+  p2 <-
+    data %>%
+    filter(!is.na(.data[[var]])) %>%
+        ggplot2::ggplot(aes(x)) +
+    geom_histogram(aes(x=x, y=..density..),
+                   breaks=brks,
+      center = 0,
+      alpha = 0.6,
+      fill = "firebrick2"
+    ) +
+    geom_rug() +
+    scale_x_continuous(
+      limit = c(min(x), max(x)),
+      breaks = fivenum(x),
+      labels = round(fivenum(x_orig),1),
+      guide = guide_axis(n.dodge = n_dodge)
+    ) +
+    ylab(y_axis) +
+    ggplot2::theme_minimal() +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey", size = 0.5),
+      panel.grid.minor = element_blank(),
+      axis.title.x = element_blank()
+    )
+  
+  ## boxplot
+  p3 <-
+    data %>%
+    filter(!is.na(.data[[var]])) %>%
+    ggplot(aes(x = x, y = 0)) +
+    geom_boxplot(outlier.shape = NA, width = 0.1) +
+    scale_x_continuous(limit = c(min(x), max(x)),
+                       breaks = c(fivenum(x))) +
+    xlab(x_axis) +
+    ggplot2::theme_minimal() +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.title.y = element_blank(),
+      axis.text = element_blank()
+    )
+  
+  # layout for combined plot
+  # histogram has more area
+  layout <- c(patchwork::area(1, 1, 1, 6),
+              patchwork::area(2, 1, 5, 6),
+              patchwork::area(6, 1, 6, 6))
+  
+  ## combine plots
+  gg <- p1 / p2 / p3 +
+    patchwork::plot_layout(design = layout) +
+    patchwork::plot_annotation(title = title,
+                               caption = caption)
+  
+  return(gg)
+}
+ida_plot_univar(data1, "AGE0")
+
+
+```
+
+
