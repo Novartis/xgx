@@ -22,7 +22,7 @@ output:
 
 * xGx Tutorial Video, ACoP 2020 ([video](2020_xgx_ACoP_tutorial.html)) 
 
-* xGx Cheat Sheet Video, ACoP 2020  [video](2020_xgx_ACoP_poster.html)) 
+* xGx Cheat Sheet Video, ACoP 2020  ([video](2020_xgx_ACoP_poster.html)) 
 
 ### PK/PD Fundamentals trainings
 
