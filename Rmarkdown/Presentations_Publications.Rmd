@@ -1,15 +1,13 @@
 ---
 title: "Presentations and Publications"
 output: 
-  html_document:
-    toc: true
-    toc_float: true
+  html_document
 ---
 
 
-* A. Margolskee, F. Khanshan, A. M. Stein, Y. Ho, M. Looby (2020) “Exploratory Graphics (xGx)”, part of “An open-source Pharmacometrician's workflow in R: from exploration (xGx) to model building (nlmixr) and diagnostics (ggPMX)”, Tutorial at ACoP11 2020 annual meeting, virtual ([video](SiteResources/2020_xgx_ACoP_tutorial.mp4)) 
+* A. Margolskee, F. Khanshan, A. M. Stein, Y. Ho, M. Looby (2020) “Exploratory Graphics (xGx)”, part of “An open-source Pharmacometrician's workflow in R: from exploration (xGx) to model building (nlmixr) and diagnostics (ggPMX)”, Tutorial at ACoP11 2020 annual meeting, virtual ([video](2020_xgx_ACoP_tutorial.html)) 
 
-* A. Margolskee, F. Khanshan, A. M. Stein, Y. Ho, M. Looby (2020), “Exploratory graphics (xGx) Cheat Sheet: promoting the purposeful exploration of PKPD data,” Poster at ACoP11 2020 annual meeting, virtual ([cheat sheet](Resources/PKPD_Exploratory_Graphics_(xGx)_Cheat_Sheet.pdf), [video](SiteResources/2020_xgx_ACoP_poster.mp4)) 
+* A. Margolskee, F. Khanshan, A. M. Stein, Y. Ho, M. Looby (2020), “Exploratory graphics (xGx) Cheat Sheet: promoting the purposeful exploration of PKPD data,” Poster at ACoP11 2020 annual meeting, virtual ([cheat sheet](Resources/PKPD_Exploratory_Graphics_(xGx)_Cheat_Sheet.pdf), [video](2020_xgx_ACoP_poster.html)) 
 
 * F. Khanshan, A. Margolskee, A. M. Stein, Y. Ho, M. Looby (2019) “Exploratory Graphics (xGx)”, part of “An open-source Pharmacometrician's workflow in R: from exploration (xGx) to model building (nlmixr) and diagnostics (ggPMX)”, Tutorial at ACoP10 2019 annual meeting, Orlando, Florida 
 
