@@ -14,6 +14,9 @@ output:
 
 * [Presentation Checklist](Resources/Presentation_Checklist_v2.03.pdf): 1 page checklist for planning, developing, and delivering presentations, focusing on effective communication.
 
+* [Presentation Evaluation Form](Resources/Presentation_Evaluation_Form.doc): 1-page feedback form for evaluating presentations 
+and/or asking for feedback.
+
 * [Uncertainty Assessment - Pedigree Table](https://zenodo.org/record/4409236#.ZDm5J3fMKUl): 1-page reference sheet for evaluating the uncertainty of a model including quality of input data, breadth of exploration of model structure, incorporation of random effects, and predictive ability of model. ([PDF](https://zenodo.org/record/4409236/files/Uncertainty_Assessment_Pedigree_Table.pdf?download=1))
 
 ### Videos
