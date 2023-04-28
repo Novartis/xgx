@@ -10,6 +10,8 @@ output:
 
 * [xGx PKPD Cheat Sheet](Resources/PKPD_Exploratory_Graphics_(xGx)_Cheat_Sheet.pdf): 1-page front and back resource summarizing xGx principles, plots, and codes
 
+* [R Best Practices](Resources/R PMX Best Practices Checklist v2 Public.pdf): 1-page reference sheet detailing some good practices for R coding, including tips for reproducibility and readability.
+
 * [Graphics Principles Cheat Sheet](https://graphicsprinciples.github.io/cheatsheet.html): 1-page front and back cheat sheet summarizing good graphics principles ([PDF](https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf))
 
 * [Presentation Checklist](Resources/Presentation_Checklist_v2.03.pdf): 1 page checklist for planning, developing, and delivering presentations, focusing on effective communication.
