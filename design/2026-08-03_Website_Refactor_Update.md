@@ -4,6 +4,8 @@ For many reasons, we'd like to update the xGx website.  The key guiding principl
 
 This should all be doen in a new branch.
 
+Before anything begins, look through the xGx MS Teams space and todos and issues and see what else should be added.
+
 ## Organization
 
 - Should this site be organized a bit better?  
