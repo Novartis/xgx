@@ -62,7 +62,13 @@ jobs:
       - name: Restore knitr cache
         uses: actions/cache@v4
         with:
-          path: Rmarkdown/*_cache
+          # Both directories, and that is not optional. On a cache hit knitr
+          # skips chunk evaluation, which means it also does not rewrite the
+          # figures. Caching *_cache without *_files therefore produces a build
+          # that renders "successfully" with every plot missing.
+          path: |
+            Rmarkdown/*_cache
+            Rmarkdown/*_files
           key: knitr-${{ runner.os }}-${{ hashFiles('Rmarkdown/*.Rmd') }}
           restore-keys: |
             knitr-${{ runner.os }}-
