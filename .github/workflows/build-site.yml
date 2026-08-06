@@ -45,36 +45,16 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          # Every package used by any .Rmd under Rmarkdown/, via library() or
-          # pkg:: . Keep in sync when a page gains a new dependency.
+          # Read from the DESCRIPTION at the repository root, which is the one
+          # authoritative record of what the site needs.
           #
-          # RxODE is deliberately absent. It was archived from CRAN on
-          # 2022-10-10, and is only needed to regenerate the datasets in Data/,
-          # which are committed. PKPD_Datasets.Rmd shows that code without
-          # evaluating it unless XGX_REGENERATE_DATA=true. Adding RxODE back
-          # here would make the site unbuildable again.
-          packages: |
-            any::DT
-            any::GGally
-            any::binom
-            any::broom
-            any::caTools
-            any::dplyr
-            any::ggplot2
-            any::gridExtra
-            any::htmltools
-            any::knitr
-            any::lubridate
-            any::plyr
-            any::rmarkdown
-            any::scales
-            any::stringr
-            any::survival
-            any::survminer
-            any::tidyr
-            any::tidyverse
-            any::xgxr
-            any::zoo
+          # "hard" means Depends/Imports/LinkingTo only, deliberately excluding
+          # Suggests. rxode2 lives in Suggests because it is needed only to
+          # regenerate the datasets in Data/, which are committed. It requires C
+          # and Fortran compilers and links against RcppArmadillo, BH and
+          # StanHeaders, so keeping it out of the build is what makes this
+          # pipeline dependency-light.
+          dependencies: '"hard"'
 
       # knitr caches make a re-render minutes rather than an hour. Each CI run
       # starts on a clean machine, so the caches have to be carried across runs

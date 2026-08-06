@@ -77,11 +77,14 @@ Pages serves. Removing it from the repository is the fix.
 
 ### 2.2 The build is currently unverified
 
-Nobody knows whether this site builds anywhere except on Andy's laptop. There is
-no dependency manifest — the package list has to be recovered by grepping every
-`.Rmd` for `library()` calls (see §4.1). CI makes a clean-machine build a
-precondition of every change, which is the only way to know the project is still
-reproducible.
+The site could not be built from a clean checkout by anyone, including its
+maintainer. `PKPD_Datasets.Rmd` required `RxODE`, which left CRAN in 2022 and is
+not installed on the maintainer's machine either — the committed HTML simply
+outlived anyone's ability to reproduce it. There was also no dependency
+manifest; the package list had to be recovered by grepping every `.Rmd`.
+
+Both are now fixed (§4.1, §5.2). CI makes a clean-machine build a precondition
+of every change, which is the only way this stays true.
 
 ### 2.3 Committed output silently drifts
 
@@ -140,12 +143,17 @@ value of the same setting.
 | `.github/workflows/build-site.yml` | The workflow. Deployment deliberately disabled. |
 | `dev/ci/render_site_ci.R` | Renders and assembles the publish directory without touching the repo root |
 | `dev/ci/check_links.py` | Fails the build if a link breaks |
+| `DESCRIPTION` | The authoritative dependency manifest |
 
-The workflow **builds but does not deploy**. `deploy` is gated behind
-`if: false`, so until the Pages setting changes, the live site continues to be
-served from the committed HTML exactly as it is today. Each run uploads the
-built site as a downloadable artifact, so the pipeline can be proven before
-anything about the live site changes.
+Deployment is gated on `github.repository_owner != 'Novartis'`. On
+`Novartis/xgx` both the Pages upload and the deploy job are skipped, so the live
+site continues to be served from the committed HTML exactly as today. In a
+personal fork the pipeline runs end to end and publishes to that fork's own
+Pages — currently `https://iamstein.github.io/xgx/` — at the same `/xgx/` path
+depth as production, so relative links behave identically. That makes it
+possible to prove deployment, not just building, before asking for anything.
+
+At cutover the condition becomes `github.ref == 'refs/heads/master'`.
 
 ---
 
@@ -153,8 +161,13 @@ anything about the live site changes.
 
 ### 4.1 Dependencies
 
-Recovered by grepping every `.Rmd` for `library()` and `pkg::`, and pinned in
-the workflow:
+**Resolved 2026-08-06.** Dependencies now live in a `DESCRIPTION` file at the
+repository root, which CI reads with `dependencies: '"hard"'`. That is the single
+authoritative list, and `pak::local_install_deps()` syncs a local machine from
+the same source. `rxode2` sits in `Suggests`, so CI never builds it.
+
+The list was originally recovered by grepping every `.Rmd` for `library()` and
+`pkg::`:
 
 ```
 DT GGally RxODE binom broom caTools dplyr ggplot2 gridExtra htmltools knitr
@@ -163,9 +176,7 @@ xgxr zoo
 ```
 
 `use-public-rspm: true` pulls prebuilt Ubuntu binaries, turning what would be a
-~40 minute source build into a few minutes. **This list is a manual mirror of
-reality and will drift.** A `DESCRIPTION` file at the repository root, listing
-these under `Imports:`, would make it authoritative — recommended follow-up.
+~40 minute source build into a few minutes.
 
 ### 4.2 Assembling the publish directory
 

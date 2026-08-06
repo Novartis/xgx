@@ -21,11 +21,11 @@ this page are rendered from those files. See "Regenerating the datasets" at the
 foot of the page.
 
 ```{r setup, include = FALSE}
-# Dataset generation depends on RxODE, which was archived from CRAN on
-# 2022-10-10. Evaluating it during a normal site build would make the whole
-# site unbuildable on any machine without an old RxODE already installed, and
-# would also silently overwrite the committed datasets that every other page
-# reads. So generation is opt-in, and off by default.
+# Dataset generation is opt-in, and off by default, for two reasons. It needs
+# rxode2, which requires C and Fortran compilers and is not needed to build any
+# other page. And it writes to Data/*.csv -- the committed datasets that every
+# other page reads -- so running it during a build would let the site quietly
+# regenerate its own inputs.
 regenerate <- Sys.getenv("XGX_REGENERATE_DATA") == "true"
 ```
 
@@ -33,7 +33,7 @@ regenerate <- Sys.getenv("XGX_REGENERATE_DATA") == "true"
 
 ```{r, eval = regenerate, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
-library(RxODE)
+library(rxode2)
 ```
 
 ```{r, include = FALSE}
@@ -63,7 +63,7 @@ d/dt(eff) = Kin*(1+Emax*Concentration/(EC50 + Concentration)) - Kout*(1)*eff;
 "
 
 work <- tempfile("Rx_intro-")
-mod1 <- RxODE(model = ode, modName = "mod1")
+mod1 <- rxode2(model = ode, modName = "mod1")
 
 cat(gsub(pattern="\nConcentration",replacement="Concentration",x=gsub(pattern=";\n",replacement=" \n", x = ode)))
 ```
@@ -415,21 +415,25 @@ DT::datatable(Multiple_Ascending_Dose_Dataset2, rownames = FALSE, options = list
 ## Regenerating the datasets
 
 The code on this page is not evaluated during a normal site build, for two
-reasons. It depends on `RxODE`, which was archived from CRAN on 2022-10-10 and
-can no longer be installed from there. And it writes to `Data/*.csv` — the
-committed datasets that every other page on this site reads — so running it as
-part of a build would let the site quietly regenerate its own inputs.
+reasons. It needs `rxode2`, which requires C and Fortran compilers and is not
+needed by any other page. And it writes to `Data/*.csv` — the committed
+datasets that every other page on this site reads — so running it as part of a
+build would let the site quietly regenerate its own inputs.
 
 The datasets are therefore treated as source: generated deliberately, checked,
-and committed. To regenerate them you need `RxODE` installed, and then:
+and committed. To regenerate them:
 
 ```bash
+Rscript -e 'pak::pak("rxode2")'
+cd Rmarkdown
 XGX_REGENERATE_DATA=true Rscript -e 'rmarkdown::render("PKPD_Datasets.Rmd")'
 ```
 
-Run from the `Rmarkdown/` directory. Review the diff to `Data/` before
-committing: the code is seeded, but the results still depend on the R version
-and on RxODE's solver, so the numbers can move.
+Review the diff to `Data/` before committing: the code is seeded, but the
+results still depend on the R version and on the ODE solver, so the numbers can
+move. This page previously used `RxODE`, which was archived from CRAN on
+2022-10-10; the migration to `rxode2` has not been run end to end, so expect to
+verify the output the first time.
 
 ## R Session Info
 ```{r}

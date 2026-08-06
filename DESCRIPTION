@@ -1,0 +1,44 @@
+Package: xgx
+Type: Package
+Title: Exploratory Graphics (xGx) Website
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Andrew", "Stein", email = "andy.stein@gmail.com", role = c("aut", "cre")),
+    person("Alison", "Margolskee", role = "aut"),
+    person("Novartis Pharma AG", role = "cph"))
+Description: This is not an R package. The DESCRIPTION exists so that the
+    packages required to render the xGx website are recorded in one
+    authoritative place, rather than being rediscovered by grepping the
+    Rmarkdown sources. CI installs the hard dependencies from here, and
+    contributors can get a local machine in sync with
+    pak::local_install_deps(). Note that rxode2 is a soft dependency: it is
+    needed only to regenerate the datasets in Data/ via PKPD_Datasets.Rmd,
+    not to build the site.
+License: MIT + file LICENSE.md
+URL: https://opensource.nibr.com/xgx/
+BugReports: https://github.com/Novartis/xgx/issues
+Encoding: UTF-8
+Imports:
+    DT,
+    GGally,
+    binom,
+    broom,
+    caTools,
+    dplyr,
+    ggplot2,
+    gridExtra,
+    htmltools,
+    knitr,
+    lubridate,
+    plyr,
+    rmarkdown,
+    scales,
+    stringr,
+    survival,
+    survminer,
+    tidyr,
+    tidyverse,
+    xgxr,
+    zoo
+Suggests:
+    rxode2

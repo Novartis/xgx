@@ -28,6 +28,22 @@ Note that `Data/`, `Rmarkdown/` and `Resources/` are **both source and published
 assets** - the generated pages link directly to the `.csv`, `.Rmd` and `.pdf` files inside
 them, so they have to stay in the root next to the HTML.
 
+## Setting up a machine
+
+The packages the site needs are recorded in `DESCRIPTION` at the repository root.
+That file is not a real R package - it exists so there is one authoritative list
+instead of one recovered by grepping the Rmarkdown sources. To install them:
+
+```r
+install.packages("pak")
+pak::local_install_deps()
+```
+
+`rxode2` is deliberately in `Suggests` rather than `Imports`: it is needed only
+to regenerate the datasets in `Data/` (see `Rmarkdown/PKPD_Datasets.Rmd`), not
+to build the site, and it requires C and Fortran compilers. `pak::pak("rxode2")`
+if you actually need it.
+
 ## Rebuilding the site
 
 * Edit files in `Rmarkdown/`, then execute `Rmarkdown/000_render_site.R` in R.
