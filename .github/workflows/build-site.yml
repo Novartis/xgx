@@ -47,10 +47,15 @@ jobs:
         with:
           # Every package used by any .Rmd under Rmarkdown/, via library() or
           # pkg:: . Keep in sync when a page gains a new dependency.
+          #
+          # RxODE is deliberately absent. It was archived from CRAN on
+          # 2022-10-10, and is only needed to regenerate the datasets in Data/,
+          # which are committed. PKPD_Datasets.Rmd shows that code without
+          # evaluating it unless XGX_REGENERATE_DATA=true. Adding RxODE back
+          # here would make the site unbuildable again.
           packages: |
             any::DT
             any::GGally
-            any::RxODE
             any::binom
             any::broom
             any::caTools

@@ -10,23 +10,47 @@ output:
 
 ## Overview
 
-This page describes the master PKPD analysis datasets used in the majority of the plots on this site. The datasets were generated using RxODE. Data specifications can be accessed on [Datasets](Datasets.html). One dataset was created for single ascending dose PK and another dataset for multiple ascending dose PK and PD. Explore the datasets in the tables below, or download from the following links: 
+This page describes the master PKPD analysis datasets used in the majority of the plots on this site. The datasets were generated using RxODE. Data specifications can be accessed on [Datasets](Datasets.html). One dataset was created for single ascending dose PK and another dataset for multiple ascending dose PK and PD. Explore the datasets in the tables below, or download from the following links:
 
 * [simulated dataset of single ascending dose PK](Data/Single_Ascending_Dose_Dataset2.csv)
 * [master PKPD dataset for multiple ascending dose PK and PD](Data/Multiple_Ascending_Dose_Dataset2.csv)
 
+The generation code below is shown for reference but is not run when the site is
+built. The datasets it produces are committed under `Data/`, and the tables on
+this page are rendered from those files. See "Regenerating the datasets" at the
+foot of the page.
+
+```{r setup, include = FALSE}
+# Dataset generation depends on RxODE, which was archived from CRAN on
+# 2022-10-10. Evaluating it during a normal site build would make the whole
+# site unbuildable on any machine without an old RxODE already installed, and
+# would also silently overwrite the committed datasets that every other page
+# reads. So generation is opt-in, and off by default.
+regenerate <- Sys.getenv("XGX_REGENERATE_DATA") == "true"
+```
+
 ## Setup
 
-```{r, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
+```{r, eval = regenerate, error = TRUE, echo = TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(RxODE)
+```
+
+```{r, include = FALSE}
+# When not regenerating, load the committed datasets so the tables below render.
+if (!regenerate) {
+  Single_Ascending_Dose_Dataset2 <-
+    read.csv("../Data/Single_Ascending_Dose_Dataset2.csv")
+  Multiple_Ascending_Dose_Dataset2 <-
+    read.csv("../Data/Multiple_Ascending_Dose_Dataset2.csv")
+}
 ```
 
 ## Dataset Generation
 
 ### Indirect response system
 
-```{r, error = TRUE, cache = TRUE, echo = TRUE}
+```{r, eval = regenerate, error = TRUE, cache = TRUE, echo = TRUE}
 ode <- "
 Concentration = centr/V2;
 C3 = peri/V3;
@@ -46,7 +70,7 @@ cat(gsub(pattern="\nConcentration",replacement="Concentration",x=gsub(pattern=";
 
 ### Single Ascending Dose PK Dataset
 
-```{r, error = TRUE, cache = TRUE, echo = TRUE}
+```{r, eval = regenerate, error = TRUE, cache = TRUE, echo = TRUE}
 set.seed(12345666)
 ndose <- 5
 nsub <- 10 # number of subproblems
@@ -180,7 +204,7 @@ DT::datatable(Single_Ascending_Dose_Dataset2, rownames = FALSE, options = list(a
 
 ### Multiple Ascending Dose PK & PD Dataset
 
-```{r, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE}
+```{r, eval = regenerate, error = TRUE, cache = TRUE, echo = TRUE, warning = FALSE}
 set.seed(12345666)
 ndose <- 6
 nsub <- 10 # number of subproblems
@@ -387,6 +411,25 @@ write.csv(Multiple_Ascending_Dose_Dataset2,"../Data/Multiple_Ascending_Dose_Data
 DT::datatable(Multiple_Ascending_Dose_Dataset2, rownames = FALSE, options = list(autoWidth = TRUE, scrollX=TRUE) )
 ```
 
+
+## Regenerating the datasets
+
+The code on this page is not evaluated during a normal site build, for two
+reasons. It depends on `RxODE`, which was archived from CRAN on 2022-10-10 and
+can no longer be installed from there. And it writes to `Data/*.csv` — the
+committed datasets that every other page on this site reads — so running it as
+part of a build would let the site quietly regenerate its own inputs.
+
+The datasets are therefore treated as source: generated deliberately, checked,
+and committed. To regenerate them you need `RxODE` installed, and then:
+
+```bash
+XGX_REGENERATE_DATA=true Rscript -e 'rmarkdown::render("PKPD_Datasets.Rmd")'
+```
+
+Run from the `Rmarkdown/` directory. Review the diff to `Data/` before
+committing: the code is seeded, but the results still depend on the R version
+and on RxODE's solver, so the numbers can move.
 
 ## R Session Info
 ```{r}

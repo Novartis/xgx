@@ -209,7 +209,15 @@ directory.
 
 ## 5. Known problems
 
-### 5.1 Datasets are a build side effect — the real blocker
+### 5.1 Datasets are a build side effect — RESOLVED 2026-08-06
+
+> **Resolved.** The first CI run failed on exactly this, and the fix is in.
+> `PKPD_Datasets.Rmd` now shows its generation code without evaluating it
+> unless `XGX_REGENERATE_DATA=true`, and renders its tables from the committed
+> CSVs instead. `RxODE` is gone from the dependency list, which also removes
+> the only compiled dependency from the build. The original analysis follows.
+
+
 
 `Rmarkdown/PKPD_Datasets.Rmd` **writes into `Data/` while rendering**:
 
@@ -227,20 +235,36 @@ implementation, and RxODE's solver behaviour, none of which are pinned. A CI
 machine may well produce different numbers from a 2019 laptop, which would
 silently change the data underneath every plot on the site.
 
-`render_site_ci.R` detects and warns about this today. The real fix is to
-**separate data generation from site rendering**: move the generation code to
-something like `dev/generate_datasets.R`, run it deliberately when the data
-should change, commit the result, and leave `PKPD_Datasets.Rmd` doing nothing
-but reading and displaying. That is a prerequisite for trusting CI output, and
-is the single most important follow-up in this document.
+**What was done.** Rather than duplicating ~350 lines into a separate script,
+where the two copies would drift, the code stays where it is and becomes
+opt-in. A `setup` chunk defines `regenerate <- Sys.getenv("XGX_REGENERATE_DATA")
+== "true"`, the three generation chunks carry `eval = regenerate`, and a hidden
+chunk reads the committed CSVs so the `DT::datatable` displays still work. The
+page looks the same and still documents how the data was made; it just no
+longer executes it. Regeneration is documented on the page itself.
 
-### 5.2 RxODE
+### 5.2 RxODE — RESOLVED 2026-08-06
 
-`RxODE` is the only compiled dependency and is used solely by
-`PKPD_Datasets.Rmd`. It is still installable from CRAN, but it has been
-superseded by `rxode2` and is in maintenance. It is the most likely thing to
-break the build. Fixing §5.1 would reduce this to a rarely-run manual script
-rather than a hard dependency of every build.
+`RxODE` was the only compiled dependency and was used solely by
+`PKPD_Datasets.Rmd`.
+
+**It was removed from CRAN on 2022-10-10** ("archived as issues were not
+corrected in time"), so `pak` could not resolve it at all, and because one
+package in the set was unsolvable it reported `dependency conflict` against all
+21 others — a single root cause presenting as total failure.
+
+Two things worth drawing out:
+
+* The site has depended on an uninstallable package for nearly four years, and
+  nobody knew, because it only ever had to build on one laptop that already had
+  an old copy. This is §2.2 in concrete form.
+* Removing it means the build now has **no compiled dependencies at all**. No C
+  toolchain, no ODE solver. Every remaining package is available as a prebuilt
+  Ubuntu binary from RSPM, which should make builds substantially faster.
+
+If the datasets ever do need regenerating, the migration is `RxODE` →
+`rxode2`, and that is a deliberate piece of work rather than something every
+build has to carry.
 
 ### 5.3 No dependency manifest
 
