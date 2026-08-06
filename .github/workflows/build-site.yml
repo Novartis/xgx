@@ -97,17 +97,25 @@ jobs:
           path: Rmarkdown/www
           retention-days: 14
 
-      # Staged for the cutover; harmless until Pages source is switched.
+      # Only in a fork. On Novartis/xgx this step is skipped, so nothing is
+      # ever staged for deployment there.
       - name: Upload Pages artifact
-        if: false
+        if: github.repository_owner != 'Novartis'
         uses: actions/upload-pages-artifact@v3
         with:
           path: Rmarkdown/www
 
-  # Enable this job, and remove the `if: false` above, once an org admin has
-  # set Settings > Pages > Source to "GitHub Actions".
+  # Publishes the CI-built site so it can actually be clicked through.
+  #
+  # Deliberately scoped to forks: on Novartis/xgx this job never runs, so the
+  # live site at opensource.nibr.com/xgx keeps being served from the committed
+  # HTML on master exactly as before. In a personal fork it publishes to that
+  # fork's own Pages, e.g. https://iamstein.github.io/xgx/ -- the same /xgx/
+  # path depth as production, so relative links behave identically.
+  #
+  # At cutover this condition becomes `github.ref == 'refs/heads/master'`.
   deploy:
-    if: false
+    if: github.repository_owner != 'Novartis'
     needs: build
     runs-on: ubuntu-latest
     permissions:
