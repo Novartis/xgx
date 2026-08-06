@@ -8,8 +8,9 @@ Before anything begins, look through the xGx MS Teams space and todos and issues
 
 ## Organization
 
-- Should this site be organized a bit better?  
+- Should this site be organized a bit better?  I think so.  I don't like how so many files and folders are in the top directory.  Can this be reorganized without breaking anything.  
 - Should the html files be committed in git or compiled in git and git-pages?
+- The next version should be developde to enable AI development/use (i.e. use the pages as templates) but also there will be skill files to help with data checking and plot interpretation.
 
 ## xGx usage
 
@@ -20,14 +21,3 @@ Before anything begins, look through the xGx MS Teams space and todos and issues
 ## Added functionality
 
 - The data checking and data exploration.  I had generated ideas for additional plots, maybe from dose finding toolbox.  Improve that.  Also, look for ideas for how to improve.  Think about if synpmx sohuld relate in some ways here as there is a validate function.  I've purposefully gone away from functions because they do make it harder for people to run and understand code line by line...  Revisit that idea
-
-## Add pages or significant updates
-
-- Significant update to Data checking.  Look at the IDA page from dose finding toolbox.  Ask for ideas for what else to add.
-- Causality Page
-- Logistic regression pages?  I might want to add some other things from what I was doing from dose finding toolbox
-- MMRM?
-
-## Scope Expansion/Creep
-
-- There are useful things to have, like thinking about logistic regression and E-R that are a bit out of scope but this is a natrual place to put things.  Thinks like choosing an exposure metric, how to assess a logistic regression, etc.  Think about where and how to put this stuff here.  It's beyond exploratory graphisc, but this is a natural place to put useful material.
