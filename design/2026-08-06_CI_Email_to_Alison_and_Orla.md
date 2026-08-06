@@ -82,18 +82,38 @@ has modified source without regenerating output.
 - **The dependencies are finally written down**, in a `DESCRIPTION` file, rather
   than being recoverable only by grepping every `.Rmd` for `library()` calls.
 
-## What I've already done
+## It's already working — you can look at it
 
-The work is on a branch and has been tested end to end in a personal fork, so
-this isn't a request to try something and see. A full clean rebuild produces all
-27 pages with no errors, all links resolving, and output matching the published
-pages. **`Novartis/xgx` itself is untouched** — I haven't pushed anything to it,
-and the deploy step is explicitly disabled on the Novartis repository so it
-cannot affect the live site even by accident.
+I've built the pipeline and run it end to end in a personal fork. **The result
+is live here:**
 
-The one piece I haven't been able to test is deployment itself, because GitHub
-Actions has been in a major outage today. I'll confirm that in the fork before
-anyone changes a setting.
+> **https://iamstein.github.io/xgx/**
+
+That is the xgx site, rebuilt from source by GitHub, with no HTML committed
+anywhere. Click around — it is the same site, at the same relative paths. Note
+that it is served from `/xgx/`, exactly the same path depth as
+`opensource.nibr.com/xgx/`, so it is a faithful test rather than an
+approximation.
+
+A full clean rebuild takes about five minutes: 4m47s to render all 27 pages,
+19s to publish. Everything resolves, including the links that go into source
+folders rather than to pages:
+
+| | |
+| --- | --- |
+| `/xgx/Multiple_Ascending_Dose_PK.html` | 200 |
+| `/xgx/PKPD_Datasets.html` | 200 |
+| `/xgx/Data/mt12345.csv` | 200 |
+| `/xgx/Rmarkdown/Adverse_Events.Rmd` | 200 |
+| `/xgx/Resources/Presentation_Checklist_v2.03.pdf` | 200 |
+
+Those last three matter most: the published pages link directly at `Data/`,
+`Rmarkdown/` and `Resources/`, and preserving those URLs was the main thing I
+had to get right.
+
+**`Novartis/xgx` itself is untouched.** I haven't pushed anything to it, and
+the deploy step is explicitly disabled on the Novartis repository by a condition
+in the workflow, so it cannot affect the live site even by accident.
 
 ## One thing to check
 
@@ -116,7 +136,11 @@ Andy
 
 ## Notes for me, not for the email
 
-- Do not send until a green deploy has been demonstrated in `iamstein/xgx`.
+- Green deploy demonstrated 2026-08-06, run 31126855746 (build 4m47s, deploy
+  19s). Live at https://iamstein.github.io/xgx/. Safe to send.
+- Before sending, confirm the fork is deployed from a commit that includes
+  `2d54f80` (the xgxr unit fix) — the first successful deploy predated it and
+  still showed the broken plots on the two count pages.
 - If Orla asks what happens on rollback: reverting is changing the Pages source
   back to "Deploy from a branch". The committed HTML is still in git history, so
   the previous site can be restored by checking it out. Worth keeping the
