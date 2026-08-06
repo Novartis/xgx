@@ -1,0 +1,121 @@
+name: Build site
+
+# Renders the xGx website from source on every push, so that no build output
+# ever needs to be committed to the repository.
+#
+# Deployment is currently DISABLED. GitHub Pages for this repo is still set to
+# "Deploy from a branch" (master, /), so the live site continues to be served
+# from the committed HTML in the repository root exactly as before. This
+# workflow only builds and uploads the result as a downloadable artifact, so
+# the pipeline can be proven before anything about the live site changes.
+#
+# To go live, an org admin changes Settings > Pages > Source to "GitHub
+# Actions", and the `deploy` job below is enabled. See
+# design/2026-08-06_CI_Build_Pipeline.md.
+
+on:
+  push:
+    branches: [master, andy-reorg-nochange]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # A full render compiles ODE models and ~27 pages from scratch.
+    timeout-minutes: 90
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          # Posit's package manager serves prebuilt Ubuntu binaries, which
+          # turns a ~40 minute source build of the tidyverse into a few minutes.
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          # Every package used by any .Rmd under Rmarkdown/, via library() or
+          # pkg:: . Keep in sync when a page gains a new dependency.
+          packages: |
+            any::DT
+            any::GGally
+            any::RxODE
+            any::binom
+            any::broom
+            any::caTools
+            any::dplyr
+            any::ggplot2
+            any::gridExtra
+            any::htmltools
+            any::knitr
+            any::lubridate
+            any::plyr
+            any::rmarkdown
+            any::scales
+            any::stringr
+            any::survival
+            any::survminer
+            any::tidyr
+            any::tidyverse
+            any::xgxr
+            any::zoo
+
+      # knitr caches make a re-render minutes rather than an hour. Each CI run
+      # starts on a clean machine, so the caches have to be carried across runs
+      # explicitly. Keyed on the .Rmd contents so a source edit invalidates it.
+      - name: Restore knitr cache
+        uses: actions/cache@v4
+        with:
+          path: Rmarkdown/*_cache
+          key: knitr-${{ runner.os }}-${{ hashFiles('Rmarkdown/*.Rmd') }}
+          restore-keys: |
+            knitr-${{ runner.os }}-
+
+      - name: Render site
+        run: Rscript dev/ci/render_site_ci.R
+
+      - name: Check links
+        run: python3 dev/ci/check_links.py Rmarkdown/www
+
+      # Lets you download the built site from the run summary and open it
+      # locally, without touching the live site.
+      - name: Upload build for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: xgx-site
+          path: Rmarkdown/www
+          retention-days: 14
+
+      # Staged for the cutover; harmless until Pages source is switched.
+      - name: Upload Pages artifact
+        if: false
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Rmarkdown/www
+
+  # Enable this job, and remove the `if: false` above, once an org admin has
+  # set Settings > Pages > Source to "GitHub Actions".
+  deploy:
+    if: false
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

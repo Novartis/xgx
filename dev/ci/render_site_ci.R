@@ -1,0 +1,62 @@
+# Render the xGx website for CI / GitHub Pages.
+#
+# This differs from Rmarkdown/000_render_site.R in one important way: it never
+# copies anything into the repository root. It renders into Rmarkdown/www and
+# then assembles a self-contained publish directory, so no build output is ever
+# committed to git.
+#
+# The published pages link directly at Data/, Resources/ and Rmarkdown/, so
+# those have to ship alongside the HTML at the same relative depth in order for
+# every existing public URL to keep resolving.
+
+publish <- "Rmarkdown/www"
+
+#########################################################
+## record the datasets as committed, before rendering
+#########################################################
+# PKPD_Datasets.Rmd regenerates Data/*.csv as a side effect of rendering.
+# We snapshot them so the workflow can detect drift and warn about it.
+data_before <- tools::md5sum(list.files("Data", full.names = TRUE))
+
+#########################################################
+## render
+#########################################################
+# _site.yml lives in Rmarkdown/, and the .Rmd files reference "../Data/..." ,
+# so the render has to run from inside that directory.
+owd <- setwd("Rmarkdown")
+rmarkdown::render_site()
+setwd(owd)
+
+if (!dir.exists(publish)) {
+  stop("render_site() produced no output at ", publish)
+}
+
+#########################################################
+## assemble the publish directory
+#########################################################
+# Copied AFTER the render, so regenerated datasets are the ones published.
+for (d in c("Data", "Resources")) {
+  file.copy(d, publish, recursive = TRUE)
+}
+
+# The pages offer their own source for download, e.g.
+# opensource.nibr.com/xgx/Rmarkdown/Multiple_Ascending_Dose_PK.Rmd
+dir.create(file.path(publish, "Rmarkdown"), showWarnings = FALSE)
+file.copy(Sys.glob("Rmarkdown/*.Rmd"), file.path(publish, "Rmarkdown"))
+
+#########################################################
+## report dataset drift
+#########################################################
+data_after <- tools::md5sum(list.files("Data", full.names = TRUE))
+common <- intersect(names(data_before), names(data_after))
+changed <- common[data_before[common] != data_after[common]]
+
+if (length(changed) > 0) {
+  cat("\n::warning::Rendering regenerated these committed datasets:\n")
+  cat(paste0("  ", changed, collapse = "\n"), "\n")
+  cat("See design/2026-08-06_CI_Build_Pipeline.md, 'Datasets are a build",
+      "side effect'.\n")
+}
+
+cat("\nPublish directory assembled at ", publish, ":\n", sep = "")
+cat("  ", length(Sys.glob(file.path(publish, "*.html"))), " html pages\n", sep = "")
