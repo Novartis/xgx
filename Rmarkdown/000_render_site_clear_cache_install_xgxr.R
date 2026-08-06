@@ -9,10 +9,10 @@ system("rm -rf *_cache")
 #########################################################
 ## install xgxr package
 #########################################################
-# unzip("../Rlib/xgxr-master_2019-07-10.zip", exdir = "../Rlib")
-unlink("../Rlib/xgxr", recursive = TRUE) # check this works
-install.packages("../Rlib/xgxr_1.0.2.tar.gz", repos = NULL, lib = "../Rlib", type = "source")
-library(xgxr, lib.loc = "../Rlib")
+# unzip("../dev/Rlib/xgxr-master_2019-07-10.zip", exdir = "../dev/Rlib")
+unlink("../dev/Rlib/xgxr", recursive = TRUE) # check this works
+install.packages("../dev/Rlib/xgxr_1.0.2.tar.gz", repos = NULL, lib = "../dev/Rlib", type = "source")
+library(xgxr, lib.loc = "../dev/Rlib")
 
 #########################################################
 ## render the website
