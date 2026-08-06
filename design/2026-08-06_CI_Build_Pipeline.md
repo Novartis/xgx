@@ -305,13 +305,28 @@ working pipeline attached rather than a plan.
 
 ---
 
-## 7. Open question — not urgent
+## 7. Decisions taken 2026-08-06
 
-The wider question of where this project should live (a personal repo, a new
-GitHub org alongside `synpmx` and `TrinityMetrics`, or staying at
-`Novartis/xgx`) is deliberately out of scope here. Everything above applies
-unchanged in any of those homes, and is worth doing regardless.
+**Where the project lives: unchanged.** xgx and xgxr both stay under
+`Novartis`. A personal fork, or a new GitHub org alongside `synpmx` and
+`TrinityMetrics`, were both considered and rejected — the 29 stars, 12 forks,
+eight years of history, and the `opensource.nibr.com/xgx/` URL cited in
+publications and in xgxr's CRAN listing are not worth rebuilding. `iamstein/xgx`
+exists solely as a test bed for this pipeline, not as a future home.
 
-One relevant fact for that decision: xgxr's CRAN `URL:` field currently points
-at `https://opensource.nibr.com/xgx/`, so this site is the documented home of a
-CRAN package, and that URL needs to keep resolving.
+Everything in this document applies unchanged either way, and was worth doing
+regardless.
+
+**xgxr will not restore the `"h"` / `"d"` unit abbreviations.** They were
+removed deliberately and have been gone for some time. The fix belongs in this
+repository, and is done — six call sites across
+`Multiple_Ascending_Dose_PD_count.Rmd` and
+`Multiple_Ascending_Dose_PKPD_count.Rmd` now pass `"hour"` and `"day"`
+(commit `2d54f80`).
+
+---
+
+## 8. Asking for the setting
+
+Draft email in `design/2026-08-06_CI_Email_to_Alison_and_Orla.md`. Not to be
+sent until a green deploy has been demonstrated in the fork.
