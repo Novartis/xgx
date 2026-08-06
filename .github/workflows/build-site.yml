@@ -87,8 +87,35 @@ jobs:
           restore-keys: |
             knitr-${{ runner.os }}-
 
+      # The first full render was killed abruptly mid-page with no R error,
+      # which is what an out-of-memory kill looks like from inside Actions.
+      # Sample resources to a file so the evidence survives the step dying.
+      - name: Start resource sampler
+        run: |
+          nohup bash -c 'while true; do
+            echo "$(date +%T) used_mb=$(free -m | awk "/^Mem:/{print \$3}")" \
+                 "avail_mb=$(free -m | awk "/^Mem:/{print \$7}")" \
+                 "disk_avail=$(df -m / | awk "NR==2{print \$4}")MB"
+            sleep 5
+          done' > /tmp/resources.log 2>&1 &
+          disown
+          echo "sampler started"
+
       - name: Render site
         run: Rscript dev/ci/render_site_ci.R
+
+      # `always()` so this reports even when the render step is killed.
+      - name: Resource report
+        if: always()
+        run: |
+          echo "=== peak memory used ==="
+          grep -o 'used_mb=[0-9]*' /tmp/resources.log | cut -d= -f2 \
+            | sort -n | tail -3
+          echo "=== lowest memory available ==="
+          grep -o 'avail_mb=[0-9]*' /tmp/resources.log | cut -d= -f2 \
+            | sort -n | head -3
+          echo "=== final 12 samples ==="
+          tail -12 /tmp/resources.log
 
       - name: Check links
         run: python3 dev/ci/check_links.py Rmarkdown/www
