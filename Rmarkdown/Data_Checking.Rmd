@@ -10,350 +10,953 @@ output:
 ---
 ## Overview
 
-Example of plots and tables to create for data checking.  
+This file runs **initial data analysis (IDA)** on a modeling dataset, before any
+modeling begins. The aim of IDA is to confirm that the data match your expectations and are ready for analysis, without touching the research question itself
+([Baillie et al. 2022, *Ten Simple Rules for IDA*](https://doi.org/10.1371/journal.pcbi.1009819)).
 
 For a dataset that is much larger that the example one used here, the default figure size may be too small for all plots to be readable.  In that case, add or edit the `fig.height` and `fig.width` in the top of each chunk.  For example: `{r, fig.height = 6, fig.width = 8}` 
 
 Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Data_Checking.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Data_Checking.csv)).
 
+## What this document covers
+
+This document uses the STRATOS framework developed by an international initiative for
+STRengthening Analytical Thinking for Observational Studies. It roughly follows the first
+three phases of that framework (metadata, data cleaning, data screening), with the sections
+below organized around the concrete questions a modeler asks.
+
+| # | Section | Question it answers |
+|---|---------|---------------------|
+| 1 | **About This Data** | What is this dataset — where did it come from? |
+| 2 | **Subject and Record Accounting** | Do the subject and record counts, by study and treatment arm, match expectations? |
+| 3 | **Checking Values Are Valid** | Are the dose, observation, and timing values legitimate and internally consistent? |
+| 4 | **Missing Data** | How much is missing, what is missing together, and does missingness relate to other variables? |
+| 5 | **Distributions and Relationships** | How are the covariates and observations distributed, and which are correlated? |
+| 6 | **Summary of Findings** | What did the checks reveal that a modeler should keep in mind? |
+
+The document ends by providing the modeler with a list of considerations around what further
+issues with the data should be addressed and how the analysis plan might change based on the IDA.
+
 ## Setup
 
-```{r, message = FALSE}
+```{r setup, message = FALSE}
+
 library(tidyverse)
-library(DT)
 library(xgxr)
+library(DT)
+library(GGally)
 
-#set chunk default options
 xgx_theme_set()
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4)
-options(DT.options = list(pageLength = 20)) #pageLength = number of entries per page
+filter <- dplyr::filter #have filter be dplyr::filter instead of stats::filter
 
-#specify the time units and your covariates 
-covariates = c("WEIGHT0","AGE0","SEX","WEIGHT0_CAT")
-time_units_dataset = "days"
+status <- "DRAFT"
+
+#caption
+Rmd_name <- "Data_Checking.Rmd"
+parent_dir <- "/top/level/directory/"
+project_dir <- "./"
+
+caption <- paste(
+  c(
+    paste0(parent_dir, project_dir, "/pgm"),
+    Rmd_name,
+    str_replace(Rmd_name, "\\.Rmd$", ".html"),
+    format(Sys.time(), "%Y-%m-%d %H:%M")
+  ),
+  collapse = "\n"
+)
+
+ggcaption <- list(
+  labs(caption = caption),
+  theme(plot.caption = element_text(hjust = 0.5))
+)
+
+# chunk defaults
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  fig.height = 4,
+  fig.width = 4
+)
+options(DT.options = list(pageLength = 20))
+
+# --- Analysis-specific settings: EDIT THESE for your dataset -----------------
+
+# path to the modeling dataset to check
+filename <- "Data/Data_Checking.csv"
+modeling_data_in <- read.csv(filename, stringsAsFactors = FALSE)
+
+# time units of the dataset (used for axis scaling)
+time_units_dataset <- "days"
+
+# covariates to summarize in the IDA section
+covariates <- c("AGE0", "WEIGHT0", "SEX")
+
+# --- Metadata: plausibility ranges for continuous variables ------------------
+# Used by the "Plausibility Range Checks" section. Add one row per continuous
+# variable you want range-checked. Values outside [lower, upper] are flagged.
+# EDIT THIS for your dataset.
+plausibility_ranges <- tibble::tribble(
+  ~variable , ~lower , ~upper ,
+  "AGE0"    ,     18 ,     90 ,
+  "WEIGHT0" ,     30 ,    200 ,
+)
+
+# --- Metadata: expected categorical values -----------------------------------
+# Used by the "Plausibility Range Checks" section. Any observed level not in the
+# allowed set is flagged. EDIT THIS for your dataset (or leave empty to skip).
+
+allowed_levels <- list(
+  CENS = c(0, 1),
+  EVID = c(0, 1),
+  MDV = c(0, 1)
+)
 ```
 
-## Load Data
+# Load Data
 
-```{r}
-filename = "../Data/Data_Checking.csv"
-data_in = read.csv(filename, stringsAsFactors = FALSE)
+The `mutate()` below maps your dataset's columns onto the standard names used
+throughout this document. If your dataset uses a different naming convention,
+edit the right-hand side of each assignment.
 
-data = data_in %>%
-  # in this mutate command are all columns that are required for this check
-  # if your dataset has different naming convention, 
-  # then rename the right hand side of the equality
-  mutate(USUBJID = USUBJID, # Unique subject identifier
-         TIME    = TIME,    # Actual Time
-         NOMTIME = NOMTIME, # Nominal Time
-         AMT     = AMT,     # Dose Amount
-         LIDV    = LIDV,    # Dependent variable
-         YTYPE   = YTYPE,   # Number for type of dependent variable
-         NAME    = NAME,    # Name for the type of dependent variable (e.g. PK)
-         MDV     = MDV,     # Missing Dependent Varibale (0 = no, 1 = yes)
-         CENS    = CENS,    # Censored Data (0 = no, 1 = yes)
-         EVID    = EVID,    # Event ID.  0 = Dependent Variabale, 1 = dose
-         TRT     = TRT,     # Treatment Arm character description
-         TRTN    = TRTN) %>%# Treatment Arm numeric description (used for sorting)
+```{r load-data}
+data_in <- modeling_data_in
+
+data <- data_in %>%
+  mutate(
+    STUDYID = STUDYID, # Study identifier
+    USUBJID = USUBJID, # Unique subject identifier
+    TIME = TIME, # Actual time
+    NOMTIME = NOMTIME, # Nominal time
+    AMT = AMT, # Dose amount
+    LIDV = LIDV, # Dependent variable
+    YTYPE = YTYPE, # Number for type of dependent variable
+    NAME = NAME, # Name for the type of dependent variable (e.g. PK)
+    MDV = MDV, # Missing dependent variable (0 = no, 1 = yes)
+    CENS = CENS, # Censored data (0 = no, 1 = yes)
+    EVID = EVID, # Event ID. 0 = observation, 1 = dose
+    TRT = TRT, # Treatment arm character description
+    TRTN = TRTN
+  ) %>% # Treatment arm numeric description (for sorting)
   arrange(TRTN) %>%
-  mutate(TRT_low2high = factor(TRT, levels = unique(TRT)),
-         TRT_high2low = factor(TRT, levels = rev(unique(TRT))))
-                                 
-data1 = data %>%
+  mutate(
+    TRT_low2high = factor(TRT, levels = unique(TRT)),
+    TRT_high2low = factor(TRT, levels = rev(unique(TRT)))
+  )
+
+# one row per subject, for covariate summaries
+data1 <- data %>%
   filter(!duplicated(USUBJID))
 ```
 
-### Data Manipulation to simulate a patient with no doses and introduce new variables
+Covariates are read from the first record per subject (`data1`) and are assumed
+time-invariant. If any covariate can change within a subject, summarize it
+differently.
 
-```{r}
-data = data %>%
-  mutate(USUBJID = paste0("PAT",USUBJID),
-         WEIGHT0_CAT = case_when(WEIGHT0 < 60 ~ "WT<60", #creating 2nd categorical var
-                                 WEIGHT0 > 80 ~ "WT>80",
-                                 TRUE         ~ "WT:60-80"))
+# About this dataset
 
-# a patient with no PK or PD data is added to the dataset to illustrate how the 
-# data checking will report when such data is present.  This code block should be
-# removed if you'll be using it with your dataset.
-empty_row = data[1,] %>%
-  mutate(ID = 23,
-         USUBJID = paste0("PAT",ID),
-         LIDV = 0,
-         YTYPE = 0,
-         ADM = 1,
-         CMT = 0,
-         NAME = "Dose", 
-         EVENTU = "mg",
-         UNIT = "mg",
-         MDV = 1,
-         CENS = 0,
-         EVID = 1)
+Record where the data came from and what it should contain, so the analysis is
+reproducible and its expectations are explicit. Anyone
+re-running this file should be able to see exactly which file was checked and
+when.
 
-data  = bind_rows(data, empty_row)
-data1 = data %>%
-  filter(!duplicated(USUBJID))
+```{r provenance}
+provenance <- tibble::tibble(
+  item = c(
+    "Source file",
+    "File last modified",
+    "Report run at",
+    "N rows",
+    "N columns",
+    "N subjects (USUBJID)",
+    "N treatment arms"
+  ),
+  value = c(
+    normalizePath(filename, mustWork = FALSE),
+    as.character(file.info(filename)$mtime),
+    format(Sys.time(), "%Y-%m-%d %H:%M"),
+    format(nrow(data), big.mark = ","),
+    as.character(ncol(data)),
+    as.character(dplyr::n_distinct(data$USUBJID)),
+    as.character(dplyr::n_distinct(data$TRT))
+  )
+)
+datatable(provenance, options = list(dom = "t"))
+```
+
+# Subject and Record Accounting
+
+Confirm that the number of subjects and records — overall and broken out by
+study and treatment arm — matches expectations.
+
+## Subject Accountability
+
+Account for how many subjects survive each selection step, from the raw file to
+the analysis-ready dataset.
+Edit the steps to match the filters your dataset actually applies. Unexpected
+drops here are often the first sign of a data problem.
+
+```{r subject-accountability}
+n_subj <- function(df) dplyr::n_distinct(df$USUBJID)
+
+# EDIT THESE steps to reflect the selection applied to your dataset.
+accountability <- tibble::tibble(
+  step = c(
+    "Subjects in source file",
+    "With at least one dose record (EVID == 1)",
+    "With at least one observation (EVID == 0)",
+    "With non-missing treatment arm (TRT)"
+  ),
+  n_subjects = c(
+    n_subj(data_in %>% mutate(USUBJID = USUBJID)),
+    n_subj(data %>% filter(EVID == 1)),
+    n_subj(data %>% filter(EVID == 0)),
+    n_subj(data %>% filter(!is.na(TRT)))
+  )
+) %>%
+  mutate(dropped_from_previous = dplyr::lag(n_subjects) - n_subjects)
+
+datatable(accountability, options = list(dom = "t"))
 ```
 
 ## Number of Patients per Treatment Arm
 
-Check to see the number of patients in the dataset is what you expect.
+Check that the number of patients in the dataset is what you expect.
 
-```{r}
-total_patients = data %>%
+```{r n-patients-per-arm}
+total_patients <- data %>%
   filter(!duplicated(USUBJID)) %>%
+  group_by(STUDYID) %>%
   tally() %>%
   rename(n_patients = n) %>%
   mutate(TRT_low2high = "TOTAL NUMBER")
 
-summary_by_trt = data %>% 
+summary_by_trt <- data %>%
   filter(!duplicated(USUBJID)) %>%
-  group_by(TRT_low2high) %>%
+  group_by(STUDYID, TRT_low2high) %>%
   tally() %>%
-  rename(n_patients = n) %>% 
-  bind_rows(total_patients)
+  rename(n_patients = n) %>%
+  bind_rows(total_patients) %>%
+  arrange(STUDYID, TRT_low2high)
+
 datatable(summary_by_trt)
 ```
 
 ## Number of Data Points per Treatment Arm and YTYPE
 
-This is another quick way to see if there is way more or way less data than you expected.
+Another quick way to see if there is more or less data than expected.
 
-```{r}
-summary_by_trt_ytype = data %>% 
-  group_by(YTYPE, NAME, TRT_low2high) %>%
+```{r n-datapoints-per-arm-ytype}
+summary_by_trt_ytype <- data %>%
+  group_by(STUDYID, YTYPE, NAME, TRT_low2high) %>%
   tally() %>%
   rename(n_data_points = n) %>%
   mutate(YTYPE_NAME = paste0(YTYPE, ":", NAME)) %>%
   ungroup() %>%
   select(-YTYPE, -NAME) %>%
-  spread(YTYPE_NAME, n_data_points)
+  spread(YTYPE_NAME, n_data_points) %>%
+  arrange(STUDYID, TRT_low2high)
 
 datatable(summary_by_trt_ytype)
 ```
 
+# Checking Values Are Valid
+
+Confirm that the dose, observation, and timing values are legitimate and
+internally consistent — no impossible values, unexpected zeros, or mismatched
+times.
+
 ## Dosing Summary
 
-Summary of the dosing information.  It can be useful to know if there are patients in the database that never received a dose of the drug.  Also, usually AMT usually should not equal 0, and so 
+It can be useful to know if there are patients who never received a dose, and
+`AMT` usually should not equal 0.
 
-```{r}
-dose = data %>%
+```{r dosing-summary}
+dose <- data %>%
   filter(EVID == 1)
 
-dose_summ = data %>%
+dose_summ <- data %>%
   group_by(USUBJID) %>%
   summarize(total_dose = sum(AMT))
 
-dose_summary = data.frame(
+dose_summary <- data.frame(
   patients_that_never_received_drug = sum(dose_summ$total_dose == 0),
-  entries_where_AMT_equals_0        = sum(dose$AMT == 0),
-  entries_where_AMT_greater_than_0  = sum(dose$AMT > 0)) %>%
+  entries_where_AMT_equals_0 = sum(dose$AMT == 0),
+  entries_where_AMT_greater_than_0 = sum(dose$AMT > 0)
+) %>%
   t() %>%
   as.data.frame() %>%
   rename(N = V1)
 
 datatable(dose_summary)
-
 ```
 
 ## Dependent Variable (DV) Summary
 
-```{r}
-
-# compute number of DV by YTYPE and by patient
-# with this method, NAs also mean 0
-# here we do not remove EVID == 0 records, 
-# so that patients with a dose but no DV values will be included in the count
-dv_number_by_patient = data %>%
+```{r dv-summary}
+# number of DV by YTYPE and by patient (NAs count as 0)
+# keep EVID == 1 records so patients with a dose but no DV are still counted
+dv_number_by_patient <- data %>%
   group_by(YTYPE, USUBJID) %>%
   summarize(n_obs = sum(MDV == 0 & !is.na(LIDV))) %>%
   ungroup() %>%
   spread(YTYPE, n_obs)
-  
-# count total number of patients missing any DV of each type
-dv_number_summary = dv_number_by_patient %>%  
+
+dv_number_summary <- dv_number_by_patient %>%
   select(-USUBJID) %>%
-  summarize_all(c(Nnone   = function(x) sum(x == 0 | is.na(x)), 
-                  Nmin    = function(x) min(x, na.rm = TRUE),
-                  Nmedian = function(x) round(median(x, na.rm = TRUE)),
-                  Nmax    = function(x) max(x, na.rm = TRUE))) %>%
+  summarize_all(c(
+    Nnone = function(x) sum(x == 0 | is.na(x)),
+    Nmin = function(x) min(x, na.rm = TRUE),
+    Nmedian = function(x) round(median(x, na.rm = TRUE)),
+    Nmax = function(x) max(x, na.rm = TRUE)
+  )) %>%
   t() %>%
   as.data.frame() %>%
   rename(N = V1)
-dv_number_summary$YTYPE_SUMM = row.names(dv_number_summary)
-dv_number_summary = dv_number_summary %>%
-  mutate(YTYPE = as.numeric(str_extract(YTYPE_SUMM, "^\\d+")),
-         SUMM  = str_extract(YTYPE_SUMM, "[A-Za-z]+$")) %>%
+dv_number_summary$YTYPE_SUMM <- row.names(dv_number_summary)
+dv_number_summary <- dv_number_summary %>%
+  mutate(
+    YTYPE = as.numeric(str_extract(YTYPE_SUMM, "^\\d+")),
+    SUMM = str_extract(YTYPE_SUMM, "[A-Za-z]+$")
+  ) %>%
   select(-YTYPE_SUMM) %>%
   spread(SUMM, N)
 
-# create an overall summary table
-dv_summary_overall = data %>%
+dv_summary_overall <- data %>%
   filter(EVID == 0) %>%
   group_by(YTYPE, NAME) %>%
-  summarize(n_total           = n(),
-            n_missing_or_NA   = sum(is.na(LIDV) | MDV == 1),
-            n_zeroes          = sum(LIDV == 0),
-            n_censored        = sum(CENS == 1),
-            n_negative        = sum(LIDV < 0),
-            n_duplicate_times = sum(duplicated(paste(USUBJID,TIME))),
-            min               = min     (LIDV,       na.rm = TRUE),
-            Q1                = quantile(LIDV, 0.25, na.rm = TRUE),
-            median            = median  (LIDV,       na.rm = TRUE),
-            Q3                = quantile(LIDV, 0.75, na.rm = TRUE),
-            max               = max     (LIDV,       na.rm = TRUE)) %>%
+  summarize(
+    n_total = n(),
+    n_missing_or_NA = sum(is.na(LIDV) | MDV == 1),
+    n_zeroes = sum(LIDV == 0),
+    n_censored = sum(CENS == 1),
+    n_negative = sum(LIDV < 0),
+    n_duplicate_times = sum(duplicated(paste(USUBJID, TIME))),
+    min = min(LIDV, na.rm = TRUE),
+    Q1 = quantile(LIDV, 0.25, na.rm = TRUE),
+    median = median(LIDV, na.rm = TRUE),
+    Q3 = quantile(LIDV, 0.75, na.rm = TRUE),
+    max = max(LIDV, na.rm = TRUE)
+  ) %>%
+  # round DV summary stats to 3 significant digits (any magnitude, no forced
+  # scientific notation); counts are already integers and left alone
+  mutate(across(c(min, Q1, median, Q3, max), ~ signif(.x, 3))) %>%
   left_join(dv_number_summary, by = "YTYPE") %>%
-  mutate(YTYPE_NAME = paste0(YTYPE,":",NAME)) %>%
+  mutate(YTYPE_NAME = paste0(YTYPE, ":", NAME)) %>%
   ungroup() %>%
   select(-YTYPE, -NAME) %>%
   t() %>%
   as.data.frame()
-names(dv_summary_overall) = as.matrix(dv_summary_overall["YTYPE_NAME",])
-dv_summary_overall$Value = row.names(dv_summary_overall)
-row.names(dv_summary_overall) = c()
+names(dv_summary_overall) <- as.matrix(dv_summary_overall["YTYPE_NAME", ])
+dv_summary_overall$Value <- row.names(dv_summary_overall)
+row.names(dv_summary_overall) <- c()
 
-dv_summary_overall = dv_summary_overall %>%
+dv_summary_overall <- dv_summary_overall %>%
   filter(Value != "YTYPE_NAME") %>%
-  mutate(Type = case_when(str_detect(Value, "^n_") ~ "Number of data points",
-                          str_detect(Value, "^N")  ~ "Number of data points per patient",
-                          TRUE                     ~ "Value of data points")) %>%
-  mutate(Value = str_replace(Value, "^n_", ""), 
-         Value = str_replace(Value, "^N", "")) %>%
+  mutate(
+    Type = case_when(
+      str_detect(Value, "^n_") ~ "Number of data points",
+      str_detect(Value, "^N") ~ "Number of data points per patient",
+      TRUE ~ "Value of data points"
+    )
+  ) %>%
+  mutate(
+    Value = str_replace(Value, "^n_", ""),
+    Value = str_replace(Value, "^N", "")
+  ) %>%
   select(Type, Value, everything()) %>%
   arrange(Type)
 
 datatable(dv_summary_overall)
-  
 ```
 
-## Covariate Summary
+## Plausibility Range Checks
 
-Provide overview of the covariates. Check to see in particular that the distributions (along the diagonals) make sense.
+Beyond min/max, check values against the ranges you declared in the setup chunk
+(`plausibility_ranges` and `allowed_levels`): a value can be non-missing and
+still be impossible. Empty tables mean no violations were found.
 
-```{r, fig.height = 8, fig.width = 8}
-num_unique_vals = data1[,covariates] %>%
-  summarise_all(function(x){length(unique(x))}) %>%
-  as.numeric()
+```{r plausibility-continuous}
+continuous_violations <- plausibility_ranges %>%
+  filter(variable %in% names(data)) %>%
+  mutate(
+    n_violations = purrr::pmap_int(
+      list(variable, lower, upper),
+      function(variable_name, lo, hi) {
+        x <- data[[variable_name]]
 
-cts_cov = data1[,covariates[num_unique_vals >= 8]]
-cat_cov = data1[,covariates[num_unique_vals <  8]]
+        sum(
+          !is.na(x) & (x < lo | x > hi)
+        )
+      }
+    )
+  )
 
-cts_cov_summary = cts_cov %>%
-  gather() %>%
-  group_by(key) %>%
-  summarise(n_missing_or_NA   = sum(is.na(value)),
-            min               = min     (value,       na.rm = TRUE),
-            Q1                = quantile(value, 0.25, na.rm = TRUE),
-            median            = median  (value,       na.rm = TRUE),
-            Q3                = quantile(value, 0.75, na.rm = TRUE),
-            max               = max     (value,       na.rm = TRUE))
-datatable(cts_cov_summary)
+datatable(
+  continuous_violations %>% filter(n_violations > 0),
+  options = list(dom = "t"),
+  caption = "Continuous variables with out-of-range values"
+)
+```
 
-cat_summary = function(x) {
-  unique_x = sort(unique(x))
-  str = 1:length(unique_x)
-  for(i in 1:length(unique_x))
-  {
-    str[i] = paste0(unique_x[i], "=", sum(x == unique_x[i], na.rm = TRUE))
+```{r plausibility-categorical}
+cat_violations <- purrr::imap_dfr(allowed_levels, function(allowed, var) {
+  if (!var %in% names(data)) {
+    return(NULL)
   }
-  output = paste(str, collapse = ", ")
+  observed <- data[[var]]
+  bad <- setdiff(unique(observed[!is.na(observed)]), allowed)
+  if (length(bad) == 0) {
+    return(NULL)
+  }
+  tibble::tibble(
+    variable = var,
+    allowed = paste(allowed, collapse = ", "),
+    unexpected_values = paste(bad, collapse = ", "),
+    n_rows = sum(observed %in% bad)
+  )
+})
+
+if (nrow(cat_violations) == 0) {
+  cat("No unexpected categorical values found.\n")
+} else {
+  datatable(
+    cat_violations,
+    options = list(dom = "t"),
+    caption = "Categorical variables with unexpected values"
+  )
 }
-
-cat_cov_summary = cat_cov %>%
-  gather() %>%
-  group_by(key) %>%
-  summarise(n_missing_or_NA   = sum(is.na(value)),
-            n_distinct        = n_distinct(value),
-            count_summary     = cat_summary(value))
-datatable(cat_cov_summary)
-
-
-GGally::ggpairs(data1, 
-                columns = covariates,
-                diag = list(continuous = "barDiag"))
 ```
 
-## Columns that contains NAs (and the number they contain)
+## Dose and PK/PD Data Collection Times
 
-Often, a dataset is not supposed to contain any NAs.  This section highlights where the NAs occur.  If the table below is empty, then there are no NAs in the dataset.
+Overview of the timing of dose, PK, and PD collection for all patients. Each
+"x" is a record (a dose time or an assessment time). Each red circle flags a
+possible dose interruption, when the gap between doses exceeds `DT_flag` and
+`NAME == NAME_DOSE`. Adjust `fig.height`/`fig.width` for larger datasets.
 
-```{r}
-na_summary = data %>%
-  dplyr::summarise_all(function(x) {sum(is.na(x))}) %>%
+```{r dose-pkpd-times, fig.width = 8, fig.height = 12}
+DT_flag <- 10 # > DT_flag days between doses is flagged
+NAME_DOSE <- "Dose" # NAME == NAME_DOSE is flagged
+
+data_dose_interruption <- data %>%
+  group_by(USUBJID, NAME) %>%
+  mutate(DT = lead(TIME, default = max(TIME)) - TIME, TMID = TIME + DT / 2) %>%
+  ungroup() %>%
+  filter(DT > DT_flag, NAME == NAME_DOSE)
+
+ggplot(data, aes(x = TIME, y = USUBJID)) +
+  geom_point(shape = 4) +
+  geom_point(
+    data = data_dose_interruption,
+    aes(x = TMID, y = USUBJID),
+    color = "red",
+    alpha = 0.2,
+    size = 5
+  ) +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset) +
+  facet_wrap(~ YTYPE + NAME, labeller = label_both)
+```
+
+## Nominal vs Actual Time Discrepancies
+
+A common error is that either the nominal or actual time was derived
+incorrectly. Points that don't lie near the identity line need investigation.
+
+```{r nomtime-vs-time}
+xymin <- min(c(data$NOMTIME, data$TIME), na.rm = TRUE)
+xymax <- max(c(data$NOMTIME, data$TIME), na.rm = TRUE)
+
+ggplot(data, aes(x = TIME, y = NOMTIME)) +
+  geom_point() +
+  annotate(
+    "segment",
+    x = xymin,
+    xend = xymax,
+    y = xymin,
+    yend = xymax,
+    color = "blue"
+  ) +
+  xlim(c(xymin, xymax)) +
+  ylim(c(xymin, xymax))
+
+difftime <- data %>%
+  mutate(DIFF_TIME = abs(NOMTIME - TIME)) %>%
+  arrange(-DIFF_TIME) %>%
+  slice(1:10) %>%
+  select(USUBJID, TRT, DIFF_TIME, TIME, NOMTIME, YTYPE, NAME, LIDV)
+
+datatable(difftime)
+```
+
+### Unique Nominal Time Values
+
+Check the nominal times to make sure they're correct (e.g. that hour-scale
+values weren't accidentally set equal to day-scale values).
+
+```{r unique-nomtime}
+sort(unique(data$NOMTIME))
+```
+
+# Missing Data
+
+Understand what is absent: how much data is missing, which columns it affects,
+whether variables tend to be missing together, and whether missingness appears
+related to other variables. Missingness drives modeling decisions (imputation,
+dropping subjects, or restructuring the analysis), so it gets its own section.
+
+## Columns that Contain NAs
+
+A modeling dataset often is not supposed to contain any NAs. This table
+highlights where they occur. If it is empty, there are no NAs.
+
+```{r na-columns}
+na_summary <- data %>%
+  dplyr::summarise_all(function(x) sum(is.na(x))) %>%
   t() %>%
   as.data.frame() %>%
-  rename(N_NA = V1) 
-na_summary$Column = names(data)
-na_summary = na_summary %>%
+  rename(N_NA = V1)
+na_summary$Column <- names(data)
+na_summary <- na_summary %>%
   select(Column, N_NA) %>%
   filter(N_NA > 0)
 
 datatable(na_summary)
 ```
 
-## Dose and PK/PD Data Collection Times
+## Missing Data Summary
 
-Get an overview of the timing of the dose, PK, and PD data collection for all patients and make sure it's in line with expectations.  Each "x" denotes a record, i.e. a dose time or a PK or PD assessment time.  Each red circle denotes what may be a dose interruption, when the time between doses is greater than `DT_flag` and `NAME == "Dose"`
+The graph below clusters the missing-data pattern as a first step toward
+spotting trends. Each column is a patient. The
+[`naniar` package](https://naniar.njtierney.com/) (`gg_miss_upset`) is useful
+for a more detailed look at combinations of missing values.
 
-You might need to adjust the figure height and width in the line below, depending on how many different YTYPEs and how many patients your dataset has.
+```{r missing-data-plot, fig.height = 20}
+DescTools::PlotMiss(data1, clust = TRUE, col = "grey10", bg = "grey90")
+```
 
-```{r, fig.width = 8}
+### Missing-data patterns
 
-DT_flag = 10   # >10 days between doses is flagged
-NAME_DOSE = "Dose" # NAME == NAME_DOSE is flagged
+`gg_miss_upset` shows which variables tend to be missing *together*.
+If no combinations of missing values exist, this plot may be empty or error; it
+is wrapped in `try()` so the rest of the document still renders.
 
-data_dose_interruption = data %>%
-  group_by(USUBJID, NAME) %>%
-  mutate(DT   = lead(TIME, default = max(TIME)) - TIME,
-         TMID = TIME + DT/2) %>%
+```{r missing-upset, fig.width = 8, fig.height = 5}
+if (any(is.na(data1))) {
+  try(print(naniar::gg_miss_upset(data1)))
+} else {
+  cat("No missing values in the per-subject data.\n")
+}
+```
+
+### Possible missingness mechanism
+
+To probe whether missingness is related to observed variables (a step toward
+distinguishing missing-completely-at-random from missing-at-random), compare the
+covariates between subjects who are missing vs. not missing a chosen variable.
+Set `missingness_target` to a variable of interest. This is descriptive only —
+it flags associations to investigate, not a formal test.
+
+```{r missingness-mechanism}
+# EDIT THIS: variable whose missingness you want to characterize.
+missingness_target <- intersect(covariates, names(data1))[1]
+
+if (!is.na(missingness_target) && any(is.na(data1[[missingness_target]]))) {
+  data1 %>%
+    mutate(
+      .is_missing = ifelse(
+        is.na(.data[[missingness_target]]),
+        "missing",
+        "observed"
+      )
+    ) %>%
+    select(.is_missing, any_of(covariates)) %>%
+    select(.is_missing, where(is.numeric)) %>%
+    pivot_longer(-.is_missing) %>%
+    group_by(name, .is_missing) %>%
+    summarise(
+      n = sum(!is.na(value)),
+      median = median(value, na.rm = TRUE),
+      Q1 = quantile(value, 0.25, na.rm = TRUE),
+      Q3 = quantile(value, 0.75, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    datatable(
+      caption = paste("Covariates by missingness of", missingness_target)
+    )
+} else {
+  cat("No missing values in the selected target, or no target available.\n")
+}
+```
+
+# Distributions and Relationships
+
+Screen the covariates themselves — their distributions and how they relate to
+one another — to flag issues to address before modeling:
+
+- **Skewed data:** consider transforming before regression.
+- **Outliers:** consider removal, down-weighting, or a closer look.
+- **Small categories:** consider grouping if numbers are too small to power an effect.
+- **Highly correlated variables:** consider using only one in a regression.
+
+## Covariate Summary
+
+Numerical summary of the covariates: quartiles for continuous variables and
+level counts for categorical ones, with a pairs plot to see joint
+distributions (along the diagonals) and pairwise relationships.
+
+```{r covariate-summary, fig.height = 8, fig.width = 8}
+num_unique_vals <- data1[, covariates] %>%
+  summarise_all(function(x) length(unique(x))) %>%
+  as.numeric()
+
+cts_cov <- data1 |> select(all_of(covariates[num_unique_vals >= 8]))
+cat_cov <- data1 |> select(all_of(covariates[num_unique_vals < 8]))
+
+cts_cov_summary <- cts_cov %>%
+  pivot_longer(everything()) %>%
+  group_by(name) %>%
+  summarise(
+    n_missing_or_NA = sum(is.na(value)),
+    min = min(value, na.rm = TRUE),
+    Q1 = quantile(value, 0.25, na.rm = TRUE),
+    median = median(value, na.rm = TRUE),
+    Q3 = quantile(value, 0.75, na.rm = TRUE),
+    max = max(value, na.rm = TRUE)
+  ) %>%
+  # round summary stats to 3 significant digits (handles any magnitude,
+  # no forced scientific notation); leave the integer count alone
+  mutate(across(c(min, Q1, median, Q3, max), ~ signif(.x, 3)))
+datatable(cts_cov_summary)
+
+cat_summary <- function(x) {
+  unique_x <- sort(unique(x))
+  str <- 1:length(unique_x)
+  for (i in 1:length(unique_x)) {
+    str[i] <- paste0(unique_x[i], "=", sum(x == unique_x[i], na.rm = TRUE))
+  }
+  paste(str, collapse = ", ")
+}
+
+cat_cov_summary <- cat_cov %>%
+  pivot_longer(everything()) %>%
+  group_by(name) %>%
+  summarise(
+    n_missing_or_NA = sum(is.na(value)),
+    n_distinct = n_distinct(value),
+    count_summary = cat_summary(value)
+  )
+datatable(cat_cov_summary)
+
+GGally::ggpairs(
+  data1,
+  columns = covariates,
+  diag = list(continuous = "barDiag")
+)
+```
+
+## Continuous Variables: Skewness and Outliers
+
+Confirm the continuous covariates take expected values. Watch for highly
+skewed variables (candidates for transformation) and outliers (candidates for
+a sensitivity analysis). Edit the `select()` to the continuous columns in your
+dataset.
+
+```{r ida-continuous, warning = FALSE}
+data_cts <- data1 %>%
+  select(any_of(covariates)) %>%
+  select(where(is.numeric))
+
+ggplot(pivot_longer(data_cts, everything()), aes(x = value)) +
+  geom_histogram() +
+  facet_wrap(~name, scales = "free")
+```
+
+## Categorical Variables: Small Groups
+
+Confirm the categorical covariates take expected values. For categories with
+few patients, consider grouping, as the analysis likely won't have power to
+detect their effects.
+
+```{r ida-categorical}
+data_cat <- data1 %>%
+  select(any_of(covariates)) %>%
+  select(where(~ !is.numeric(.))) %>%
+  mutate(across(everything(), as.character))
+
+ggplot(pivot_longer(data_cat, everything()), aes(y = value)) +
+  geom_bar() +
+  facet_wrap(~name, scales = "free")
+```
+
+## Correlations: Correlated Variables
+
+Watch for high correlations (> 0.4); for those, consider using only one in any
+covariate analysis. This uses
+[Spearman's rank correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient),
+which works with both continuous and categorical (factor-coded) values.
+
+```{r ida-correlations, fig.width = 10, fig.height = 10}
+data_cat_num <- data_cat %>%
+  mutate(across(where(is.character), ~ as.numeric(factor(.))))
+
+data_cov_all_num <- bind_cols(data_cts, data_cat_num)
+
+M <- cor(data_cov_all_num, method = "spearman", use = "pairwise.complete.obs")
+corrplot::corrplot.mixed(M, lower = "number", upper = "ellipse")
+```
+
+## Largest Correlations
+
+```{r ida-largest-correlations, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 10}
+Mupper <- M
+Mupper[lower.tri(M, diag = TRUE)] <- 0
+
+n_largest <- 3 # always show the n largest correlations
+corr_threshold <- 0.4 # also show all correlations above this threshold
+
+# as.data.frame.table() turns the correlation matrix into one row per pair with
+# Var1/Var2/corr columns. That is what the reshape2 melt() call here used to do;
+# base R does it with no dependency, and reshape2 is superseded by tidyr anyway.
+largest_corr <- Mupper %>%
+  as.data.frame.table(responseName = "corr", stringsAsFactors = FALSE) %>%
+  filter(abs(corr) > 0) %>%
+  arrange(-abs(corr)) %>%
+  mutate(n = 1:n()) %>%
+  filter(n <= n_largest | abs(corr) > corr_threshold)
+
+knitr::kable(largest_corr, caption = "Largest correlations", digits = 2)
+
+columns <- as.character(unique(c(largest_corr$Var1, largest_corr$Var2)))
+
+data_cov_all <- bind_cols(data_cts, data_cat)
+GGally::ggpairs(
+  data_cov_all,
+  columns = columns,
+  diag = list(continuous = "barDiag")
+)
+```
+
+## Overview of Entire Dataset
+
+A more complete overview of every column in the dataset using `Hmisc`.
+
+```{r overview-describe, results = "asis"}
+data1 %>%
+  Hmisc::describe() %>%
+  Hmisc::html(size = 80)
+```
+
+# Portable Summary Export
+
+Write a machine- and human-readable summary of the checks in this document to
+disk, so it can be moved to another machine and reviewed (by a person or an AI)
+alongside the code. Two files are produced:
+
+- **`_*_summary_full.json`** — fully informative and *unmasked*. Includes real
+study IDs, counts, true min/max, and the specific `USUBJID`s that triggered
+each failed check (so issues can be traced back and fixed). This file contains
+subject identifiers; keep it local.
+- **`_*_summary_no_subjids.json`** — identical to the full file, but with every
+`USUBJID` removed (offending-subject lists collapsed to counts). Everything
+else — study IDs, counts, min/max — is retained. Safer to share when subject
+identifiers should not leave the environment.
+
+Both names start with an underscore deliberately. If this document is rendered
+as part of an R Markdown *site*, `render_site()` copies loose files in the
+source directory into the published output, and `.json` is not one of the
+extensions it excludes — but anything beginning with `_` is. Without the
+underscore, the unmasked export would be published to the website.
+
+```{r portable-summary-export}
+# offending subjects per failed check (used only in the full export) -----------
+
+# continuous plausibility violations: which subjects, which value
+offending_continuous <- plausibility_ranges %>%
+  filter(variable %in% names(data)) %>%
+  purrr::pmap(function(variable, lower, upper) {
+    x <- data[[variable]]
+    idx <- !is.na(x) & (x < lower | x > upper)
+    if (!any(idx)) {
+      return(NULL)
+    }
+    data[idx, ] %>%
+      transmute(
+        USUBJID,
+        STUDYID,
+        variable = variable,
+        value = .data[[variable]],
+        lower = lower,
+        upper = upper
+      )
+  }) %>%
+  bind_rows()
+
+# unexpected categorical levels: which subjects, which value
+offending_categorical <- purrr::imap(allowed_levels, function(allowed, var) {
+  if (!var %in% names(data)) {
+    return(NULL)
+  }
+  x <- data[[var]]
+  idx <- !is.na(x) & !(x %in% allowed)
+  if (!any(idx)) {
+    return(NULL)
+  }
+  data[idx, ] %>%
+    transmute(
+      USUBJID,
+      STUDYID,
+      variable = var,
+      value = as.character(.data[[var]])
+    )
+}) %>%
+  bind_rows()
+
+# duplicate USUBJID/TIME records
+offending_duplicate_times <- data %>%
+  group_by(USUBJID, TIME) %>%
+  filter(n() > 1) %>%
   ungroup() %>%
-  filter(DT > DT_flag, NAME == NAME_DOSE)
+  transmute(USUBJID, STUDYID, TIME, YTYPE, NAME)
 
-g = ggplot(data, aes(x = TIME, y = USUBJID)) 
-g = g + geom_point(shape = 4)
-g = g + geom_point(data = data_dose_interruption,
-                   aes(x = TMID, y = USUBJID),
-                   color = "red", alpha = 0.2, size = 5)
-g = g + xgx_scale_x_time_units(units_dataset = time_units_dataset)
-g = g + facet_wrap(~YTYPE+NAME, labeller = label_both)
-print(g)
+# negative or zero dependent variable among observations
+offending_dv <- data %>%
+  filter(EVID == 0, !is.na(LIDV), LIDV <= 0) %>%
+  transmute(USUBJID, STUDYID, TIME, YTYPE, NAME, LIDV)
+
+# assemble the full (unmasked) summary ----------------------------------------
+summary_full <- list(
+  provenance = list(
+    source_file = normalizePath(filename, mustWork = FALSE),
+    file_last_modified = as.character(file.info(filename)$mtime),
+    report_run_at = format(Sys.time(), "%Y-%m-%d %H:%M"),
+    n_rows = nrow(data),
+    n_columns = ncol(data),
+    n_subjects = dplyr::n_distinct(data$USUBJID),
+    studies = sort(unique(data$STUDYID))
+  ),
+  n_subjects_by_study_arm = summary_by_trt,
+  n_datapoints_by_study_arm_ytype = summary_by_trt_ytype,
+  na_counts_by_column = na_summary,
+  offending = list(
+    continuous_plausibility = offending_continuous,
+    categorical_unexpected = offending_categorical,
+    duplicate_times = offending_duplicate_times,
+    nonpositive_dv = offending_dv
+  ),
+  offending_counts = list(
+    continuous_plausibility = nrow(offending_continuous),
+    categorical_unexpected = nrow(offending_categorical),
+    duplicate_times = nrow(offending_duplicate_times),
+    nonpositive_dv = nrow(offending_dv)
+  )
+)
+
+# derive the masked summary by stripping USUBJIDs -----------------------------
+# The mask is a transform of the full summary, so there is a single source of
+# truth. Offending-subject lists are collapsed to counts; everything else stays.
+strip_usubjid <- function(x) {
+  if (is.data.frame(x)) {
+    return(x[, setdiff(names(x), "USUBJID"), drop = FALSE])
+  }
+  if (is.list(x)) {
+    return(lapply(x, strip_usubjid))
+  }
+  x
+}
+
+summary_no_subjids <- summary_full
+# replace the detailed offending lists with counts only, then strip any stray IDs
+summary_no_subjids$offending <- summary_full$offending_counts
+summary_no_subjids <- strip_usubjid(summary_no_subjids)
+
+# write both files next to the rendered document ------------------------------
+#
+# The leading underscore is load-bearing, not cosmetic. rmarkdown::render_site()
+# copies every file in this directory into the published site except dotfiles,
+# *_cache, a fixed list of source extensions, and anything starting with "_".
+# .json is NOT on that exclusion list, so without the underscore the unmasked
+# export -- the one holding USUBJIDs -- would be published alongside the page.
+out_stem <- paste0("_", str_replace(Rmd_name, "\\.Rmd$", ""))
+path_full <- paste0(out_stem, "_summary_full.json")
+path_masked <- paste0(out_stem, "_summary_no_subjids.json")
+
+jsonlite::write_json(
+  summary_full,
+  path_full,
+  auto_unbox = TRUE,
+  pretty = TRUE,
+  na = "null"
+)
+jsonlite::write_json(
+  summary_no_subjids,
+  path_masked,
+  auto_unbox = TRUE,
+  pretty = TRUE,
+  na = "null"
+)
+
+cat(
+  "Wrote:\n ",
+  path_full,
+  " (unmasked, contains USUBJIDs)\n ",
+  path_masked,
+  " (no subject IDs)\n",
+  sep = ""
+)
 ```
+# Summarize Findings
 
-## Nominal vs Actual Time Discrepancies + Nominal Time Summary
+Summarize what the checks above revealed, so anyone reading the report can see
+the state of the data at a glance. The goal here is to *describe* what was found,
+not to decide how it changes the modeling — that decision belongs to the
+analysis plan, not this document. Fill this in each time you run the file.
 
-A common error is that either the nominal or actual time were derived incorrectly.  Thus a quick sanity check is to plot nominal vs actual time. Any points that don't lie near the identity line require further investigation.
+- **Data quality issues found:** *(e.g. out-of-range weights, duplicate times, undocumented columns)*
+- **Missing data:** *(extent, patterns, and apparent mechanism)*
+- **Distributions:** *(skewed variables that may need transformation before modeling)*
+- **Outliers:** *(any, and whether they warrant a closer look)*
+- **Small categories:** *(any levels with very few subjects)*
+- **Correlated covariates:** *(pairs above threshold)*
 
-```{r}
+# Future Enhancements (Parking Lot)
 
-xymin = min(c(data$NOMTIME, data$TIME), na.rm = TRUE)
-xymax = max(c(data$NOMTIME, data$TIME), na.rm = TRUE)
+Ideas to strengthen this workflow, deferred for now. Kept here so they survive
+into the template and are not forgotten. None are required for the document to
+be useful today.
 
-g = ggplot(data = data, aes(x = TIME, y = NOMTIME))
-g = g + geom_point()
-g = g + annotate("segment", x = xymin, xend = xymax, y = xymin, yend = xymax, color = "blue")
-g = g + xlim(c(xymin, xymax))
-g = g + ylim(c(xymin, xymax))
-print(g)
+**Adopt mature data-quality tooling instead of bespoke checks.** The
+plausibility and validity checks here could be replaced or backed by established R packages, which bring tested logic and standard reporting:
 
-difftime = data %>%
-  mutate(DIFF_TIME = abs(NOMTIME - TIME)) %>%
-  arrange(-DIFF_TIME) %>%
-  slice(1:10)
+- [`pointblank`](https://rstudio.github.io/pointblank/) — declarative data
+validation: state expectations (ranges, allowed values, uniqueness) and get a pass/fail report. A natural fit for the "Checking Values Are Valid" section.
+- [`dataquieR`](https://dataquality.qihs.uni-greifswald.de/) — the STRATOS-lineage data-quality framework; a more formal, comprehensive take on the same IDA activities in this document.
 
-difftime %>%
-  select(USUBJID, TRT, DIFF_TIME, TIME, NOMTIME, YTYPE, NAME, LIDV) %>%
-  DT::datatable(difftime)
-```
+**Turn the exported summary into an AI-assisted review.** The Portable Summary
+Export already writes a machine-readable artifact. That is the input contract for a future "data-cleaning reviewer" agent that reads the summary *and* this code, flags weaknesses, and drafts the Summary of Findings. Relevant building blocks:
 
-### Unique Nominal Time values
+- [`ellmer`](https://ellmer.tidyverse.org/) — R-native LLM interface (tool use, structured output); the natural harness for such a reviewer in R.
+- [`btw`](https://posit-dev.github.io/btw/) — supplies R session/data context to an LLM.
+- ISoP AI/ML SIG [Agentic Workflows](https://github.com/AIML-SIG/Agentic-workflows)
+(glossary, PMbench leaderboard) — the community effort to evaluate and
+standardize PMX agents, worth aligning with or contributing back to.
 
-Look at the nominal times in the dataset, just to make sure they're correct.  In this case, there is a mistake because nominal time has units of days and the 5m, 1h, 2h, 4h, and 8h nominal time values were all set to "1" rather than having unique values (i.e. 1 hour should be 1/24 = 0.041 rather than 1).
+**When picking any of these up:** vet the current scope and activity of each
+package/repo first (this space moves quickly), and keep the human-in-the-loop —
+an AI reviewer should draft findings for a modeler to adjudicate, never sign off.
 
-```{r}
-cat(sort(unique(data$NOMTIME)))
-```
+# References
 
+- Baillie M, le Cessie S, Schmidt CO, Lusa L, Huebner M, for the STRATOS Initiative (2022). *Ten simple rules for initial data analysis.* PLoS Comput Biol 18(2): e1009819. <https://doi.org/10.1371/journal.pcbi.1009819>
+- Huebner M, le Cessie S, Schmidt CO, Vach W (2018). *A contemporary conceptual framework for initial data analysis.* Observational Studies 4: 171–192. <https://doi.org/10.1353/obs.2018.0014>
+- Huebner M, Vach W, le Cessie S, Schmidt CO, Lusa L (2020). *Hidden analyses: a review of reporting practice and recommendations for more transparent reporting of initial data analyses.* BMC Med Res Methodol 20: 61. <https://doi.org/10.1186/s12874-020-00942-y>
+- Chatfield C (1985). *The initial examination of data.* J R Stat Soc Ser A 148(3): 214–253. <https://doi.org/10.2307/2981969>
+- Lee KJ, Tilling KM, Cornish RP, et al. (2021). *Framework for the treatment and reporting of missing data in observational studies (TARMOS).* J Clin Epidemiol 134: 79–88. <https://doi.org/10.1016/j.jclinepi.2021.01.008>
+- Schmidt CO, Struckmann S, Enzenbach C, et al. (2021). *Facilitating harmonized data quality assessments: a data quality framework for observational health research data collections with software implementations in R (`dataquieR`).* BMC Med Res Methodol 21: 63. <https://doi.org/10.1186/s12874-021-01252-7>
+- Vandemeulebroecke M, Baillie M, Margolskee A, Magnusson B (2019). *Effective visual communication for the quantitative scientist.* CPT Pharmacometrics Syst Pharmacol 8: 705–719. <https://doi.org/10.1002/psp4.12455>
 
-## R session info
-```{r}
+# R Session Info
+
+```{r session-info}
 sessionInfo()
 ```
