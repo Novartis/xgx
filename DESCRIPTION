@@ -20,7 +20,6 @@ BugReports: https://github.com/Novartis/xgx/issues
 Encoding: UTF-8
 Imports:
     DT,
-    DescTools,
     GGally,
     Hmisc,
     binom,
