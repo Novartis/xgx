@@ -14,9 +14,10 @@ Rmarkdown/www/
 # site moved to being built by CI; the live site is now whatever
 # .github/workflows/build-site.yml publishes, never what is committed here.
 #
-# These patterns exist because Rmarkdown/000_render_site.R still shell-copies
-# www/ up into the root, so anyone running the old local build recreates all of
-# it. Ignored rather than deleted-and-forgotten, so it cannot silently come back.
+# The scripts that used to create these (Rmarkdown/000_render_site.R and its two
+# variants) were retired the same day, so nothing in the repository writes here
+# any more. Kept as a backstop: an old checkout still has those scripts, and
+# running one silently recreates ~292 files ready to be committed.
 /*.html
 /*_files/
 /site_libs/

@@ -1,9 +1,13 @@
 # Render the xGx website for CI / GitHub Pages.
 #
-# This differs from Rmarkdown/000_render_site.R in one important way: it never
-# copies anything into the repository root. It renders into Rmarkdown/www and
-# then assembles a self-contained publish directory, so no build output is ever
-# committed to git.
+# It never copies anything into the repository root. It renders into
+# Rmarkdown/www and then assembles a self-contained publish directory, so no
+# build output is ever committed to git. That was the whole point of replacing
+# the old Rmarkdown/000_render_site.R, which shell-copied www/ up a level and
+# is why the rendered site used to live in git (retired 2026-08-11).
+#
+# For local previews use dev/render_site_local.R, which wraps this script and
+# adds cache clearing. Both paths run the code below, so they cannot drift.
 #
 # The published pages link directly at Data/, Resources/ and Rmarkdown/, so
 # those have to ship alongside the HTML at the same relative depth in order for

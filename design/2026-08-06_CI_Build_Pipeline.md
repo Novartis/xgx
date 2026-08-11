@@ -20,12 +20,12 @@ CI is *continuous integration*. On GitHub the product is called **GitHub
 Actions**. The idea is simply: **a computer at GitHub runs the build for you,
 automatically, every time you push.**
 
-**How the site is built today**
+**How the site was built until 2026-08-11**
 
 ```
 edit  Rmarkdown/Multiple_Ascending_Dose_PK.Rmd     (your laptop)
   |
-run   Rmarkdown/000_render_site.R                  (your laptop)
+run   Rmarkdown/000_render_site.R                  (your laptop, now retired)
   |
       renders into Rmarkdown/www/, then shell-copies
       ~27 .html files + 17 *_files/ dirs + site_libs/ + SiteResources/
@@ -310,11 +310,33 @@ happen to use.
    `dependencies` file that `DESCRIPTION` had superseded. 292 files. Root is now
    `Rmarkdown/ Data/ Resources/ dev/ design/ README.md DESCRIPTION LICENSE.md
    .github/ .gitignore`. Detail in `2026-08-03_Website_Refactor_Update.md`.
-9. **Next** — retire `000_render_site.R` and its two variants, or reduce them to
-   a thin local-preview wrapper around `render_site_ci.R`. This is now the one
-   loose end: those scripts still shell-copy `www/` into the repository root,
-   so they recreate exactly what step 8 removed. `.gitignore` currently stops
-   that from being recommitted, which is a guard rail, not a fix.
+9. **Done 2026-08-11** — retired `000_render_site.R` and both variants, and
+   replaced them with `dev/render_site_local.R`, a thin wrapper that calls
+   `render_site_ci.R` and never writes outside `Rmarkdown/www/`. It keeps the
+   one capability the variants added that was worth keeping — clearing the
+   knitr cache — as `render_xgx_site(clear_cache = TRUE)`.
+
+   Worth recording why the third variant had to go rather than be ported:
+   `000_render_site_clear_cache_install_xgxr.R` installed the vendored
+   `dev/Rlib/xgxr_1.0.2.tar.gz`. The site was fixed for xgxr 1.1.6 in
+   `2d54f80`, so that script would now downgrade xgxr and break the build it
+   was meant to run. It had quietly become a trap.
+
+   With no script in the repository writing to the root, the `.gitignore`
+   entries added in step 8 are now a backstop against old checkouts rather
+   than a guard against current code.
+
+**The sequence is complete.** Remaining loose ends are tracked below, not here.
+
+### 6.1 Left over
+
+* `dev/Rlib/` holds a vendored xgxr 1.0.2 install (~35 help `.html` files) and
+  the `xgxr_1.0.2.tar.gz` it came from. Retiring the install script orphaned
+  both. xgxr is a CRAN dependency declared in `DESCRIPTION`, so nothing needs
+  the vendored copy; it is a deletion nobody has made yet.
+* `.git` is still ~588 MB. Step 8 stopped it growing but did not shrink it.
+  Shrinking means rewriting history, which breaks every existing clone and
+  fork, and is not obviously worth it.
 
 Steps 3–5 were completed *before* step 6, so the request came with a working
 pipeline attached rather than a plan.

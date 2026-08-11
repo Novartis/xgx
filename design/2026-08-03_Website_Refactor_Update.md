@@ -82,15 +82,39 @@ all 27 had a source, so CI regenerates the lot and no page was lost.
 Two things done alongside, because the cleanup does not hold without them:
 
 * **`.gitignore` now ignores `/*.html`, `/*_files/`, `/site_libs/` and
-  `/SiteResources/`.** `Rmarkdown/000_render_site.R` still shell-copies
-  `www/` into the root, so without this the next person to run the old local
-  build recreates all 292 files and can recommit them.
+  `/SiteResources/`.** At the time, `Rmarkdown/000_render_site.R` still
+  shell-copied `www/` into the root, so without this the next person to run the
+  old local build recreated all 292 files and could recommit them.
 * **`README.md` rewritten** — it described the root as the published website
-  and told contributors to run `000_render_site.R`. It now points at
-  `dev/ci/render_site_ci.R` for local preview.
+  and told contributors to run `000_render_site.R`.
 
-Retiring `000_render_site.R` and its two variants properly is the remaining
-follow-up (§6.9 of the CI design doc).
+### Step 3 — retire the old local build — DONE 2026-08-11
+
+`000_render_site.R` and both `_clear_cache` variants deleted. They were the
+mechanism that put build output in the root, so leaving them in place would
+have made Step 2 a matter of time rather than a fix.
+
+Replaced by `dev/render_site_local.R`:
+
+```r
+source("dev/render_site_local.R")
+render_xgx_site()                     # incremental
+render_xgx_site(clear_cache = TRUE)   # from scratch
+```
+
+It wraps `dev/ci/render_site_ci.R` — the same script CI runs, so local and CI
+builds cannot drift — and writes only into the gitignored `Rmarkdown/www/`.
+Cache clearing, the one thing the variants added that was worth keeping, clears
+both `*_cache` and `*_files`; clearing only the first is the trap that yields a
+build that looks fine while serving stale plots.
+
+`000_render_site_clear_cache_install_xgxr.R` was deleted rather than ported: it
+installed the vendored `dev/Rlib/xgxr_1.0.2.tar.gz`, and since `2d54f80` fixed
+the site for xgxr 1.1.6, running it would downgrade xgxr and break the build.
+
+This orphans `dev/Rlib/` — a vendored xgxr 1.0.2 install plus its tarball, ~35
+`.html` help pages among them. Nothing references it now; xgxr comes from CRAN
+via `DESCRIPTION`. Deleting it is available whenever someone wants to.
 
 Note this does not shrink `.git`, which is ~588 MB largely from rendered images
 recommitted on every render. It stops it growing, which is the achievable win.

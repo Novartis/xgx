@@ -61,18 +61,27 @@ so you can check a change without an R toolchain at all.
 To render locally, from the repository root:
 
 ```r
-source("dev/ci/render_site_ci.R")
+source("dev/render_site_local.R")
+render_xgx_site()                     # incremental; reuses the knitr cache
+render_xgx_site(clear_cache = TRUE)   # from scratch
 ```
 
-That renders into `Rmarkdown/www/`, which is gitignored.  Open
-`Rmarkdown/www/index.html` to preview.
+That renders into `Rmarkdown/www/`, which is gitignored, and opens the result.  It
+runs the same `dev/ci/render_site_ci.R` that CI runs, so there is no second build
+path to drift out of sync.  Nothing is copied into the repository root.
 
-> `Rmarkdown/000_render_site.R` and its two variants are the **old** local build.  They
-> shell-copy `Rmarkdown/www/` into the repository root, which is exactly the committed
-> build output that was removed on 2026-08-11.  Prefer `render_site_ci.R`; the old
-> scripts are kept for now only because they are what people have in muscle memory.
+Rendering is cached, so a repeat build is quick.  Clear the cache when you change
+something the cache cannot see — most often the datasets in `Data/`, because knitr
+keys on the `.Rmd` chunk source, not on the files a chunk reads.  Pass
+`clear_cache = TRUE` rather than deleting directories by hand: it clears both
+`Rmarkdown/*_cache` **and** `Rmarkdown/*_files`, and clearing only the first gives
+you a build that looks fine while serving stale plots.  Do not delete
+`SiteResources`.
 
-Most of the Rmarkdown scripts use caching so that recompiling is quick.  However, when developing the site, if you change any dependencies (e.g. data in the Data folder) you should delete the cache.  This means deleting all the folders in Rmarkdown that end in "_cache"  DO NOT DELETE SiteResources.
+> `Rmarkdown/000_render_site.R` and its two `_clear_cache` variants were **retired on
+> 2026-08-11**.  They shell-copied `Rmarkdown/www/` into the repository root, which is
+> how the rendered site came to be committed.  If you have one in an old checkout, do
+> not run it.
 
 In order to add links to the website, do the following:
 * Edit the Rmarkdown/_site.yml.  Under the menu of interest, add a text and href entry - follow other examples
