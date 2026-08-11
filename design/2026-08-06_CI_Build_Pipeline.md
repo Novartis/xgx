@@ -344,6 +344,41 @@ happen to use.
     Checked and found clean: every package in `DESCRIPTION` is genuinely used
     by at least one `.Rmd`.
 
+11. **Done 2026-08-11** — swept version control for duplicates.
+
+    **No byte-identical duplicates remain.** Verified by hashing every tracked
+    file. The real duplication was the four `.mp4` copies noted in §2.5, and
+    step 8 fixed it by deleting the root `SiteResources/`: `poster.mp4` and
+    `tutorial.mp4` now exist once each, 177 MB down from 354 MB in the working
+    tree.
+
+    **Neither `.mp4` can go.** They are different videos, not copies —
+    different lengths, different hashes — and each is embedded by its own page
+    (`2020_xgx_ACoP_poster.Rmd`, `2020_xgx_ACoP_tutorial.Rmd`), each of which is
+    linked twice, from `Resources.Rmd` and `Presentations_Publications.Rmd`.
+
+    Removed as near-duplicate test artefacts:
+
+    * `Data/Multiple_Ascending_Dose_Dataset_TEST.csv` (420 KB)
+    * `Data/Multiple_Ascending_Dose_Dataset2_TEST.csv` (412 KB)
+
+    Both are variants of the real datasets with different row counts, and
+    nothing references them — not the pages, not `Data/*.md`, not
+    `dev/Test/PKPD_Datasets_TEST.Rmd`. They were live URLs, which is the one
+    reason for pause, but `_TEST` in the name is not something a publication
+    cites.
+
+    **`Data/RO_BCMA.csv` was kept** despite no page loading it. It is a
+    deliberate public download: `Datasets.Rmd` includes `RO_BCMA.md`, which
+    documents it. "Not read by any chunk" and "not published on purpose" are
+    different things throughout `Data/`.
+
+    Fixed while here: `RO_BCMA.md` was headed `# PPtmp_NCA`, a copy-paste from
+    the file above it. The Datasets page therefore carried two `<h1>PPtmp_NCA</h1>`
+    sections with the same `id="pptmp-nca"`, so the receptor-occupancy dataset
+    was documented under the wrong name and the duplicate anchor broke the
+    table of contents.
+
 **The sequence is complete.**
 
 ### 6.1 Left over
@@ -354,18 +389,38 @@ Judgment calls, deliberately not taken:
   `Multiple_Ascending_Dose_PD_receptor_occupancy`,
   `Multiple_Ascending_Dose_PKPD_receptor_occupancy` and
   `Presentations_Publications`. They render, they are live, nothing in
-  `_site.yml` or any page links to them. They are real content, not build
-  cruft, and their URLs may be cited, so the fix is more likely adding them to
-  the nav than deleting them.
+  `_site.yml` or any page links to them.
+
+  The two receptor-occupancy pages are ~43-line stubs carrying
+  `status = "DRAFT"` and loading no data at all, so they look like work that
+  was started and parked. `Presentations_Publications` is the odd one: it is
+  complete, and it is the page the ACoP videos are cited from, yet nothing
+  reaches it. Adding it to the nav is more likely right than deleting it.
 * **Five unreferenced images** in `Rmarkdown/SiteResources/`:
   `AE_vs_AUC_boxplots.png`, `Count_Hazard_Figure.png`, `Kaplan_Meier.png`,
   `Lab_Marker_Pct_of_ULN.png`, `Safety_icon.png`. ~250 KB total. `Safety_icon`
   is suggestive — there is an icon for a nav section that does not exist.
 * **`dev/Test/`** — two scratch files. Kept deliberately in `f1cdea7`; no new
   reason to remove them.
-* **The two `.mp4` files are 177 MB of the working tree** but both are
-  genuinely referenced, by the ACoP poster and tutorial pages. Deleting the
-  root `SiteResources/` copy in step 8 already halved this.
+* **Six unreferenced files in `Resources/`, ~15.7 MB.** Published, with public
+  URLs, and nothing on the site links them:
+
+  | File | Size |
+  | --- | --- |
+  | `Uncertainty_Assessment_Presentation.pdf` | 14 MB |
+  | `Graphics_Principles_Cheat_Sheet_v1.1.pdf` | 880 KB |
+  | `Giving_and_Receiving_Feedback.docx` | 628 KB |
+  | `ContextOfUse_Table_1page.pdf` | 124 KB |
+  | `Presentation_Checklist_v2.04.docx` | 72 KB |
+  | `Presentation_Outline_Template.pptx` | 28 KB |
+
+  These are documents, not build output, so the question is editorial: are they
+  meant to be on the Resources page and were never linked, or are they
+  superseded? `Presentation_Checklist_v2.04.docx` is the sharpest case — the
+  page links `v2.03.pdf`, so a newer revision is sitting unlinked beside the
+  old one. Worth one pass from someone who knows the material.
+* **The two `.mp4` files are 177 MB of the working tree**, both genuinely used.
+  Step 8 already halved this by removing the root duplicates.
 * `.git` is still ~588 MB. Step 8 stopped it growing but did not shrink it.
   Shrinking means rewriting history, which breaks every existing clone and
   fork, and is not obviously worth it.
