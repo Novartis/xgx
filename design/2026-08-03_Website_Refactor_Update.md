@@ -1,9 +1,15 @@
 ## Plan for Update (as of 2026-08-11) for first gen update
 
 Everything below was on branch `andy-reorg-nochange`, which **merged to
-`Novartis/xgx` master on 2026-08-11** as PR #62. Steps 0–2 are complete and the
-live site is built by CI. Detail and rationale live in
-`design/2026-08-06_CI_Build_Pipeline.md`.
+`Novartis/xgx` master on 2026-08-11** as PR #62. Steps 0–4 are complete and the
+live site is built by CI.
+
+This is now the single record of that work. `design/2026-08-06_CI_Build_Pipeline.md`
+held the original proposal and rationale; it was deleted on 2026-08-11 once the
+pipeline was implemented, since the workflow file and `dev/ci/` are the live
+description and a proposal for something already built is just something else to
+keep in step. Its still-open items were carried into *Open items* below. The
+history is in git if the argument is ever needed again.
 
 ### Already done on the branch
 
@@ -133,12 +139,62 @@ were always resolving to the package. The file was a stale fork of it.
 Also checked, nothing to do: every package declared in `DESCRIPTION` is used by
 at least one `.Rmd`.
 
-Not taken, and tracked in §6.1 of the CI design doc: three published pages that
-no navigation reaches, five unreferenced images in `SiteResources/`, and
-`dev/Test/`.
-
 Note this does not shrink `.git`, which is ~588 MB largely from rendered images
 recommitted on every render. It stops it growing, which is the achievable win.
+
+### Open items — found during the cleanup, deliberately not taken
+
+These are editorial or content calls rather than build cleanup, so they were
+left for someone who knows the material. Carried over here when the CI design
+doc was deleted on 2026-08-11.
+
+* **Three published pages are unreachable from the navigation** —
+  `Multiple_Ascending_Dose_PD_receptor_occupancy`,
+  `Multiple_Ascending_Dose_PKPD_receptor_occupancy` and
+  `Presentations_Publications`. They render, they are live, and nothing in
+  `_site.yml` or on any page links to them.
+
+  The two receptor-occupancy pages are ~43-line stubs carrying
+  `status = "DRAFT"` that load no data at all — work started and parked.
+  `Presentations_Publications` is the odd one: it is complete, and it is where
+  the ACoP videos are cited from, yet nothing reaches it. Adding it to the nav
+  is more likely right than deleting it.
+
+* **Six unreferenced files in `Resources/`, ~15.7 MB.** Published, with public
+  URLs, and nothing on the site links them:
+
+  | File | Size |
+  | --- | --- |
+  | `Uncertainty_Assessment_Presentation.pdf` | 14 MB |
+  | `Graphics_Principles_Cheat_Sheet_v1.1.pdf` | 880 KB |
+  | `Giving_and_Receiving_Feedback.docx` | 628 KB |
+  | `ContextOfUse_Table_1page.pdf` | 124 KB |
+  | `Presentation_Checklist_v2.04.docx` | 72 KB |
+  | `Presentation_Outline_Template.pptx` | 28 KB |
+
+  Documents, not build output, so the question is editorial: meant for the
+  Resources page and never linked, or superseded? `Presentation_Checklist_v2.04.docx`
+  is the sharpest case — the page links `v2.03.pdf`, so a newer revision sits
+  unlinked beside the old one.
+
+* **Five unreferenced images** in `Rmarkdown/SiteResources/`:
+  `AE_vs_AUC_boxplots.png`, `Count_Hazard_Figure.png`, `Kaplan_Meier.png`,
+  `Lab_Marker_Pct_of_ULN.png`, `Safety_icon.png`. ~250 KB. `Safety_icon` is
+  suggestive — an icon for a nav section that does not exist.
+
+* **`dev/Test/`** — two scratch files, kept deliberately in `f1cdea7`.
+
+* **The two `.mp4` files are 177 MB of the working tree**, both genuinely used
+  by the ACoP poster and tutorial pages. Deleting the root `SiteResources/`
+  copy already halved this.
+
+* **Defects in `Data/Data_Checking.csv`** surfaced by the new integrity checks
+  on 2026-08-11: four covariates that vary within a subject (`AGEB` takes nine
+  distinct values within subject 1, though it is a *baseline* covariate), three
+  duplicate event records, and one subject with no observations. Also `CENS` is
+  set only on pre-dose records whose values sit *above* the LLOQ, while 15
+  observations below the LLOQ are unflagged — so `CENS` in this dataset is not
+  marking BLQ. The page now reports all of this; the data has not been fixed.
 
 ### Constraints — these do not move
 
