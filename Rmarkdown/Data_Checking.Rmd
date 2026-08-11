@@ -82,8 +82,12 @@ options(DT.options = list(pageLength = 20))
 
 # --- Analysis-specific settings: EDIT THESE for your dataset -----------------
 
-# path to the modeling dataset to check
-filename <- "Data/Data_Checking.csv"
+# Path to the modeling dataset to check, relative to this .Rmd. The site build
+# renders from inside Rmarkdown/, which is why this is "../Data/..." and not
+# "Data/..." -- the same convention every other page here uses. A bare
+# "Data/..." works when you run chunks interactively from the project root and
+# then fails in the build.
+filename <- "../Data/Data_Checking.csv"
 modeling_data_in <- read.csv(filename, stringsAsFactors = FALSE)
 
 # time units of the dataset (used for axis scaling)
