@@ -326,14 +326,46 @@ happen to use.
    entries added in step 8 are now a backstop against old checkouts rather
    than a guard against current code.
 
-**The sequence is complete.** Remaining loose ends are tracked below, not here.
+10. **Done 2026-08-11** — audited the rest of the repository for material the
+    cutover had orphaned, and removed what was provably dead:
+
+    * `dev/Rlib/` — the vendored xgxr 1.0.2 install and its tarball, 67 files
+      and 4.5 MB. Its only remaining mention in live code was a commented-out
+      `lib.loc` in `Multiple_Ascending_Dose_PK_KeyPlots.Rmd`. xgxr comes from
+      CRAN via `DESCRIPTION`.
+    * `dev/R/` — `xgx_functions_v2.R`, `xgx_functions_v3.R`,
+      `xgx_packages_functions.R`. Zero references anywhere; superseded by the
+      xgxr package years ago.
+    * `Rmarkdown/xgx_stat_smooth.R` — a copy of package source that nothing
+      sourced. No `.Rmd` calls `source()` at all, so the `xgx_stat_smooth` and
+      `xgx_geom_smooth*` calls in the pages were always resolving to `xgxr`.
+      All six functions it defined are in the xgxr 1.1.6 namespace.
+
+    Checked and found clean: every package in `DESCRIPTION` is genuinely used
+    by at least one `.Rmd`.
+
+**The sequence is complete.**
 
 ### 6.1 Left over
 
-* `dev/Rlib/` holds a vendored xgxr 1.0.2 install (~35 help `.html` files) and
-  the `xgxr_1.0.2.tar.gz` it came from. Retiring the install script orphaned
-  both. xgxr is a CRAN dependency declared in `DESCRIPTION`, so nothing needs
-  the vendored copy; it is a deletion nobody has made yet.
+Judgment calls, deliberately not taken:
+
+* **Three published pages are unreachable from the navigation** —
+  `Multiple_Ascending_Dose_PD_receptor_occupancy`,
+  `Multiple_Ascending_Dose_PKPD_receptor_occupancy` and
+  `Presentations_Publications`. They render, they are live, nothing in
+  `_site.yml` or any page links to them. They are real content, not build
+  cruft, and their URLs may be cited, so the fix is more likely adding them to
+  the nav than deleting them.
+* **Five unreferenced images** in `Rmarkdown/SiteResources/`:
+  `AE_vs_AUC_boxplots.png`, `Count_Hazard_Figure.png`, `Kaplan_Meier.png`,
+  `Lab_Marker_Pct_of_ULN.png`, `Safety_icon.png`. ~250 KB total. `Safety_icon`
+  is suggestive — there is an icon for a nav section that does not exist.
+* **`dev/Test/`** — two scratch files. Kept deliberately in `f1cdea7`; no new
+  reason to remove them.
+* **The two `.mp4` files are 177 MB of the working tree** but both are
+  genuinely referenced, by the ACoP poster and tutorial pages. Deleting the
+  root `SiteResources/` copy in step 8 already halved this.
 * `.git` is still ~588 MB. Step 8 stopped it growing but did not shrink it.
   Shrinking means rewriting history, which breaks every existing clone and
   fork, and is not obviously worth it.

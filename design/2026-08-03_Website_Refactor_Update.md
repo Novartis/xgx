@@ -112,9 +112,30 @@ build that looks fine while serving stale plots.
 installed the vendored `dev/Rlib/xgxr_1.0.2.tar.gz`, and since `2d54f80` fixed
 the site for xgxr 1.1.6, running it would downgrade xgxr and break the build.
 
-This orphans `dev/Rlib/` — a vendored xgxr 1.0.2 install plus its tarball, ~35
-`.html` help pages among them. Nothing references it now; xgxr comes from CRAN
-via `DESCRIPTION`. Deleting it is available whenever someone wants to.
+### Step 4 — retire the orphaned xgxr 1.0.2 material — DONE 2026-08-11
+
+Deleting the install script orphaned the thing it installed. Removed, 72 files:
+
+* `dev/Rlib/` — the vendored xgxr 1.0.2 install and `xgxr_1.0.2.tar.gz`, 4.5 MB
+  and 67 files, ~35 of them `.html` help pages. This also resolves the
+  exception noted under the done criteria above: no `.html` is now committed
+  outside `Rmarkdown/SiteResources/`, with no caveat attached.
+* `dev/R/` — `xgx_functions_v2.R`, `xgx_functions_v3.R`,
+  `xgx_packages_functions.R`. Zero references; superseded by xgxr.
+* `Rmarkdown/xgx_stat_smooth.R` — a copy of package source nothing sourced.
+
+The last one is worth spelling out, because it looked live at a glance. Pages
+do call `xgx_stat_smooth()` and `xgx_geom_smooth_emax()`, so the file appears
+to be in use. But no `.Rmd` in the repository calls `source()` at all, and all
+six functions the file defines are in the xgxr 1.1.6 namespace. Those calls
+were always resolving to the package. The file was a stale fork of it.
+
+Also checked, nothing to do: every package declared in `DESCRIPTION` is used by
+at least one `.Rmd`.
+
+Not taken, and tracked in §6.1 of the CI design doc: three published pages that
+no navigation reaches, five unreferenced images in `SiteResources/`, and
+`dev/Test/`.
 
 Note this does not shrink `.git`, which is ~588 MB largely from rendered images
 recommitted on every render. It stops it growing, which is the achievable win.
@@ -140,15 +161,11 @@ which changes.
 - All 27 pages return 200.
 - The three link shapes above return 200.
 - `dev/ci/check_links.py` passes and the build is green.
-- No *generated website* `.html` committed anywhere outside
-  `Rmarkdown/SiteResources/`, which keeps only the three fragments the build
-  includes: `header.html`, `body.html`, `icon_nav.html`.
-
-  The one exception, deliberate: `dev/Rlib/xgxr/` contains ~35 `.html` help
-  pages belonging to a vendored xgxr package install. Those are a local R
-  library, not site output, and nothing publishes them — `dev/` is not copied
-  into `www/`. Whether that vendored copy should exist at all is a separate
-  question from this cleanup.
+- No `.html` committed anywhere outside `Rmarkdown/SiteResources/`, which keeps
+  only the three fragments the build includes: `header.html`, `body.html`,
+  `icon_nav.html`. Met without caveat as of Step 4 — the ~35 help pages in the
+  vendored `dev/Rlib/xgxr/` install were the one exception, and that install is
+  now gone.
 
 ### Not in this generation
 

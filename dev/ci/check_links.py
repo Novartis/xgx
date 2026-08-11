@@ -28,8 +28,8 @@ LINK = re.compile(r'(?:src|href)="([^"]+)"')
 #   SiteResources header/body/icon_nav are include fragments, not standalone pages:
 #                 their hrefs resolve against the page that embeds them, not against
 #                 their own directory, so they are validated via the rendered pages
-#   Rlib, dev     developer-only, never published
-SKIP_DIRS = {"site_libs", "SiteResources", "Rlib", "dev", ".git"}
+#   dev           developer-only, never published
+SKIP_DIRS = {"site_libs", "SiteResources", "dev", ".git"}
 
 
 def main(root):

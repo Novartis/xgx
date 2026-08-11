@@ -26,7 +26,7 @@ Directories you will actually edit:
 | `Data/`        | The datasets |
 | `Resources/`   | Cheat sheets, checklists and slides linked from the Resources page |
 | `design/`      | Design notes and refactor plans |
-| `dev/`         | Developer-only material, not part of the website: `dev/R` (older standalone functions, superseded by the xgxr package), `dev/Test` (scratch tests), `dev/Rlib` (local xgxr install target) |
+| `dev/`         | Developer-only material, never published: `dev/ci` (the build and link-check scripts CI runs), `dev/render_site_local.R` (local preview), `dev/Test` (scratch tests) |
 
 Note that `Data/`, `Rmarkdown/` and `Resources/` are **both source and published web
 assets** - the generated pages link directly to the `.csv`, `.Rmd` and `.pdf` files inside
