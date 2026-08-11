@@ -685,6 +685,13 @@ generally needs the censored-likelihood treatment (M3). Bergstrand & Karlsson
 chosen approach to be stated. So the point of this section is not the total —
 it is the distribution over time and dose.
 
+Two things to read carefully on the plot below when running this on the example
+data. The x axis is stretched by a single nominal time of 568 against an actual
+time of 22, which crams every real timepoint into the left edge — that is a data
+error, flagged in *Nominal vs Actual Time Discrepancies*, not a plotting fault.
+And a large share of observations carry no nominal time at all; they cannot be
+placed on this plot, so they are counted above it rather than dropped quietly.
+
 ```{r blq-summary}
 lloq_available <- !is.na(lloq_col) && lloq_col %in% names(data)
 
@@ -731,15 +738,41 @@ if (lloq_available) {
 ```
 
 ```{r blq-by-time-dose, fig.width = 9, fig.height = 4}
+# Observations with no nominal time cannot be placed on this plot. Say so,
+# rather than letting ggplot drop them silently -- in this dataset that is most
+# of the BLQ, so a reader who did not know would badly misread the picture.
+n_no_nomtime <- sum(is.na(blq$NOMTIME))
+if (n_no_nomtime > 0) {
+  # One sentence per cat() call: knitr prefixes each output line with "##", so
+  # a sentence wrapped across two lines gets a "##" dropped into the middle.
+  cat(sprintf(
+    "%d of %d observations have no NOMTIME and are not shown below.\n",
+    n_no_nomtime, nrow(blq)
+  ))
+  cat(sprintf(
+    "Of those, %d are BLQ, out of %d BLQ observations in total.\n",
+    sum(blq$is_blq & is.na(blq$NOMTIME)), sum(blq$is_blq)
+  ))
+}
+
 blq_by_time <- blq %>%
+  filter(!is.na(NOMTIME)) %>%
   group_by(NAME, NOMTIME) %>%
   summarise(pct_blq = 100 * mean(is_blq, na.rm = TRUE), n = n(), .groups = "drop")
 
+# Points rather than bars, for two reasons. A zero-height bar draws nothing, so
+# "no BLQ at this timepoint" and "no data at this timepoint" look identical --
+# a point at zero distinguishes them. And nominal times here run out to 568
+# while most sit below 60, so a bar of default width is a hairline. Point size
+# carries the sample count, because 20% of 24 samples is not 20% of 300.
 gg_blq <- ggplot(blq_by_time, aes(x = NOMTIME, y = pct_blq)) +
-  geom_col() +
+  geom_line(alpha = 0.4) +
+  geom_point(aes(size = n)) +
   facet_wrap(~NAME) +
   xgx_scale_x_time_units(units_dataset = time_units_dataset) +
-  labs(y = "% BLQ", x = "Nominal time") +
+  scale_size_continuous(range = c(1, 4)) +
+  expand_limits(y = 0) +
+  labs(y = "% BLQ", x = "Nominal time", size = "n samples") +
   xgx_annotate_status(status)
 
 print(gg_blq)
@@ -807,13 +840,16 @@ ggplot(data, aes(x = TIME, y = NOMTIME)) +
   xlim(c(xymin, xymax)) +
   ylim(c(xymin, xymax))
 
-difftime <- data %>%
-  mutate(DIFF_TIME = abs(NOMTIME - TIME)) %>%
+# Rounded: NOMTIME - TIME is a floating-point subtraction, so an exact 3.08
+# prints as 3.079999999999998 and swamps the column. Named time_discrepancy
+# rather than difftime, which would shadow base::difftime().
+time_discrepancy <- data %>%
+  mutate(DIFF_TIME = round(abs(NOMTIME - TIME), 2)) %>%
   arrange(-DIFF_TIME) %>%
   slice(1:10) %>%
   select(USUBJID, TRT, DIFF_TIME, TIME, NOMTIME, YTYPE, NAME, LIDV)
 
-datatable(difftime)
+datatable(time_discrepancy)
 ```
 
 ### Unique Nominal Time Values

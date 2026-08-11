@@ -75,7 +75,54 @@ nothing.
 
 ---
 
-## Next Set of Improvements
+## GitHub maintenance
+
+Two things GitHub warns about on this repository. Neither is urgent, and one has
+already resolved itself, but both are easy to misread as alarming.
+
+### Dependabot alerts — resolved, nothing to do
+
+Dependabot is a GitHub service that scans a repository for **third-party code
+with known security vulnerabilities** and opens an alert for each one. It reads
+the code committed here; it does not test the live website.
+
+Four medium alerts were open on this repository, all for old copies of
+**jQuery** (1.11.3 and 1.12.4) with a 2019 cross-site-scripting advisory,
+CVE-2019-11358. We never chose those versions. They arrived as part of
+`site_libs/`, the JavaScript bundle that `render_site()` generates and that used
+to be committed to the repository root along with the rest of the built site.
+
+**All four are now marked fixed**, because deleting the committed build output
+deleted the jQuery copies with it. Nothing further is required.
+
+Worth understanding why this does not simply come back: CI still generates
+`site_libs/` on every build, and the published site still serves jQuery. But
+that copy is never committed, and Dependabot only scans the repository. Should a
+genuine vulnerability in the site's JavaScript matter one day, the fix is to
+update the R packages that vendor it (`rmarkdown`, `DT`, `htmlwidgets`), not to
+edit anything here.
+
+### Node 20 deprecation — a version bump, someday
+
+Every build log ends with a warning like:
+
+> Node.js 20 is deprecated. The following actions target Node.js 20 but are
+> being forced to run on Node.js 24: `actions/cache@v4`, `actions/checkout@v4`,
+> `actions/upload-artifact@v4`, `actions/deploy-pages@v4`.
+
+The `uses:` lines in `.github/workflows/build-site.yml` pull in small helper
+programs published by GitHub — checking out the repository, restoring the knitr
+cache, uploading the built site. Those helpers are written in JavaScript and run
+on Node. The versions we pin were built for Node 20; GitHub has retired Node 20
+and now runs them on Node 24 instead.
+
+**Builds are unaffected** — that is what "forced to run on Node.js 24" means, and
+every build since has been green. It is a notice, not an error.
+
+The eventual fix is to bump those four actions to whatever major version targets
+Node 24, i.e. change `@v4` to `@v5` or later once released, and confirm the build
+stays green. Worth doing when someone is next in this file, not as its own task.
+If the warnings ever become failures, that is the signal to do it immediately.
 
 ### xGx usage
 
