@@ -58,8 +58,9 @@ changed <- common[data_before[common] != data_after[common]]
 if (length(changed) > 0) {
   cat("\n::warning::Rendering regenerated these committed datasets:\n")
   cat(paste0("  ", changed, collapse = "\n"), "\n")
-  cat("See design/2026-08-06_CI_Build_Pipeline.md, 'Datasets are a build",
-      "side effect'.\n")
+  cat("The datasets in Data/ are source, not build output. Rendering should",
+      "not change them:\n  PKPD_Datasets.Rmd only regenerates them when",
+      "XGX_REGENERATE_DATA=true.\n")
 }
 
 cat("\nPublish directory assembled at ", publish, ":\n", sep = "")

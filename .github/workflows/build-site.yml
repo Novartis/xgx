@@ -6,7 +6,8 @@ name: Build site
 # This workflow is what publishes https://opensource.nibr.com/xgx/. Settings >
 # Pages > Source is set to "GitHub Actions" (changed 2026-08-11), so the live
 # site is whatever the `deploy` job below last uploaded -- not the HTML
-# committed in the repository. See design/2026-08-06_CI_Build_Pipeline.md.
+# committed in the repository. Background in
+# design/2026-08-03_Website_Refactor_Update.md.
 #
 # Every push and pull request builds. Only master deploys.
 

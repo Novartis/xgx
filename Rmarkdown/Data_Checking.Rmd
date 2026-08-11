@@ -1236,6 +1236,32 @@ are written out here instead — but if your workflow is NONMEM-based, use it di
 - [`pointblank`](https://rstudio.github.io/pointblank/) — declarative data
 validation: state expectations (ranges, allowed values, uniqueness) and get a pass/fail report. A natural fit for the "Checking Values Are Valid" section. Domain-agnostic: it knows nothing about `EVID` or compartments.
 - [`dataquieR`](https://dataquality.qihs.uni-greifswald.de/) — the STRATOS-lineage data-quality framework; a more formal, comprehensive take on the same IDA activities in this document. Also domain-agnostic.
+- [`apmx`](https://cran.r-project.org/package=apmx) — the upstream counterpart to
+`NMdata`: automated assembly of popPK/PKPD datasets from SDTM or ADaM, where
+`pk_build()` warns and flags records that would stop NONMEM estimating. Worth
+considering if datasets are being assembled rather than handed over — one builds
+a correct dataset, the other checks one you were given.
+
+**Check the dataset against its specification.** Every check in this document
+compares the data against expectations written *inside* the document —
+`plausibility_ranges`, `allowed_levels`, `subject_invariant`. The check not being
+done is the one against the dataset's own spec: are all the documented columns
+present, are there columns nobody documented, do the types and units match what
+the spec claims, are the derived columns actually derived that way. This is the
+"data specification matching" step in
+[DataCheQC](https://doi.org/10.1002/psp4.13017) (Dotan, Radivojevic & Singh,
+CPT:PSP 2023), and it is the largest remaining gap here.
+
+The reason it is parked rather than written is that **specification formats are
+company-specific** — a Word table, an Excel define sheet, a CDISC define.xml, or
+(as in this repository) a Markdown table in `Data/*.md`. Any parser written here
+would fit exactly one of those and break on the rest, which is why a
+general-purpose implementation is the wrong shape for a template.
+
+That makes it a natural fit for the agent described below: reading a
+heterogeneous spec document, aligning it to a data frame, and reporting
+mismatches is the kind of task an LLM handles well and a regex does not. Treat
+the spec as an input to the reviewer agent rather than as another chunk of R.
 
 **Turn the exported summary into an AI-assisted review.** The Portable Summary
 Export already writes a machine-readable artifact. That is the input contract for a future "data-cleaning reviewer" agent that reads the summary *and* this code, flags weaknesses, and drafts the Summary of Findings. Relevant building blocks:
