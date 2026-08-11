@@ -1,0 +1,144 @@
+name: Build site
+
+# Renders the xGx website from source on every push, so that no build output
+# ever needs to be committed to the repository.
+#
+# This workflow is what publishes https://opensource.nibr.com/xgx/. Settings >
+# Pages > Source is set to "GitHub Actions" (changed 2026-08-11), so the live
+# site is whatever the `deploy` job below last uploaded -- not the HTML
+# committed in the repository. See design/2026-08-06_CI_Build_Pipeline.md.
+#
+# Every push and pull request builds. Only master deploys.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # A full render compiles ODE models and ~27 pages from scratch.
+    timeout-minutes: 90
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          # Posit's package manager serves prebuilt Ubuntu binaries, which
+          # turns a ~40 minute source build of the tidyverse into a few minutes.
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          # Read from the DESCRIPTION at the repository root, which is the one
+          # authoritative record of what the site needs.
+          #
+          # "hard" means Depends/Imports/LinkingTo only, deliberately excluding
+          # Suggests. rxode2 lives in Suggests because it is needed only to
+          # regenerate the datasets in Data/, which are committed. It requires C
+          # and Fortran compilers and links against RcppArmadillo, BH and
+          # StanHeaders, so keeping it out of the build is what makes this
+          # pipeline dependency-light.
+          dependencies: '"hard"'
+
+      # knitr caches make a re-render minutes rather than an hour. Each CI run
+      # starts on a clean machine, so the caches have to be carried across runs
+      # explicitly. Keyed on the .Rmd contents so a source edit invalidates it.
+      - name: Restore knitr cache
+        uses: actions/cache@v4
+        with:
+          # Both directories, and that is not optional. On a cache hit knitr
+          # skips chunk evaluation, which means it also does not rewrite the
+          # figures. Caching *_cache without *_files therefore produces a build
+          # that renders "successfully" with every plot missing.
+          path: |
+            Rmarkdown/*_cache
+            Rmarkdown/*_files
+          key: knitr-${{ runner.os }}-${{ hashFiles('Rmarkdown/*.Rmd') }}
+          restore-keys: |
+            knitr-${{ runner.os }}-
+
+      # The first full render was killed abruptly mid-page with no R error,
+      # which is what an out-of-memory kill looks like from inside Actions.
+      # Sample resources to a file so the evidence survives the step dying.
+      - name: Start resource sampler
+        run: |
+          nohup bash -c 'while true; do
+            echo "$(date +%T) used_mb=$(free -m | awk "/^Mem:/{print \$3}")" \
+                 "avail_mb=$(free -m | awk "/^Mem:/{print \$7}")" \
+                 "disk_avail=$(df -m / | awk "NR==2{print \$4}")MB"
+            sleep 5
+          done' > /tmp/resources.log 2>&1 &
+          disown
+          echo "sampler started"
+
+      - name: Render site
+        run: Rscript dev/ci/render_site_ci.R
+
+      # `always()` so this reports even when the render step is killed.
+      - name: Resource report
+        if: always()
+        run: |
+          echo "=== peak memory used ==="
+          grep -o 'used_mb=[0-9]*' /tmp/resources.log | cut -d= -f2 \
+            | sort -n | tail -3
+          echo "=== lowest memory available ==="
+          grep -o 'avail_mb=[0-9]*' /tmp/resources.log | cut -d= -f2 \
+            | sort -n | head -3
+          echo "=== final 12 samples ==="
+          tail -12 /tmp/resources.log
+
+      - name: Check links
+        run: python3 dev/ci/check_links.py Rmarkdown/www
+
+      # Lets you download the built site from the run summary and open it
+      # locally, without touching the live site.
+      - name: Upload build for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: xgx-site
+          path: Rmarkdown/www
+          retention-days: 14
+
+      # Only master is ever staged for deployment. Pull requests still build
+      # and still publish the inspectable artifact above, they just cannot
+      # reach the live site.
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Rmarkdown/www
+
+  # Publishes the built site. On Novartis/xgx that is
+  # https://opensource.nibr.com/xgx/; in a fork it is that fork's own Pages,
+  # e.g. https://iamstein.github.io/xgx/ -- the same /xgx/ path depth as
+  # production, so relative links behave identically in both.
+  #
+  # Scoped to master. The github-pages environment additionally restricts
+  # deployments to master, so a branch cannot reach the live site even if this
+  # condition were wrong.
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
