@@ -304,12 +304,17 @@ happen to use.
 6. **Done 2026-08-11** — Pages source switched to "GitHub Actions".
 7. **Done 2026-08-11** — `deploy` job enabled; both fork-only gates replaced
    with `github.ref == 'refs/heads/master'`.
-8. **Next** — delete the committed build output from the repository root. Root
-   becomes `Rmarkdown/ Data/ Resources/ dev/ design/ README.md LICENSE.md`.
-   Safe only *after* a green deploy from master, since until then the committed
-   HTML is still what Pages is serving.
-9. Retire `000_render_site.R` and its two variants, or reduce them to a thin
-   local-preview wrapper around `render_site_ci.R`.
+8. **Done 2026-08-11** — deleted the committed build output from the
+   repository root: 27 `*.html`, 17 `*_files/`, `site_libs/`, `SiteResources/`,
+   the orphaned `SiteResources/README.html` (§2.3) and the vestigial
+   `dependencies` file that `DESCRIPTION` had superseded. 292 files. Root is now
+   `Rmarkdown/ Data/ Resources/ dev/ design/ README.md DESCRIPTION LICENSE.md
+   .github/ .gitignore`. Detail in `2026-08-03_Website_Refactor_Update.md`.
+9. **Next** — retire `000_render_site.R` and its two variants, or reduce them to
+   a thin local-preview wrapper around `render_site_ci.R`. This is now the one
+   loose end: those scripts still shell-copy `www/` into the repository root,
+   so they recreate exactly what step 8 removed. `.gitignore` currently stops
+   that from being recommitted, which is a guard rail, not a fix.
 
 Steps 3–5 were completed *before* step 6, so the request came with a working
 pipeline attached rather than a plan.

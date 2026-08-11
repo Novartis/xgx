@@ -1,7 +1,8 @@
 ## Plan for Update (as of 2026-08-11) for first gen update
 
-Everything below is on branch `andy-reorg-nochange`, which has **not** been
-pushed to `Novartis/xgx`. Detail and rationale live in
+Everything below was on branch `andy-reorg-nochange`, which **merged to
+`Novartis/xgx` master on 2026-08-11** as PR #62. Steps 0–2 are complete and the
+live site is built by CI. Detail and rationale live in
 `design/2026-08-06_CI_Build_Pipeline.md`.
 
 ### Already done on the branch
@@ -35,47 +36,61 @@ is admin-only and returns 403, so this has to come from Orla or another admin.
 If Actions is restricted, the cutover below needs a different approach and it
 is better to know that before Alison spends time reviewing.
 
-### Step 1 — cutover to CI
+### Step 1 — cutover to CI — DONE 2026-08-11
 
-Ordered, and each step is reversible on its own.
+1. **Done** — Alison reviewed the branch, including `PKPD_Datasets.Rmd`.
+2. **Done** — both deploy guards flipped from
+   `github.repository_owner != 'Novartis'` to `github.ref == 'refs/heads/master'`
+   (`cc3355a`).
+3. **Done** — merged to master as PR #62 (`e790042`). Build green, deploy 27s.
+4. **Done** — Pages Source set to "GitHub Actions". Confirmed via the API as
+   `build_type: workflow`. It is a maintain-level setting; no admin was needed.
+   Worth recording: the `github-pages` environment separately restricts
+   deployments to `master`, so a branch cannot publish to production.
+5. **Done** — verified against the done criteria below.
 
-1. **Alison reviews the branch** — blocking. Specifically `PKPD_Datasets.Rmd`,
-   since the dataset generation is her code and the engine underneath it has
-   changed.
-2. **Flip the two deploy guards** in `build-site.yml`. Both the Pages artifact
-   upload (line ~121) and the `deploy` job (line ~136) are currently gated
-   `github.repository_owner != 'Novartis'`, which scoped them to the fork.
-   These become `github.ref == 'refs/heads/master'`. *Pushing the branch without
-   this change produces a green build that deploys nothing.*
-3. **Push the branch to `Novartis/xgx` and merge to master.**
-4. **Set Settings → Pages → Source to "GitHub Actions."** This is a maintain-level
-   setting, not admin — no admin needed. (It was flipped on 2026-08-11 and
-   reverted the same day, to keep the setting in step with the code until the
-   workflow actually lands.)
-5. **Verify against the done criteria below before touching anything else.**
+One ordering hazard, since the note above got it backwards in practice: flipping
+the Pages setting *before* the workflow lands stops the legacy branch build
+without putting anything in its place. The site keeps serving its last legacy
+deployment, but goes stale — committing HTML no longer changes it. The window is
+harmless as long as the merge follows promptly, which is what happened.
 
-Rollback at any point is changing Pages Source back to "Deploy from a branch"
-(`master`, `/root`). The committed HTML is still in the repository at this
-stage, so the previous site returns immediately.
+Rollback **was** changing Pages Source back to "Deploy from a branch"
+(`master`, `/root`), which worked while the committed HTML was still in the
+repository. Step 2 removed it, so that route is gone; rollback now means
+reverting the merge, or `git revert` of the deletion commit to restore the root
+HTML first.
 
-### Step 2 — clean-up, only after CI has been live for one release cycle
+### Step 2 — clean-up — DONE 2026-08-11
 
-This is the irreversible part, and it is deliberately separated from Step 1.
-Nothing here should happen until the CI-built site has been serving correctly
-and someone has clicked through it.
+Done the same day as Step 1 rather than after a release cycle, at Andy's call,
+once the CI-built site had been verified serving correctly. 292 files removed.
 
-1. **Delete the generated HTML from the repository root** — the ~27 `*.html`
-   files and their `*_files/` companions, plus `site_libs/`. CI regenerates all
-   of it; from here on generated output never enters the repository.
-2. **Delete the published copy of `SiteResources/` at the root.** The source
-   copy under `Rmarkdown/SiteResources/` is the one the build uses.
-3. **Consider deleting `SiteResources/README.html` outright** rather than
-   keeping it fixed. It has no `.Rmd` source, an empty `<title>`, nothing links
-   to it, and `_site.yml` does not reference it — only `header.html` and
-   `body.html`. Its internal nav links are still wrong (they assume it sits at
-   the root). It is a stale render from the original bulk upload.
-4. **Confirm the root is down to** `Rmarkdown/ Data/ Resources/ dev/ README.md`
-   plus `DESCRIPTION`, `LICENSE.md` and `.github/`.
+Before deleting, every root `*.html` was checked against `Rmarkdown/*.Rmd`:
+all 27 had a source, so CI regenerates the lot and no page was lost.
+
+1. **Done** — deleted the ~27 `*.html` and their 17 `*_files/` companions, plus
+   `site_libs/`.
+2. **Done** — deleted the published copy of `SiteResources/` at the root.
+3. **Done** — deleted `SiteResources/README.html` outright, in both the root
+   copy and the source copy under `Rmarkdown/SiteResources/`. Nothing
+   references it; confirmed by grep across `.Rmd`, `.R`, `.yml`, `.html` and
+   `.py`.
+4. **Done** — root is now exactly `Rmarkdown/ Data/ Resources/ dev/ design/
+   README.md DESCRIPTION LICENSE.md .github/ .gitignore`.
+
+Two things done alongside, because the cleanup does not hold without them:
+
+* **`.gitignore` now ignores `/*.html`, `/*_files/`, `/site_libs/` and
+  `/SiteResources/`.** `Rmarkdown/000_render_site.R` still shell-copies
+  `www/` into the root, so without this the next person to run the old local
+  build recreates all 292 files and can recommit them.
+* **`README.md` rewritten** — it described the root as the published website
+  and told contributors to run `000_render_site.R`. It now points at
+  `dev/ci/render_site_ci.R` for local preview.
+
+Retiring `000_render_site.R` and its two variants properly is the remaining
+follow-up (§6.9 of the CI design doc).
 
 Note this does not shrink `.git`, which is ~588 MB largely from rendered images
 recommitted on every render. It stops it growing, which is the achievable win.
@@ -101,7 +116,15 @@ which changes.
 - All 27 pages return 200.
 - The three link shapes above return 200.
 - `dev/ci/check_links.py` passes and the build is green.
-- No `.html` committed anywhere outside `Rmarkdown/SiteResources/`.
+- No *generated website* `.html` committed anywhere outside
+  `Rmarkdown/SiteResources/`, which keeps only the three fragments the build
+  includes: `header.html`, `body.html`, `icon_nav.html`.
+
+  The one exception, deliberate: `dev/Rlib/xgxr/` contains ~35 `.html` help
+  pages belonging to a vendored xgxr package install. Those are a local R
+  library, not site output, and nothing publishes them — `dev/` is not copied
+  into `www/`. Whether that vendored copy should exist at all is a separate
+  question from this cleanup.
 
 ### Not in this generation
 
