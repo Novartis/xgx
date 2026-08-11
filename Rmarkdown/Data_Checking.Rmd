@@ -29,7 +29,7 @@ below organized around the concrete questions a modeler asks.
 |---|---------|---------------------|
 | 1 | **About This Data** | What is this dataset — where did it come from? |
 | 2 | **Subject and Record Accounting** | Do the subject and record counts, by study and treatment arm, match expectations? |
-| 3 | **Checking Values Are Valid** | Are the dose, observation, and timing values legitimate and internally consistent? |
+| 3 | **Checking Values Are Valid** | Are the dose, observation, and timing values legitimate and internally consistent? Includes plotting the data, cross-column integrity checks, and BLQ. |
 | 4 | **Missing Data** | How much is missing, what is missing together, and does missingness relate to other variables? |
 | 5 | **Distributions and Relationships** | How are the covariates and observations distributed, and which are correlated? |
 | 6 | **Summary of Findings** | What did the checks reveal that a modeler should keep in mind? |
@@ -115,6 +115,21 @@ allowed_levels <- list(
   EVID = c(0, 1),
   MDV = c(0, 1)
 )
+
+# --- Metadata: assay and dosing conventions ----------------------------------
+# EDIT THESE for your dataset.
+
+# Column holding the lower limit of quantification, or NA if the dataset does
+# not carry one. Used by the BLQ section to check CENS against the LLOQ.
+lloq_col <- "LLOQ"
+
+# Covariates that must not change within a subject. The document summarizes
+# covariates from the first record per subject, which is only valid if this
+# holds -- so it is checked rather than assumed.
+subject_invariant <- c("AGE0", "WEIGHT0", "SEX", "AGEB", "WEIGHTB", "TRT")
+
+# Value of NAME that marks a dosing record, used for time-after-dose.
+name_dose <- "Dose"
 ```
 
 # Load Data
@@ -153,9 +168,13 @@ data1 <- data %>%
   filter(!duplicated(USUBJID))
 ```
 
-Covariates are read from the first record per subject (`data1`) and are assumed
-time-invariant. If any covariate can change within a subject, summarize it
-differently.
+Covariates are read from the first record per subject (`data1`), which is only
+valid if they genuinely do not change within a subject. That is a strong
+assumption and a quiet one — if it fails, every covariate summary, distribution
+and correlation below is computed from an arbitrary first row and still looks
+perfectly clean. So it is **checked**, not assumed: see *Dataset Integrity
+Checks*, which lists any variable in `subject_invariant` that moves within a
+subject.
 
 # About this dataset
 
@@ -332,9 +351,11 @@ dv_summary_overall <- data %>%
   summarize(
     n_total = n(),
     n_missing_or_NA = sum(is.na(LIDV) | MDV == 1),
-    n_zeroes = sum(LIDV == 0),
-    n_censored = sum(CENS == 1),
-    n_negative = sum(LIDV < 0),
+    # na.rm throughout: without it a single NA observation turns the whole
+    # count into NA and the column silently goes blank.
+    n_zeroes = sum(LIDV == 0, na.rm = TRUE),
+    n_censored = sum(CENS == 1, na.rm = TRUE),
+    n_negative = sum(LIDV < 0, na.rm = TRUE),
     n_duplicate_times = sum(duplicated(paste(USUBJID, TIME))),
     min = min(LIDV, na.rm = TRUE),
     Q1 = quantile(LIDV, 0.25, na.rm = TRUE),
@@ -372,6 +393,70 @@ dv_summary_overall <- dv_summary_overall %>%
   arrange(Type)
 
 datatable(dv_summary_overall)
+```
+
+## Look at the Data
+
+Before any summary statistic, plot the dependent variable against time. Most
+data errors that matter are visible here and nowhere else: a profile with the
+wrong units, a subject whose doses were never recorded, a decimal-point slip, a
+concentration that rises when it should fall.
+
+Linear and semi-log side by side, because they fail differently — the linear
+panel shows the peak, the log panel shows the terminal phase and anything
+impossibly low.
+
+```{r dv-vs-time, fig.width = 10, fig.height = 5, warning = FALSE}
+obs <- data %>% filter(EVID == 0)
+
+gg <- ggplot(obs, aes(x = TIME, y = LIDV, group = USUBJID, color = TRT_low2high)) +
+  geom_line(alpha = 0.5) +
+  geom_point(size = 0.8, alpha = 0.7) +
+  facet_wrap(~NAME, scales = "free_y") +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset) +
+  labs(y = "Observed value", color = "Treatment") +
+  xgx_annotate_status(status)
+
+print(gg)
+print(gg + xgx_scale_y_log10() + labs(y = "Observed value (log scale)"))
+```
+
+### Time After Dose
+
+Overlaying profiles on time-after-dose collapses the dosing schedule and makes
+the shape of a single interval visible. It is also a check in its own right:
+every observation should have a dose before it, and `TAD` should never be
+negative. Observations with no preceding dose show up as `NA` and are counted
+below.
+
+```{r dv-vs-tad, fig.width = 10, fig.height = 4, warning = FALSE}
+# Running maximum of dosing times gives the most recent dose at each row in a
+# single pass, without a many-to-many join that would blow up on a large study.
+data_tad <- data %>%
+  arrange(USUBJID, TIME) %>%
+  group_by(USUBJID) %>%
+  mutate(last_dose_time = cummax(ifelse(EVID == 1, TIME, -Inf))) %>%
+  ungroup() %>%
+  mutate(
+    last_dose_time = ifelse(is.infinite(last_dose_time), NA, last_dose_time),
+    TAD = TIME - last_dose_time
+  )
+
+n_no_prior_dose <- sum(data_tad$EVID == 0 & is.na(data_tad$TAD))
+cat("Observations with no preceding dose record:", n_no_prior_dose, "\n")
+
+gg_tad <- data_tad %>%
+  filter(EVID == 0, !is.na(TAD)) %>%
+  ggplot(aes(x = TAD, y = LIDV, group = USUBJID, color = TRT_low2high)) +
+  geom_line(alpha = 0.5) +
+  geom_point(size = 0.8, alpha = 0.7) +
+  facet_wrap(~NAME, scales = "free_y") +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset) +
+  xgx_scale_y_log10() +
+  labs(x = "Time after dose", y = "Observed value", color = "Treatment") +
+  xgx_annotate_status(status)
+
+print(gg_tad)
 ```
 
 ## Plausibility Range Checks
@@ -430,6 +515,244 @@ if (nrow(cat_violations) == 0) {
     caption = "Categorical variables with unexpected values"
   )
 }
+```
+
+## Dataset Integrity Checks
+
+The plausibility checks above ask whether each value is individually legal. These
+ask whether the columns *agree with each other*, which is where most
+modelling-dataset defects actually live. A dataset can have a perfectly legal
+`EVID`, a perfectly legal `AMT`, and still be broken because a dosing record
+carries no dose.
+
+The checks follow the conventions NONMEM enforces, and are modelled on the set
+in [`NMdata::NMcheckData()`](https://nmautoverse.github.io/NMdata/reference/NMcheckData.html)
+(Delff). Each is skipped automatically if the columns it needs are absent, so
+the block is safe to keep when your dataset has no `CMT`, `ADDL` or `RATE`.
+
+```{r integrity-checks}
+has <- function(...) all(c(...) %in% names(data))
+results <- list()
+record <- function(check, n, note = "") {
+  results[[length(results) + 1]] <<- tibble::tibble(
+    check = check, n_failing = as.integer(n), note = note
+  )
+}
+
+# --- timing ------------------------------------------------------------------
+if (has("USUBJID", "TIME")) {
+  dec <- data %>%
+    group_by(USUBJID) %>%
+    mutate(decreasing = TIME < lag(TIME)) %>%
+    ungroup()
+  record(
+    "TIME decreases within a subject", sum(dec$decreasing, na.rm = TRUE),
+    "NONMEM requires non-decreasing TIME within an individual"
+  )
+}
+
+# --- duplicate events --------------------------------------------------------
+dup_key <- intersect(c("USUBJID", "CMT", "EVID", "TIME"), names(data))
+dup_rows <- data[duplicated(data[, dup_key]), , drop = FALSE]
+record(
+  paste0("Duplicate events on ", paste(dup_key, collapse = " + ")),
+  nrow(dup_rows), "Exact repeats of the same event key"
+)
+
+# --- EVID / AMT / MDV / DV agreement -----------------------------------------
+if (has("EVID", "AMT")) {
+  record("Dosing record (EVID==1) with AMT missing or <= 0",
+         sum(data$EVID == 1 & (is.na(data$AMT) | data$AMT <= 0)))
+  record("Observation record (EVID==0) with AMT > 0",
+         sum(data$EVID == 0 & !is.na(data$AMT) & data$AMT > 0))
+}
+if (has("EVID", "MDV", "LIDV")) {
+  record("MDV==0 but the dependent variable is missing",
+         sum(data$EVID == 0 & data$MDV == 0 & is.na(data$LIDV)))
+  record("MDV==1 but a dependent variable is present",
+         sum(data$EVID == 0 & data$MDV == 1 & !is.na(data$LIDV)))
+}
+
+# --- compartment -------------------------------------------------------------
+if (has("CMT")) {
+  record("CMT not a positive integer",
+         sum(is.na(data$CMT) | data$CMT <= 0 | data$CMT != round(data$CMT)))
+  if (has("YTYPE")) {
+    multi <- data %>%
+      filter(EVID == 0) %>%
+      distinct(YTYPE, CMT) %>%
+      count(YTYPE) %>%
+      filter(n > 1)
+    record("YTYPE mapping to more than one CMT", nrow(multi))
+  }
+}
+
+# --- subject completeness ----------------------------------------------------
+if (has("USUBJID", "EVID")) {
+  per_subj <- data %>%
+    group_by(USUBJID) %>%
+    summarise(doses = sum(EVID == 1), obs = sum(EVID == 0), .groups = "drop")
+  record("Subjects with no dosing record", sum(per_subj$doses == 0))
+  record("Subjects with no observation record", sum(per_subj$obs == 0))
+}
+if (has("ID", "USUBJID")) {
+  record("ID and USUBJID not one-to-one",
+         abs(nrow(distinct(data, ID, USUBJID)) - n_distinct(data$USUBJID)))
+}
+
+# --- covariates that must not move within a subject --------------------------
+inv <- intersect(subject_invariant, names(data))
+inv_varying <- tibble::tibble(variable = character(), n_subjects = integer())
+if (length(inv) > 0) {
+  inv_varying <- data %>%
+    group_by(USUBJID) %>%
+    summarise(across(all_of(inv), ~ n_distinct(.x[!is.na(.x)]) > 1), .groups = "drop") %>%
+    select(all_of(inv)) %>%
+    summarise(across(everything(), ~ sum(.x))) %>%
+    pivot_longer(everything(), names_to = "variable", values_to = "n_subjects") %>%
+    filter(n_subjects > 0)
+  record("Subject-invariant covariates that vary within a subject",
+         nrow(inv_varying),
+         "Covariate summaries take the first record per subject, so this must be zero")
+}
+
+# --- units -------------------------------------------------------------------
+unit_cols <- intersect(c("UNIT", "EVENTU"), names(data))
+if (length(unit_cols) > 0 && has("NAME")) {
+  mixed <- data %>%
+    filter(EVID == 0) %>%
+    group_by(NAME) %>%
+    summarise(across(all_of(unit_cols), ~ n_distinct(.x)), .groups = "drop") %>%
+    pivot_longer(-NAME) %>%
+    filter(value > 1)
+  record("Analytes carrying more than one unit", nrow(mixed))
+}
+
+# --- optional NONMEM columns, only if present --------------------------------
+if (has("RATE")) {
+  record("RATE neither -2, -1 nor non-negative",
+         sum(!is.na(data$RATE) & data$RATE < 0 & !data$RATE %in% c(-1, -2)))
+}
+if (has("SS")) {
+  record("SS not 0 or 1", sum(!is.na(data$SS) & !data$SS %in% c(0, 1)))
+}
+if (has("ADDL", "II")) {
+  record("ADDL present without a positive II",
+         sum(!is.na(data$ADDL) & data$ADDL > 0 & (is.na(data$II) | data$II <= 0)))
+}
+
+integrity <- bind_rows(results) %>%
+  mutate(status = ifelse(n_failing == 0, "pass", "REVIEW")) %>%
+  select(status, check, n_failing, note) %>%
+  arrange(status, desc(n_failing))
+
+datatable(integrity, options = list(pageLength = 25, dom = "t"),
+          caption = "Dataset integrity checks")
+```
+
+Anything marked `REVIEW` is detailed below.
+
+```{r integrity-detail}
+if (nrow(inv_varying) > 0) {
+  datatable(
+    inv_varying,
+    options = list(dom = "t"),
+    caption = "Covariates that change within a subject (should be none)"
+  )
+} else {
+  cat("All subject-invariant covariates are constant within subject.\n")
+}
+```
+
+```{r integrity-detail-dups}
+if (nrow(dup_rows) > 0) {
+  datatable(
+    dup_rows %>% select(any_of(c("USUBJID", "TIME", "EVID", "CMT", "NAME", "LIDV"))),
+    caption = "Duplicated event records"
+  )
+} else {
+  cat("No duplicated event records.\n")
+}
+```
+
+## Below the Limit of Quantification (BLQ)
+
+How much of the data is below the assay limit, and *where* it sits, decides how
+BLQ has to be handled in the model. A small BLQ fraction in the terminal phase
+can reasonably be dropped (M1); a substantial fraction, or BLQ during absorption,
+generally needs the censored-likelihood treatment (M3). Bergstrand & Karlsson
+(2009) is the standard comparison, and the FDA population PK guidance expects the
+chosen approach to be stated. So the point of this section is not the total —
+it is the distribution over time and dose.
+
+```{r blq-summary}
+lloq_available <- !is.na(lloq_col) && lloq_col %in% names(data)
+
+blq <- data %>%
+  filter(EVID == 0) %>%
+  mutate(is_blq = CENS == 1)
+
+blq_by_analyte <- blq %>%
+  group_by(NAME) %>%
+  summarise(
+    n_obs = n(),
+    n_blq = sum(is_blq, na.rm = TRUE),
+    pct_blq = round(100 * mean(is_blq, na.rm = TRUE), 1),
+    .groups = "drop"
+  )
+
+datatable(blq_by_analyte, options = list(dom = "t"),
+          caption = "BLQ fraction by analyte")
+```
+
+```{r blq-consistency}
+# Does the censoring flag agree with the reported LLOQ? Disagreement usually
+# means CENS is being used for something other than "below the assay limit",
+# which is worth knowing before anyone models it as censoring.
+if (lloq_available) {
+  lloq <- blq[[lloq_col]]
+  consistency <- tibble::tibble(
+    check = c(
+      "CENS==1 but the value is above the LLOQ",
+      "CENS==0 but the value is below the LLOQ",
+      "LLOQ missing on an observation"
+    ),
+    n = c(
+      sum(blq$is_blq & !is.na(blq$LIDV) & !is.na(lloq) & blq$LIDV > lloq, na.rm = TRUE),
+      sum(!blq$is_blq & !is.na(blq$LIDV) & !is.na(lloq) & blq$LIDV < lloq, na.rm = TRUE),
+      sum(is.na(lloq))
+    )
+  )
+  datatable(consistency, options = list(dom = "t"),
+            caption = "Censoring flag vs reported LLOQ")
+} else {
+  cat("No LLOQ column configured (`lloq_col`), so this check is skipped.\n")
+}
+```
+
+```{r blq-by-time-dose, fig.width = 9, fig.height = 4}
+blq_by_time <- blq %>%
+  group_by(NAME, NOMTIME) %>%
+  summarise(pct_blq = 100 * mean(is_blq, na.rm = TRUE), n = n(), .groups = "drop")
+
+gg_blq <- ggplot(blq_by_time, aes(x = NOMTIME, y = pct_blq)) +
+  geom_col() +
+  facet_wrap(~NAME) +
+  xgx_scale_x_time_units(units_dataset = time_units_dataset) +
+  labs(y = "% BLQ", x = "Nominal time") +
+  xgx_annotate_status(status)
+
+print(gg_blq)
+
+blq_by_dose <- blq %>%
+  group_by(NAME, TRT_low2high) %>%
+  summarise(
+    n_obs = n(),
+    pct_blq = round(100 * mean(is_blq, na.rm = TRUE), 1),
+    .groups = "drop"
+  )
+
+datatable(blq_by_dose, caption = "BLQ fraction by treatment arm")
 ```
 
 ## Dose and PK/PD Data Collection Times
@@ -528,22 +851,16 @@ na_summary <- na_summary %>%
 datatable(na_summary)
 ```
 
-## Missing Data Summary
+## Missing-data patterns
 
-The graph below clusters the missing-data pattern as a first step toward
-spotting trends. Each column is a patient. The
-[`naniar` package](https://naniar.njtierney.com/) (`gg_miss_upset`) is useful
-for a more detailed look at combinations of missing values.
+The table above says *how much* is missing per column. This says which variables
+tend to be missing *together*, which is the more useful question — missingness
+that clusters usually points at one upstream cause (a visit not done, a sample
+lost) rather than many independent ones.
 
-```{r missing-data-plot, fig.height = 20}
-DescTools::PlotMiss(data1, clust = TRUE, col = "grey10", bg = "grey90")
-```
-
-### Missing-data patterns
-
-`gg_miss_upset` shows which variables tend to be missing *together*.
-If no combinations of missing values exist, this plot may be empty or error; it
-is wrapped in `try()` so the rest of the document still renders.
+`gg_miss_upset` from the [`naniar` package](https://naniar.njtierney.com/) draws
+that. If no combinations of missing values exist the plot is empty or errors, so
+it is wrapped in `try()` and the rest of the document still renders.
 
 ```{r missing-upset, fig.width = 8, fig.height = 5}
 if (any(is.na(data1))) {
@@ -606,16 +923,29 @@ one another — to flag issues to address before modeling:
 ## Covariate Summary
 
 Numerical summary of the covariates: quartiles for continuous variables and
-level counts for categorical ones, with a pairs plot to see joint
-distributions (along the diagonals) and pairwise relationships.
+level counts for categorical ones, followed by a pairs plot.
+
+The pairs plot carries the whole picture on its own — the diagonal gives each
+variable's distribution (so skew and outliers are visible there), and the
+off-diagonal panels give every pairwise relationship. Separate histograms and
+bar charts of the same variables would only repeat the diagonal, so there are
+none.
 
 ```{r covariate-summary, fig.height = 8, fig.width = 8}
+# Split covariates once, here, and reuse the split everywhere below. A variable
+# is treated as continuous only if it is numeric AND takes enough distinct
+# values to be worth summarising as one -- a 0/1 numeric flag is categorical
+# however it is stored.
 num_unique_vals <- data1[, covariates] %>%
   summarise_all(function(x) length(unique(x))) %>%
   as.numeric()
+is_numeric_cov <- vapply(data1[, covariates, drop = FALSE], is.numeric, logical(1))
 
-cts_cov <- data1 |> select(all_of(covariates[num_unique_vals >= 8]))
-cat_cov <- data1 |> select(all_of(covariates[num_unique_vals < 8]))
+cts_names <- covariates[is_numeric_cov & num_unique_vals >= 8]
+cat_names <- setdiff(covariates, cts_names)
+
+cts_cov <- data1 |> select(all_of(cts_names))
+cat_cov <- data1 |> select(all_of(cat_names))
 
 cts_cov_summary <- cts_cov %>%
   pivot_longer(everything()) %>%
@@ -659,40 +989,6 @@ GGally::ggpairs(
 )
 ```
 
-## Continuous Variables: Skewness and Outliers
-
-Confirm the continuous covariates take expected values. Watch for highly
-skewed variables (candidates for transformation) and outliers (candidates for
-a sensitivity analysis). Edit the `select()` to the continuous columns in your
-dataset.
-
-```{r ida-continuous, warning = FALSE}
-data_cts <- data1 %>%
-  select(any_of(covariates)) %>%
-  select(where(is.numeric))
-
-ggplot(pivot_longer(data_cts, everything()), aes(x = value)) +
-  geom_histogram() +
-  facet_wrap(~name, scales = "free")
-```
-
-## Categorical Variables: Small Groups
-
-Confirm the categorical covariates take expected values. For categories with
-few patients, consider grouping, as the analysis likely won't have power to
-detect their effects.
-
-```{r ida-categorical}
-data_cat <- data1 %>%
-  select(any_of(covariates)) %>%
-  select(where(~ !is.numeric(.))) %>%
-  mutate(across(everything(), as.character))
-
-ggplot(pivot_longer(data_cat, everything()), aes(y = value)) +
-  geom_bar() +
-  facet_wrap(~name, scales = "free")
-```
-
 ## Correlations: Correlated Variables
 
 Watch for high correlations (> 0.4); for those, consider using only one in any
@@ -701,10 +997,11 @@ covariate analysis. This uses
 which works with both continuous and categorical (factor-coded) values.
 
 ```{r ida-correlations, fig.width = 10, fig.height = 10}
-data_cat_num <- data_cat %>%
-  mutate(across(where(is.character), ~ as.numeric(factor(.))))
+# Categorical covariates are factor-coded to numbers so Spearman can rank them.
+cat_cov_num <- cat_cov %>%
+  mutate(across(everything(), ~ as.numeric(factor(.))))
 
-data_cov_all_num <- bind_cols(data_cts, data_cat_num)
+data_cov_all_num <- bind_cols(cts_cov, cat_cov_num)
 
 M <- cor(data_cov_all_num, method = "spearman", use = "pairwise.complete.obs")
 corrplot::corrplot.mixed(M, lower = "number", upper = "ellipse")
@@ -712,7 +1009,7 @@ corrplot::corrplot.mixed(M, lower = "number", upper = "ellipse")
 
 ## Largest Correlations
 
-```{r ida-largest-correlations, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 10}
+```{r ida-largest-correlations, message = FALSE, warning = FALSE}
 Mupper <- M
 Mupper[lower.tri(M, diag = TRUE)] <- 0
 
@@ -730,16 +1027,11 @@ largest_corr <- Mupper %>%
   filter(n <= n_largest | abs(corr) > corr_threshold)
 
 knitr::kable(largest_corr, caption = "Largest correlations", digits = 2)
-
-columns <- as.character(unique(c(largest_corr$Var1, largest_corr$Var2)))
-
-data_cov_all <- bind_cols(data_cts, data_cat)
-GGally::ggpairs(
-  data_cov_all,
-  columns = columns,
-  diag = list(continuous = "barDiag")
-)
 ```
+
+The pairs plot in *Covariate Summary* already shows these pairs jointly, so the
+table is the addition here: it names and ranks them rather than leaving you to
+read them off a grid.
 
 ## Overview of Entire Dataset
 
@@ -932,9 +1224,18 @@ be useful today.
 **Adopt mature data-quality tooling instead of bespoke checks.** The
 plausibility and validity checks here could be replaced or backed by established R packages, which bring tested logic and standard reporting:
 
+- [`NMdata`](https://cran.r-project.org/package=NMdata) — the pharmacometrics-specific
+one, and the closest fit to this document. `NMcheckData()` runs an automated battery
+against the conventions NONMEM enforces: `TIME` non-decreasing within a subject,
+`AMT`/`EVID`/`MDV`/`DV` agreement, `CMT` validity, `ADDL`/`II`/`SS`/`RATE` rules,
+duplicate events on `ID`+`CMT`+`EVID`+`TIME`, subject-invariant covariates, and
+`ID`/`USUBJID` correspondence. The *Dataset Integrity Checks* section above is
+modelled on that list. Adopting the package outright would tie this document to
+NONMEM conventions and to a single-maintainer dependency, which is why the checks
+are written out here instead — but if your workflow is NONMEM-based, use it directly.
 - [`pointblank`](https://rstudio.github.io/pointblank/) — declarative data
-validation: state expectations (ranges, allowed values, uniqueness) and get a pass/fail report. A natural fit for the "Checking Values Are Valid" section.
-- [`dataquieR`](https://dataquality.qihs.uni-greifswald.de/) — the STRATOS-lineage data-quality framework; a more formal, comprehensive take on the same IDA activities in this document.
+validation: state expectations (ranges, allowed values, uniqueness) and get a pass/fail report. A natural fit for the "Checking Values Are Valid" section. Domain-agnostic: it knows nothing about `EVID` or compartments.
+- [`dataquieR`](https://dataquality.qihs.uni-greifswald.de/) — the STRATOS-lineage data-quality framework; a more formal, comprehensive take on the same IDA activities in this document. Also domain-agnostic.
 
 **Turn the exported summary into an AI-assisted review.** The Portable Summary
 Export already writes a machine-readable artifact. That is the input contract for a future "data-cleaning reviewer" agent that reads the summary *and* this code, flags weaknesses, and drafts the Summary of Findings. Relevant building blocks:
@@ -950,6 +1251,16 @@ package/repo first (this space moves quickly), and keep the human-in-the-loop �
 an AI reviewer should draft findings for a modeler to adjudicate, never sign off.
 
 # References
+
+## Pharmacometrics
+
+- Byon W, Smith MK, Chan P, Tortorici MA, Riley S, Dai H, Dong J, Ruiz-Garcia A, Sweeney K, Cronenberger C (2013). *Establishing best practices and guidance in population modeling: an experience with an internal population pharmacokinetic analysis guidance.* CPT Pharmacometrics Syst Pharmacol 2(7): e51. <https://doi.org/10.1038/psp.2013.26>
+- U.S. Food and Drug Administration (2022). *Population Pharmacokinetics: Guidance for Industry.* <https://www.fda.gov/regulatory-information/search-fda-guidance-documents/population-pharmacokinetics> — sets the expectation that data handling, BLQ treatment, outliers and missing data are described in the analysis.
+- Bergstrand M, Karlsson MO (2009). *Handling data below the limit of quantification in mixed effect models.* AAPS J 11(2): 371–380. <https://doi.org/10.1208/s12248-009-9112-5> — the M1–M4 comparison behind the BLQ section.
+- Beal SL (2001). *Ways to fit a PK model with some data below the quantification limit.* J Pharmacokinet Pharmacodyn 28(5): 481–504. <https://doi.org/10.1023/A:1012299115260> — the original enumeration of the M1–M7 methods.
+- Delff P. *NMdata: preparation, checking and post-processing data for PK/PD modeling.* <https://cran.r-project.org/package=NMdata> — `NMcheckData()` is the reference implementation of the dataset integrity checks used here.
+
+## Initial data analysis and data quality
 
 - Baillie M, le Cessie S, Schmidt CO, Lusa L, Huebner M, for the STRATOS Initiative (2022). *Ten simple rules for initial data analysis.* PLoS Comput Biol 18(2): e1009819. <https://doi.org/10.1371/journal.pcbi.1009819>
 - Huebner M, le Cessie S, Schmidt CO, Vach W (2018). *A contemporary conceptual framework for initial data analysis.* Observational Studies 4: 171–192. <https://doi.org/10.1353/obs.2018.0014>

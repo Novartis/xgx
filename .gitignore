@@ -1,5 +1,14 @@
 Rmarkdown/*_files/*
 Rmarkdown/*_cache/*
+
+# Build output from rendering a single .Rmd in place (rather than via the site
+# build, which stages into Rmarkdown/www/). site_libs is ~6 MB of vendored JS
+# and CSS; the .gitignore is auto-created by the rmarkdown/quarto toolchain.
+# Only the repository-root copies were ignored before, so a local render used to
+# leave uncommitted build output sitting in Rmarkdown/.
+Rmarkdown/site_libs/
+Rmarkdown/*.html
+Rmarkdown/.gitignore
 .Rproj.user
 .Rhistory
 .RData
