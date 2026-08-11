@@ -2,6 +2,15 @@
 
 **Nothing should break. Every page must continue to compile.**
 
+**`Data/`, `Rmarkdown/` and `Resources/` do not move.** The published pages link
+straight into all three, so their names are part of public URLs — e.g.
+`/xgx/Data/mt12345.csv`, `/xgx/Rmarkdown/Adverse_Events.Rmd`,
+`/xgx/Resources/Presentation_Checklist_v2.03.pdf` — and those are cited in
+publications and from xgxr's CRAN listing. Reorganising means removing generated
+output from the root, not relocating source directories. Note `check_links.py`
+will not catch a move like this: it validates links within the built site, and
+an external citation is outside its reach.
+
 This site should enable AI development/use (i.e. use the pages as templates) together with `synpmx` package
 There could ultimately be created some skill files to help use with adapting these sites as templates. 
 
@@ -44,6 +53,14 @@ There could ultimately be created some skill files to help use with adapting the
   suggestive — an icon for a nav section that does not exist.
 
 * **`dev/Test/`** — two scratch files, kept deliberately in `f1cdea7`.
+
+**Not an open item:** the integrity checks on the data checking page flag several
+things in `Data/Data_Checking.csv` — covariates that vary within a subject,
+duplicate event records, a subject with no observations, and a `CENS` column that
+marks pre-dose records rather than BLQ. That is the page doing its job on a
+demonstration dataset, not a defect list to work through. Arguably the data
+should keep its warts, since a checking page whose every check passes teaches
+nothing.
 
 ### Repository size
 
