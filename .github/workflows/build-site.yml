@@ -3,19 +3,16 @@ name: Build site
 # Renders the xGx website from source on every push, so that no build output
 # ever needs to be committed to the repository.
 #
-# Deployment is currently DISABLED. GitHub Pages for this repo is still set to
-# "Deploy from a branch" (master, /), so the live site continues to be served
-# from the committed HTML in the repository root exactly as before. This
-# workflow only builds and uploads the result as a downloadable artifact, so
-# the pipeline can be proven before anything about the live site changes.
+# This workflow is what publishes https://opensource.nibr.com/xgx/. Settings >
+# Pages > Source is set to "GitHub Actions" (changed 2026-08-11), so the live
+# site is whatever the `deploy` job below last uploaded -- not the HTML
+# committed in the repository. See design/2026-08-06_CI_Build_Pipeline.md.
 #
-# To go live, an org admin changes Settings > Pages > Source to "GitHub
-# Actions", and the `deploy` job below is enabled. See
-# design/2026-08-06_CI_Build_Pipeline.md.
+# Every push and pull request builds. Only master deploys.
 
 on:
   push:
-    branches: [master, andy-reorg-nochange]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -115,25 +112,25 @@ jobs:
           path: Rmarkdown/www
           retention-days: 14
 
-      # Only in a fork. On Novartis/xgx this step is skipped, so nothing is
-      # ever staged for deployment there.
+      # Only master is ever staged for deployment. Pull requests still build
+      # and still publish the inspectable artifact above, they just cannot
+      # reach the live site.
       - name: Upload Pages artifact
-        if: github.repository_owner != 'Novartis'
+        if: github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
         with:
           path: Rmarkdown/www
 
-  # Publishes the CI-built site so it can actually be clicked through.
+  # Publishes the built site. On Novartis/xgx that is
+  # https://opensource.nibr.com/xgx/; in a fork it is that fork's own Pages,
+  # e.g. https://iamstein.github.io/xgx/ -- the same /xgx/ path depth as
+  # production, so relative links behave identically in both.
   #
-  # Deliberately scoped to forks: on Novartis/xgx this job never runs, so the
-  # live site at opensource.nibr.com/xgx keeps being served from the committed
-  # HTML on master exactly as before. In a personal fork it publishes to that
-  # fork's own Pages, e.g. https://iamstein.github.io/xgx/ -- the same /xgx/
-  # path depth as production, so relative links behave identically.
-  #
-  # At cutover this condition becomes `github.ref == 'refs/heads/master'`.
+  # Scoped to master. The github-pages environment additionally restricts
+  # deployments to master, so a branch cannot reach the live site even if this
+  # condition were wrong.
   deploy:
-    if: github.repository_owner != 'Novartis'
+    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
     permissions:

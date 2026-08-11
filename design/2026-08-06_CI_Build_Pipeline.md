@@ -1,8 +1,8 @@
 # Building the xGx site with CI
 
-**Status:** proposal, pipeline prototyped
-**Date:** 2026-08-06
-**Needs from someone else:** one GitHub Pages setting, changed once, by a repo admin
+**Status:** live — Pages source switched to GitHub Actions 2026-08-11, deployment enabled
+**Date:** 2026-08-06, updated 2026-08-11
+**Needs from someone else:** nothing outstanding; the Pages setting has been changed
 
 ---
 
@@ -113,17 +113,25 @@ does not shrink existing history, but it stops adding to it.
 
 ## 3. What is needed
 
-### 3.1 From an admin — one setting
+### 3.1 From an admin — one setting — DONE 2026-08-11
 
 **Settings → Pages → Source: "Deploy from a branch" → "GitHub Actions"**
 
-That is the entire ask. Current configuration:
+That was the entire ask, and it has been done. Configuration now:
 
 ```
-build_type: legacy
-source:     { branch: master, path: / }
+build_type: workflow
 html_url:   https://opensource.nibr.com/xgx/
 ```
+
+Note the consequence, because it is what forces the rest of the cutover to
+follow promptly: with `build_type: workflow`, the legacy `pages-build-deployment`
+job no longer runs. Committing HTML to master no longer changes the live site.
+Until the `deploy` job below runs on master, Pages keeps serving the last
+legacy build — the site stays up, but frozen.
+
+The `github-pages` environment restricts deployments to `master` only, which is
+a useful second lock: a branch cannot publish to production even by accident.
 
 Repo admins as of 2026-08-06: `kliatsko`, `HEBERAN2`, `orladoylenvs`.
 
@@ -145,15 +153,14 @@ value of the same setting.
 | `dev/ci/check_links.py` | Fails the build if a link breaks |
 | `DESCRIPTION` | The authoritative dependency manifest |
 
-Deployment is gated on `github.repository_owner != 'Novartis'`. On
-`Novartis/xgx` both the Pages upload and the deploy job are skipped, so the live
-site continues to be served from the committed HTML exactly as today. In a
-personal fork the pipeline runs end to end and publishes to that fork's own
-Pages — currently `https://iamstein.github.io/xgx/` — at the same `/xgx/` path
-depth as production, so relative links behave identically. That makes it
-possible to prove deployment, not just building, before asking for anything.
+Deployment was gated on `github.repository_owner != 'Novartis'` while the
+pipeline was being proven, so that it ran end to end in the fork
+(`https://iamstein.github.io/xgx/`, the same `/xgx/` path depth as production)
+without touching the live site. That gate served its purpose and is gone.
 
-At cutover the condition becomes `github.ref == 'refs/heads/master'`.
+**As of 2026-08-11 the condition is `github.ref == 'refs/heads/master'`**, on
+both the Pages upload step and the deploy job. Pull requests build and produce
+a downloadable artifact; only master publishes.
 
 ---
 
@@ -292,16 +299,20 @@ happen to use.
 3. Push the branch, let the workflow run, and fix what breaks. **This is where
    the real work is** and it has nothing to do with permissions.
 4. Fix §5.1 — split dataset generation out of `PKPD_Datasets.Rmd`.
-5. Compare the CI-built site against the live site page by page.
-6. Ask Orla Doyle to switch the Pages source to "GitHub Actions".
-7. Enable the `deploy` job; remove `if: false` in both places.
-8. Delete the committed build output from the repository root. Root becomes
-   `Rmarkdown/ Data/ Resources/ dev/ design/ README.md LICENSE.md`.
+5. **Done** — compare the CI-built site against the live site. Reviewed by
+   Alison, 2026-08-11.
+6. **Done 2026-08-11** — Pages source switched to "GitHub Actions".
+7. **Done 2026-08-11** — `deploy` job enabled; both fork-only gates replaced
+   with `github.ref == 'refs/heads/master'`.
+8. **Next** — delete the committed build output from the repository root. Root
+   becomes `Rmarkdown/ Data/ Resources/ dev/ design/ README.md LICENSE.md`.
+   Safe only *after* a green deploy from master, since until then the committed
+   HTML is still what Pages is serving.
 9. Retire `000_render_site.R` and its two variants, or reduce them to a thin
    local-preview wrapper around `render_site_ci.R`.
 
-Steps 3–5 are worth completing *before* step 6, so the request comes with a
-working pipeline attached rather than a plan.
+Steps 3–5 were completed *before* step 6, so the request came with a working
+pipeline attached rather than a plan.
 
 ---
 
