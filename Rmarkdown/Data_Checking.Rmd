@@ -12,9 +12,7 @@ output:
 
 This file runs **initial data analysis (IDA)** on a modeling dataset, before any
 modeling begins. The aim of IDA is to confirm that the data match your expectations and are ready for analysis, without touching the research question itself
-([Baillie et al. 2022, *Ten Simple Rules for IDA*](https://doi.org/10.1371/journal.pcbi.1009819)).
-
-For a dataset that is much larger that the example one used here, the default figure size may be too small for all plots to be readable.  In that case, add or edit the `fig.height` and `fig.width` in the top of each chunk.  For example: `{r, fig.height = 6, fig.width = 8}` 
+([Baillie et al. 2022, *Ten Simple Rules for IDA*](https://doi.org/10.1371/journal.pcbi.1009819), with more examples [here](https://stratosida.github.io/resources.html).
 
 Data specifications can be accessed on [Datasets](Datasets.html) and Rmarkdown template to generate this page can be found on [Rmarkdown-Template](Rmarkdown/Data_Checking.Rmd). You may also download the Multiple Ascending Dose PK/PD dataset for your reference ([download dataset](Data/Data_Checking.csv)).
 
