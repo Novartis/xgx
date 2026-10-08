@@ -59,8 +59,6 @@ We are losing programming resources
 * Alison Margolskee
 * Andrew Stein
 * Fariba Khanshan
-* Camille Vong
-* Theodoros Papathanasiou
 
 ### Extended Team
 * Matt Fidler
@@ -82,8 +80,10 @@ The following people contributed example graphs and code or provided useful feed
 * Xinting Wang
 * Joseph Kahn
 * Xu (Sue) Zhu
+* Theodoros Papathanasiou
+* Camille Vong
+* Yu-Yun Ho
 
 ### Leadership Sponsors
 
 * Mick Looby
-* Yu-Yun Ho
